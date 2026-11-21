@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#07090e" />
+  <meta name="theme-color" content="#070a12" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -22,24 +22,49 @@
 
   <style>
     :root {
-      --bg-base: #07090e;
-      --bg-elevated: rgba(13, 17, 26, 0.93);
-      --bg-card: linear-gradient(145deg, rgba(21, 27, 40, 0.95), rgba(11, 15, 23, 0.98));
-      --bg-inset: rgba(6, 9, 15, 0.92);
-      --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-active: rgba(34, 211, 238, 0.48);
-      --accent: #22d3ee;
-      --accent-blue: #38bdf8;
-      --accent-emerald: #10b981;
-      --accent-amber: #f59e0b;
-      --accent-rose: #f43f5e;
+      /* Silk + Neumorphism Morphed Palette */
+      --bg-base: #060911;
+      --silk-surface: linear-gradient(145deg, rgba(24, 33, 52, 0.88) 0%, rgba(12, 17, 29, 0.94) 52%, rgba(19, 27, 44, 0.90) 100%);
+      --silk-elevated: linear-gradient(155deg, rgba(20, 28, 45, 0.91) 0%, rgba(10, 14, 24, 0.96) 55%, rgba(17, 24, 40, 0.93) 100%);
+      --silk-card: linear-gradient(140deg, rgba(28, 38, 60, 0.72) 0%, rgba(13, 18, 30, 0.88) 50%, rgba(22, 31, 50, 0.78) 100%);
+      --neu-well: linear-gradient(145deg, rgba(7, 10, 18, 0.95), rgba(13, 18, 30, 0.92));
+
+      /* Dual Opposing Neumorphic + Satin Specular Shadows */
+      --neu-outset:
+        0 14px 34px rgba(2, 4, 10, 0.74),
+        -4px -4px 14px rgba(148, 179, 255, 0.045),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.45);
+      --neu-soft:
+        6px 6px 16px rgba(2, 4, 10, 0.65),
+        -4px -4px 12px rgba(148, 179, 255, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.09);
+      --neu-inset:
+        inset 3px 3px 8px rgba(2, 4, 10, 0.85),
+        inset -2px -2px 6px rgba(148, 179, 255, 0.045),
+        0 1px 0 rgba(255, 255, 255, 0.04);
+
+      /* Silk Borders & Iridescent Accents */
+      --border-silk: rgba(186, 210, 255, 0.12);
+      --border-active: rgba(56, 189, 248, 0.48);
+      --accent: #38bdf8;
+      --accent-cyan: #22d3ee;
+      --accent-indigo: #818cf8;
+      --accent-emerald: #34d399;
+      --accent-amber: #fbbf24;
+      --accent-rose: #fb7185;
+
+      /* Liquid Silk Gradients */
+      --grad-silk-primary: linear-gradient(135deg, #38bdf8 0%, #22d3ee 48%, #818cf8 100%);
+      --grad-silk-emerald: linear-gradient(135deg, #34d399 0%, #10b981 55%, #059669 100%);
+      --grad-silk-amber: linear-gradient(135deg, #fbbf24 0%, #f59e0b 60%, #d97706 100%);
+      --grad-silk-rose: linear-gradient(135deg, #fb7185 0%, #f43f5e 60%, #e11d48 100%);
+
       --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
-      --shadow-outset: 0 12px 32px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-      --shadow-inset: inset 3px 3px 7px rgba(0, 0, 0, 0.72), inset -2px -2px 5px rgba(255, 255, 255, 0.025);
+      --text-secondary: #9fb0c9;
+      --text-muted: #667894;
       --pill: 9999px;
-      --radius-lg: 24px;
+      --radius-lg: 26px;
       --radius-md: 18px;
       --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
@@ -76,8 +101,8 @@
       position: fixed;
       inset: 0;
       z-index: 9999;
-      background: #06080d;
-      color: #22d3ee;
+      background: #060911;
+      color: #38bdf8;
       font-family: var(--font-mono);
       font-size: 12px;
       line-height: 1.55;
@@ -99,19 +124,19 @@
       flex-direction: column;
     }
 
-    /* Fullscreen Map Layer with Keyless Dark Tile Styling */
+    /* Fullscreen Map Layer with Calm Silk-Dark Tile Styling */
     #map {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       z-index: 1;
-      background: #090c13;
+      background: #080c15;
       touch-action: pan-x pan-y;
     }
 
     #map .leaflet-tile-pane {
-      filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(94%) saturate(75%);
+      filter: invert(100%) hue-rotate(190deg) brightness(86%) contrast(92%) saturate(72%);
     }
 
     .leaflet-control-attribution,
@@ -119,133 +144,154 @@
       display: none !important;
     }
 
-    /* Uber / Pathao Style Center-Crosshair Pin */
+    /* =========================================================================
+       PRECISION MANUAL PIN CROSSHAIR (Pixel-Accurate Needle Tip)
+       ========================================================================= */
     .center-crosshair {
       position: absolute;
       left: 50%;
-      top: 42%;
-      transform: translate(-50%, -100%);
-      z-index: 15;
+      top: 34%;
+      transform: translate(-50%, 0);
+      z-index: 22;
       pointer-events: none;
       display: none;
       flex-direction: column;
       align-items: center;
-      transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    @media (min-width: 820px) {
-      .center-crosshair {
-        left: calc(50% + 205px);
-        top: 50%;
-      }
     }
 
     .center-crosshair.visible {
       display: flex;
     }
 
-    .center-crosshair.dragging {
-      transform: translate(-50%, calc(-100% - 14px));
+    .pin-assembly {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translateY(-100%);
+      transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .center-crosshair.dragging .pin-assembly {
+      transform: translateY(calc(-100% - 14px));
     }
 
     .crosshair-badge {
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: var(--pill);
-      background: rgba(7, 9, 14, 0.94);
+      background: var(--silk-elevated);
       border: 1px solid var(--border-active);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      color: var(--accent);
+      box-shadow: var(--neu-outset);
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--text-primary);
       white-space: nowrap;
-      margin-bottom: 4px;
+      max-width: 78vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 5px;
     }
 
     .center-crosshair.pickup-mode .crosshair-badge {
-      border-color: rgba(16, 185, 129, 0.65);
+      border-color: rgba(52, 211, 153, 0.6);
       color: var(--accent-emerald);
     }
 
+    .center-crosshair.dropoff-mode .crosshair-badge {
+      border-color: rgba(251, 113, 133, 0.6);
+      color: var(--accent-rose);
+    }
+
     .crosshair-head {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #f43f5e, #e11d48);
+      background: var(--grad-silk-rose);
       border: 3px solid #ffffff;
-      box-shadow: 0 6px 16px rgba(244, 63, 94, 0.55);
+      box-shadow: 0 8px 20px rgba(244, 63, 94, 0.55);
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     .center-crosshair.pickup-mode .crosshair-head {
-      background: linear-gradient(135deg, #10b981, #059669);
-      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.55);
+      background: var(--grad-silk-emerald);
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.55);
     }
 
     .crosshair-dot {
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: #ffffff;
     }
 
     .crosshair-stem {
       width: 3px;
-      height: 12px;
+      height: 14px;
       background: #ffffff;
       border-radius: 0 0 3px 3px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
     }
 
-    .crosshair-shadow {
-      position: absolute;
-      bottom: -3px;
-      width: 10px;
+    /* Exact 2px ground contact anchor used by containerPointToLatLng */
+    .crosshair-tip {
+      width: 4px;
       height: 4px;
       border-radius: 50%;
-      background: rgba(34, 211, 238, 0.6);
-      box-shadow: 0 0 8px rgba(34, 211, 238, 0.8);
-      transition: transform 0.18s ease, opacity 0.18s ease;
+      background: #ffffff;
+      box-shadow: 0 0 10px 3px rgba(56, 189, 248, 0.9);
+      margin-top: -1px;
     }
 
-    .center-crosshair.dragging .crosshair-shadow {
-      transform: scale(1.65);
-      opacity: 0.45;
+    .center-crosshair.pickup-mode .crosshair-tip {
+      box-shadow: 0 0 10px 3px rgba(52, 211, 153, 0.95);
     }
 
-    /* Custom Capsule Controls */
+    .center-crosshair.dropoff-mode .crosshair-tip {
+      box-shadow: 0 0 10px 3px rgba(251, 113, 133, 0.95);
+    }
+
+    .crosshair-actions {
+      pointer-events: auto;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* =========================================================================
+       SILK + NEUMORPHISM CAPSULE CONTROLS
+       ========================================================================= */
     .btn-cap {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 7px;
-      height: 40px;
+      height: 41px;
       padding: 0 16px;
       border-radius: var(--pill);
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      box-shadow: var(--shadow-outset);
+      background: var(--silk-card);
+      border: 1px solid var(--border-silk);
+      box-shadow: var(--neu-soft);
       color: var(--text-primary);
       font-size: 12.5px;
       font-weight: 700;
       letter-spacing: 0.01em;
       cursor: pointer;
       white-space: nowrap;
-      transition: transform 0.14s ease, border-color 0.18s ease, opacity 0.18s ease;
+      transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.18s ease;
       flex-shrink: 0;
       text-decoration: none;
     }
 
     .btn-cap:hover {
-      border-color: rgba(255, 255, 255, 0.22);
+      border-color: rgba(186, 210, 255, 0.28);
     }
 
     .btn-cap:active {
-      transform: scale(0.97);
-      box-shadow: var(--shadow-inset);
+      transform: scale(0.975);
+      box-shadow: var(--neu-inset);
     }
 
     .btn-cap.disabled {
@@ -254,34 +300,52 @@
     }
 
     .btn-cap.primary {
-      background: linear-gradient(135deg, #22d3ee 0%, #0284c7 100%);
-      color: #041019;
-      border-color: rgba(255, 255, 255, 0.32);
-      box-shadow: 0 8px 22px rgba(34, 211, 238, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      background: var(--grad-silk-primary);
+      color: #04101d;
+      border-color: rgba(255, 255, 255, 0.42);
+      box-shadow:
+        0 10px 26px rgba(56, 189, 248, 0.28),
+        -3px -3px 10px rgba(129, 140, 248, 0.18),
+        inset 0 1px 1px rgba(255, 255, 255, 0.65);
     }
 
     .btn-cap.emerald {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: #03150e;
-      border-color: rgba(255, 255, 255, 0.28);
+      background: var(--grad-silk-emerald);
+      color: #031710;
+      border-color: rgba(255, 255, 255, 0.36);
+      box-shadow: 0 8px 22px rgba(16, 185, 129, 0.26), inset 0 1px 1px rgba(255, 255, 255, 0.55);
     }
 
     .btn-cap.amber {
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      color: #180d02;
-      border-color: rgba(255, 255, 255, 0.28);
+      background: var(--grad-silk-amber);
+      color: #190d02;
+      border-color: rgba(255, 255, 255, 0.36);
+      box-shadow: 0 8px 22px rgba(245, 158, 11, 0.24), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+    }
+
+    .btn-cap.rose {
+      background: var(--grad-silk-rose);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.36);
+      box-shadow: 0 8px 22px rgba(244, 63, 94, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.45);
     }
 
     .btn-cap.danger {
-      background: rgba(244, 63, 94, 0.16);
+      background: linear-gradient(145deg, rgba(244, 63, 94, 0.18), rgba(159, 18, 57, 0.24));
       color: #fda4af;
-      border-color: rgba(244, 63, 94, 0.34);
+      border-color: rgba(251, 113, 133, 0.34);
     }
 
     .btn-cap.sm {
       height: 32px;
       padding: 0 12px;
       font-size: 11.5px;
+    }
+
+    .btn-cap.xs {
+      height: 27px;
+      padding: 0 10px;
+      font-size: 10.5px;
     }
 
     .btn-cap.full {
@@ -294,9 +358,9 @@
       width: 100%;
       height: 54px;
       border-radius: var(--pill);
-      background: var(--bg-inset);
-      border: 1px solid rgba(34, 211, 238, 0.35);
-      box-shadow: var(--shadow-inset);
+      background: var(--neu-well);
+      border: 1px solid rgba(56, 189, 248, 0.32);
+      box-shadow: var(--neu-inset);
       overflow: hidden;
       display: flex;
       align-items: center;
@@ -306,16 +370,11 @@
     }
 
     .slide-track.emerald {
-      border-color: rgba(16, 185, 129, 0.45);
+      border-color: rgba(52, 211, 153, 0.42);
     }
 
     .slide-track.amber {
-      border-color: rgba(245, 158, 11, 0.45);
-    }
-
-    .slide-track.disabled {
-      opacity: 0.42;
-      pointer-events: none;
+      border-color: rgba(251, 191, 36, 0.42);
     }
 
     .slide-fill {
@@ -325,22 +384,22 @@
       bottom: 0;
       width: 50px;
       border-radius: var(--pill);
-      background: linear-gradient(90deg, rgba(34, 211, 238, 0.16), rgba(34, 211, 238, 0.34));
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.15), rgba(129, 140, 248, 0.34));
       pointer-events: none;
     }
 
     .slide-track.emerald .slide-fill {
-      background: linear-gradient(90deg, rgba(16, 185, 129, 0.16), rgba(16, 185, 129, 0.34));
+      background: linear-gradient(90deg, rgba(52, 211, 153, 0.15), rgba(16, 185, 129, 0.34));
     }
 
     .slide-track.amber .slide-fill {
-      background: linear-gradient(90deg, rgba(245, 158, 11, 0.16), rgba(245, 158, 11, 0.34));
+      background: linear-gradient(90deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.34));
     }
 
     .slide-label {
       position: relative;
       z-index: 2;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 800;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -357,9 +416,9 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #22d3ee 0%, #0284c7 100%);
-      color: #041019;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      background: var(--grad-silk-primary);
+      color: #04101d;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.65);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -368,13 +427,13 @@
     }
 
     .slide-track.emerald .slide-thumb {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: #03150e;
+      background: var(--grad-silk-emerald);
+      color: #031710;
     }
 
     .slide-track.amber .slide-thumb {
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      color: #180d02;
+      background: var(--grad-silk-amber);
+      color: #190d02;
     }
 
     /* Top Header HUD */
@@ -394,14 +453,14 @@
     }
 
     .hud-pill {
-      height: 40px;
-      padding: 0 14px;
+      height: 41px;
+      padding: 0 15px;
       border-radius: var(--pill);
-      background: var(--bg-elevated);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--border-subtle);
-      box-shadow: var(--shadow-outset);
+      background: var(--silk-elevated);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid var(--border-silk);
+      box-shadow: var(--neu-outset);
       display: inline-flex;
       align-items: center;
       gap: 9px;
@@ -411,11 +470,11 @@
     }
 
     .brand-mark {
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
-      background: rgba(34, 211, 238, 0.14);
-      border: 1px solid rgba(34, 211, 238, 0.36);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(129, 140, 248, 0.22));
+      border: 1px solid rgba(56, 189, 248, 0.42);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -427,6 +486,9 @@
       font-size: 13px;
       font-weight: 800;
       letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #f8fafc 30%, #93c5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -480,11 +542,11 @@
       height: 36px;
       padding: 0 13px;
       border-radius: var(--pill);
-      background: var(--bg-elevated);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid var(--border-subtle);
-      box-shadow: var(--shadow-outset);
+      background: var(--silk-elevated);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-silk);
+      box-shadow: var(--neu-soft);
       display: inline-flex;
       align-items: center;
       gap: 7px;
@@ -492,12 +554,16 @@
       font-weight: 700;
       color: var(--text-secondary);
       cursor: pointer;
-      transition: color 0.15s ease, border-color 0.15s ease;
+      transition: color 0.16s ease, border-color 0.16s ease, transform 0.14s ease;
     }
 
     .map-tool-pill:hover, .map-tool-pill.active {
       color: var(--accent);
       border-color: var(--border-active);
+    }
+
+    .map-tool-pill:active {
+      transform: scale(0.97);
     }
 
     /* Responsive Console Container */
@@ -515,36 +581,36 @@
 
     .console-panel {
       pointer-events: auto;
-      background: var(--bg-elevated);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--border-subtle);
+      background: var(--silk-elevated);
+      backdrop-filter: blur(26px);
+      -webkit-backdrop-filter: blur(26px);
+      border: 1px solid var(--border-silk);
       border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-outset);
+      box-shadow: var(--neu-outset);
       padding: 14px;
-      max-height: 58dvh;
+      max-height: 60dvh;
       overflow-y: auto;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 9px;
     }
 
     .console-panel::-webkit-scrollbar {
       width: 4px;
     }
     .console-panel::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.14);
+      background: rgba(186, 210, 255, 0.18);
       border-radius: 99px;
     }
 
     .sheet-grip {
-      width: 34px;
+      width: 36px;
       height: 4px;
       border-radius: 99px;
-      background: rgba(255, 255, 255, 0.16);
-      margin: -4px auto 2px;
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.35), rgba(129, 140, 248, 0.35));
+      margin: -4px auto 1px;
       flex-shrink: 0;
     }
 
@@ -558,7 +624,7 @@
         top: 64px;
         bottom: 12px;
         margin-top: 0;
-        width: 416px;
+        width: 424px;
         padding: 0;
         justify-content: space-between;
       }
@@ -567,23 +633,34 @@
       }
     }
 
-    /* Neumorphic Inset Inputs */
+    /* Neumorphic Inset Inputs + Integrated Pin Triggers */
     .field-wrap {
       position: relative;
       display: flex;
       align-items: center;
-      gap: 8px;
-      height: 42px;
-      padding: 0 12px;
+      gap: 7px;
+      height: 43px;
+      padding: 0 8px 0 12px;
       border-radius: var(--pill);
-      background: var(--bg-inset);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: var(--shadow-inset);
-      transition: border-color 0.18s ease;
+      background: var(--neu-well);
+      border: 1px solid rgba(186, 210, 255, 0.08);
+      box-shadow: var(--neu-inset);
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
     }
 
     .field-wrap:focus-within {
       border-color: var(--border-active);
+      box-shadow: var(--neu-inset), 0 0 0 2px rgba(56, 189, 248, 0.12);
+    }
+
+    .field-wrap.pin-active-pickup {
+      border-color: rgba(52, 211, 153, 0.65);
+      box-shadow: var(--neu-inset), 0 0 0 2px rgba(52, 211, 153, 0.14);
+    }
+
+    .field-wrap.pin-active-dropoff {
+      border-color: rgba(251, 113, 133, 0.65);
+      box-shadow: var(--neu-inset), 0 0 0 2px rgba(251, 113, 133, 0.14);
     }
 
     .field-input {
@@ -596,6 +673,7 @@
       font-family: var(--font-sans);
       font-size: 16px;
       font-weight: 500;
+      min-width: 0;
     }
 
     @media (min-width: 820px) {
@@ -608,11 +686,46 @@
       color: var(--text-muted);
     }
 
+    .pin-inline-btn {
+      height: 28px;
+      padding: 0 10px;
+      border-radius: var(--pill);
+      background: var(--silk-card);
+      border: 1px solid var(--border-silk);
+      box-shadow: 2px 2px 6px rgba(2, 4, 10, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+      color: var(--text-secondary);
+      font-size: 10.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+
+    .pin-inline-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--border-active);
+    }
+
+    .pin-inline-btn.active-pickup {
+      background: var(--grad-silk-emerald);
+      color: #031710;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .pin-inline-btn.active-dropoff {
+      background: var(--grad-silk-rose);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
     .clear-btn {
       width: 22px;
       height: 22px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(148, 163, 184, 0.14);
       color: var(--text-secondary);
       display: inline-flex;
       align-items: center;
@@ -624,7 +737,7 @@
     }
 
     .clear-btn:hover {
-      background: rgba(255, 255, 255, 0.16);
+      background: rgba(148, 163, 184, 0.25);
       color: var(--text-primary);
     }
 
@@ -643,13 +756,14 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
-      background: rgba(9, 12, 20, 0.98);
+      background: var(--silk-surface);
       border: 1px solid var(--border-active);
       border-radius: 16px;
       padding: 6px;
-      max-height: 140px;
+      max-height: 145px;
       overflow-y: auto;
       overscroll-behavior: contain;
+      box-shadow: var(--neu-outset);
     }
 
     .search-item {
@@ -665,7 +779,7 @@
     }
 
     .search-item:hover {
-      background: rgba(34, 211, 238, 0.12);
+      background: rgba(56, 189, 248, 0.14);
     }
 
     .search-item span.sub {
@@ -676,7 +790,7 @@
       text-overflow: ellipsis;
     }
 
-    /* Horizontal Live Riders & Saved Chips Strip */
+    /* Horizontal Live Riders, Weather/Surge & Saved Chips Strip */
     .chip-rail {
       display: flex;
       align-items: center;
@@ -688,11 +802,12 @@
     .chip-rail::-webkit-scrollbar { display: none; }
 
     .chip {
-      height: 29px;
+      height: 28px;
       padding: 0 11px;
       border-radius: var(--pill);
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-subtle);
+      background: var(--silk-card);
+      border: 1px solid var(--border-silk);
+      box-shadow: 2px 2px 6px rgba(2, 4, 10, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.07);
       display: inline-flex;
       align-items: center;
       gap: 5px;
@@ -706,21 +821,27 @@
     }
 
     .chip:hover, .chip.active {
-      background: rgba(34, 211, 238, 0.12);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(129, 140, 248, 0.16));
       border-color: var(--border-active);
       color: var(--accent);
     }
 
     .chip.emerald {
-      background: rgba(16, 185, 129, 0.12);
-      border-color: rgba(16, 185, 129, 0.35);
+      background: linear-gradient(135deg, rgba(52, 211, 153, 0.16), rgba(16, 185, 129, 0.12));
+      border-color: rgba(52, 211, 153, 0.36);
       color: var(--accent-emerald);
     }
 
     .chip.amber {
-      background: rgba(245, 158, 11, 0.12);
-      border-color: rgba(245, 158, 11, 0.35);
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.16), rgba(245, 158, 11, 0.12));
+      border-color: rgba(251, 191, 36, 0.36);
       color: var(--accent-amber);
+    }
+
+    .chip.indigo {
+      background: linear-gradient(135deg, rgba(129, 140, 248, 0.18), rgba(99, 102, 241, 0.14));
+      border-color: rgba(129, 140, 248, 0.38);
+      color: #c7d2fe;
     }
 
     /* Vehicle Tiers */
@@ -734,20 +855,28 @@
     .tier-item {
       padding: 8px 4px;
       border-radius: var(--radius-md);
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
+      background: var(--silk-card);
+      border: 1px solid var(--border-silk);
+      box-shadow: var(--neu-soft);
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 2px;
       cursor: pointer;
       text-align: center;
-      transition: border-color 0.15s ease, background 0.15s ease;
+      transition: border-color 0.16s ease, background 0.16s ease, transform 0.14s ease;
+    }
+
+    .tier-item:active {
+      transform: scale(0.97);
     }
 
     .tier-item.selected {
-      border-color: var(--accent);
-      background: linear-gradient(150deg, rgba(34, 211, 238, 0.15), rgba(2, 132, 199, 0.12));
+      border-color: rgba(56, 189, 248, 0.65);
+      background: linear-gradient(150deg, rgba(56, 189, 248, 0.22), rgba(129, 140, 248, 0.18));
+      box-shadow:
+        0 6px 18px rgba(56, 189, 248, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
     }
 
     .tier-title {
@@ -767,7 +896,7 @@
       color: var(--text-muted);
     }
 
-    /* Fare Bar (Minimum Recommended Floor Enforced) */
+    /* Fare Bar (Dynamic Pricing Floor Enforced) */
     .fare-row {
       display: flex;
       align-items: center;
@@ -775,8 +904,9 @@
       gap: 8px;
       padding: 4px 6px;
       border-radius: var(--pill);
-      background: var(--bg-inset);
-      border: 1px solid var(--border-subtle);
+      background: var(--neu-well);
+      border: 1px solid var(--border-silk);
+      box-shadow: var(--neu-inset);
       flex-shrink: 0;
     }
 
@@ -791,7 +921,7 @@
     }
 
     .fare-center input {
-      width: 62px;
+      width: 64px;
       background: transparent;
       border: none;
       outline: none;
@@ -804,9 +934,10 @@
 
     /* Data Cards */
     .data-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
+      background: var(--silk-card);
+      border: 1px solid var(--border-silk);
       border-radius: var(--radius-md);
+      box-shadow: var(--neu-soft);
       padding: 11px 13px;
       display: flex;
       flex-direction: column;
@@ -830,22 +961,22 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      background: rgba(34, 211, 238, 0.12);
+      background: rgba(56, 189, 248, 0.14);
       color: var(--accent);
-      border: 1px solid rgba(34, 211, 238, 0.25);
+      border: 1px solid rgba(56, 189, 248, 0.28);
       white-space: nowrap;
     }
 
     .tag.emerald {
-      background: rgba(16, 185, 129, 0.14);
+      background: rgba(52, 211, 153, 0.15);
       color: var(--accent-emerald);
-      border-color: rgba(16, 185, 129, 0.3);
+      border-color: rgba(52, 211, 153, 0.32);
     }
 
     .tag.amber {
-      background: rgba(245, 158, 11, 0.14);
+      background: rgba(251, 191, 36, 0.15);
       color: var(--accent-amber);
-      border-color: rgba(245, 158, 11, 0.3);
+      border-color: rgba(251, 191, 36, 0.32);
     }
 
     /* Account & Profile Overlays */
@@ -853,9 +984,9 @@
       position: fixed;
       inset: 0;
       z-index: 60;
-      background: rgba(5, 7, 12, 0.82);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      background: rgba(4, 7, 14, 0.84);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -872,11 +1003,11 @@
       max-height: 88dvh;
       overflow-y: auto;
       overscroll-behavior: contain;
-      background: linear-gradient(160deg, rgba(17, 22, 34, 0.97), rgba(9, 12, 19, 0.99));
-      border: 1px solid var(--border-subtle);
+      background: var(--silk-elevated);
+      border: 1px solid var(--border-silk);
       border-radius: var(--radius-lg);
       padding: 20px;
-      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.82), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      box-shadow: var(--neu-outset);
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -888,8 +1019,8 @@
       gap: 4px;
       padding: 4px;
       border-radius: var(--pill);
-      background: var(--bg-inset);
-      box-shadow: var(--shadow-inset);
+      background: var(--neu-well);
+      box-shadow: var(--neu-inset);
     }
 
     .seg-btn {
@@ -906,8 +1037,8 @@
     }
 
     .seg-btn.active {
-      background: linear-gradient(135deg, #22d3ee, #0284c7);
-      color: #041019;
+      background: var(--grad-silk-primary);
+      color: #04101d;
     }
 
     .role-grid {
@@ -919,8 +1050,9 @@
     .role-box {
       padding: 12px 10px;
       border-radius: var(--radius-md);
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
+      background: var(--silk-card);
+      border: 1px solid var(--border-silk);
+      box-shadow: var(--neu-soft);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -932,7 +1064,7 @@
 
     .role-box.active {
       border-color: var(--accent);
-      background: rgba(34, 211, 238, 0.1);
+      background: linear-gradient(145deg, rgba(56, 189, 248, 0.16), rgba(129, 140, 248, 0.14));
     }
 
     .grid-2 {
@@ -951,9 +1083,9 @@
     .stat-box {
       padding: 11px 12px;
       border-radius: var(--radius-md);
-      background: var(--bg-inset);
-      border: 1px solid var(--border-subtle);
-      box-shadow: var(--shadow-inset);
+      background: var(--neu-well);
+      border: 1px solid var(--border-silk);
+      box-shadow: var(--neu-inset);
       display: flex;
       flex-direction: column;
       gap: 3px;
@@ -991,7 +1123,7 @@
       padding: 8px 10px;
       border-radius: 12px;
       background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-subtle);
+      border: 1px solid var(--border-silk);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -999,7 +1131,7 @@
       font-size: 11.5px;
     }
 
-    /* Prominent Pathao-Style Live Status Banner & Toast */
+    /* Prominent Silk-Neumorphic Live Status Banner & Toast */
     #toast {
       position: fixed;
       top: max(60px, calc(env(safe-area-inset-top) + 48px));
@@ -1011,11 +1143,11 @@
       min-height: 36px;
       padding: 7px 16px;
       border-radius: var(--pill);
-      background: rgba(10, 15, 25, 0.96);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      background: var(--silk-elevated);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--border-active);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.68);
+      box-shadow: var(--neu-outset);
       color: var(--text-primary);
       font-size: 12px;
       font-weight: 700;
@@ -1037,7 +1169,7 @@
     }
 
     #toast.emerald {
-      border-color: rgba(16, 185, 129, 0.65);
+      border-color: rgba(52, 211, 153, 0.65);
       color: #6ee7b7;
     }
 
@@ -1053,13 +1185,14 @@
       margin-top: 2px;
       padding: 2px 7px;
       border-radius: var(--pill);
-      background: rgba(7, 9, 14, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(8, 12, 22, 0.94);
+      border: 1px solid rgba(186, 210, 255, 0.24);
       color: #f8fafc;
       font-family: var(--font-mono);
       font-size: 9.5px;
       font-weight: 700;
       white-space: nowrap;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
     }
 
     .footer-note {
@@ -1092,16 +1225,22 @@
   <div id="app">
     <div id="map"></div>
 
-    <!-- Uber / Pathao Style Center-Crosshair Pin -->
-    <div class="center-crosshair" id="centerCrosshair" aria-hidden="true">
-      <div class="crosshair-badge" id="crosshairBadge">PAN MAP TO SET DROP-OFF</div>
-      <div class="crosshair-head"><div class="crosshair-dot"></div></div>
-      <div class="crosshair-stem"></div>
-      <div class="crosshair-shadow"></div>
+    <!-- Precision Manual Pin Crosshair (Appears ONLY when user activates Pickup or Destination Pin Mode) -->
+    <div class="center-crosshair" id="centerCrosshair">
+      <div class="pin-assembly">
+        <div class="crosshair-badge" id="crosshairBadge">Move map to position pin</div>
+        <div class="crosshair-head"><div class="crosshair-dot"></div></div>
+        <div class="crosshair-stem"></div>
+        <div class="crosshair-tip" id="crosshairTip"></div>
+      </div>
+      <div class="crosshair-actions">
+        <div class="btn-cap primary sm" id="btnConfirmCrosshair" role="button" tabindex="0">Confirm Pin</div>
+        <div class="btn-cap sm" id="btnCancelCrosshair" role="button" tabindex="0">Done</div>
+      </div>
     </div>
 
     <!-- Top Header Bar -->
-    <div class="top-bar">
+    <div class="top-bar" id="topBar">
       <div class="hud-pill">
         <div class="brand-mark">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
@@ -1120,7 +1259,7 @@
       </div>
 
       <div class="btn-cap sm" id="btnAccount" role="button" tabindex="0">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
         </svg>
@@ -1128,26 +1267,19 @@
       </div>
     </div>
 
-    <!-- Map Tools (Locate Hardware GPS + Center Pin Target Switch) -->
+    <!-- Map Tools (Locate Hardware GPS) -->
     <div class="map-tools" id="mapTools">
-      <div class="map-tool-pill" id="toolLocate" role="button" tabindex="0" title="Snap to Hardware GPS">
+      <div class="map-tool-pill" id="toolLocate" role="button" tabindex="0" title="Center on Live GPS">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path>
         </svg>
         <span>My GPS</span>
       </div>
-      <div class="map-tool-pill active" id="toolPinMode" role="button" tabindex="0" title="Switch Center Pin & Tap Target">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-          <circle cx="12" cy="10" r="3"></circle>
-        </svg>
-        <span id="pinModeLabel">Pin: Destination</span>
-      </div>
     </div>
 
     <!-- Console Panel -->
-    <div class="console-wrap">
+    <div class="console-wrap" id="consoleWrap">
       <div class="console-panel" id="consolePanel"></div>
       <div class="footer-note">© 2026 Sanchar Koirala | All rights reserved</div>
     </div>
@@ -1190,14 +1322,14 @@
       <div id="viewCreate" style="display:none;flex-direction:column;gap:10px;">
         <div class="role-grid">
           <div class="role-box active" id="rolePassenger" role="button" tabindex="0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
             <div style="font-size:12.5px;font-weight:800;">Passenger</div>
           </div>
           <div class="role-box" id="roleDriver" role="button" tabindex="0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="5.5" cy="17.5" r="3.5"></circle>
               <circle cx="18.5" cy="17.5" r="3.5"></circle>
               <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"></path>
@@ -1229,7 +1361,7 @@
         </div>
 
         <!-- Fast Rider Onboarding: Only Vehicle Type + Plate required upfront -->
-        <div id="driverFields" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border-subtle);">
+        <div id="driverFields" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border-silk);">
           <div class="grid-2">
             <div>
               <div class="field-label">Vehicle Type</div>
@@ -1376,15 +1508,16 @@
       }
 
       // =========================================================================
-      // 3. STATE & PRICING TIERS
+      // 3. STATE & MULTI-FACTOR DYNAMIC PRICING TIERS
       // =========================================================================
       const DEFAULT_CENTER = { lat: 27.7172, lng: 85.3240 };
 
+      // Realistic Nepal / Kathmandu Valley rate table (Base + Distance + Congestion Time)
       const TIERS = {
-        bike: { id: 'bike', name: 'Bike', base: 40, perKm: 18, etaAdd: 1 },
-        car:  { id: 'car',  name: 'Car Lite', base: 120, perKm: 42, etaAdd: 3 },
-        ev:   { id: 'ev',   name: 'EV Cab', base: 130, perKm: 45, etaAdd: 3 },
-        xl:   { id: 'xl',   name: 'Prime XL', base: 180, perKm: 58, etaAdd: 4 }
+        bike: { id: 'bike', name: 'Bike',     base: 35,  perKm: 17, perMin: 1.5, minFloor: 50,  etaAdd: 1, rainSensitivity: 1.0 },
+        car:  { id: 'car',  name: 'Car Lite', base: 110, perKm: 38, perMin: 3.5, minFloor: 150, etaAdd: 3, rainSensitivity: 0.55 },
+        ev:   { id: 'ev',   name: 'EV Cab',   base: 120, perKm: 40, perMin: 3.5, minFloor: 165, etaAdd: 3, rainSensitivity: 0.55 },
+        xl:   { id: 'xl',   name: 'Prime XL', base: 170, perKm: 54, perMin: 5.0, minFloor: 240, etaAdd: 4, rainSensitivity: 0.50 }
       };
 
       const QUICK_STATUS_PILLS = {
@@ -1411,7 +1544,13 @@
           source: 'default' // 'hardware' | 'manual' | 'default'
         },
         driverOnline: true,
-        pinMode: 'dropoff', // 'dropoff' | 'pickup' | 'mygps'
+        // Manual Pin Placement Mode: null (browsing/typing) | 'pickup' | 'dropoff'
+        pinMode: null,
+        pinPreview: {
+          lat: DEFAULT_CENTER.lat,
+          lng: DEFAULT_CENTER.lng,
+          label: 'Move map to aim pin'
+        },
         pickup: {
           lat: DEFAULT_CENTER.lat,
           lng: DEFAULT_CENTER.lng,
@@ -1420,8 +1559,16 @@
         },
         dropoff: null,
         route: null,
+        weather: {
+          isRaining: false,
+          isHeavyRain: false,
+          tempC: 20,
+          label: 'Clear',
+          lastFetchedAt: 0
+        },
         tier: 'bike',
         fare: 85,
+        fareManuallyEdited: false,
         payMode: 'Cash',
         activeRideId: null,
         lastKnownRideStatus: null,
@@ -1437,7 +1584,173 @@
       };
 
       // =========================================================================
-      // 4. AUDIO CHIME, CLIPBOARD & HELPERS
+      // 4. INTELLIGENT MULTI-FACTOR PRICING ENGINE
+      //    Factors: OSRM Road Km + Road Congestion Minutes + Live Platform Supply/Demand
+      //             + Live Open-Meteo Rain/Weather + Time-of-Day / Rush Hour / Late Night
+      // =========================================================================
+      function getKathmanduHour() {
+        try {
+          const parts = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Asia/Kathmandu',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: false
+          }).formatToParts(new Date());
+          const h = Number(parts.find(p => p.type === 'hour')?.value ?? new Date().getHours());
+          const m = Number(parts.find(p => p.type === 'minute')?.value ?? new Date().getMinutes());
+          return h + m / 60;
+        } catch (_) {
+          const d = new Date();
+          return d.getHours() + d.getMinutes() / 60;
+        }
+      }
+
+      function evaluatePricingFactors(tierId = state.tier) {
+        const tier = TIERS[tierId] || TIERS.bike;
+
+        // 1. Time-of-Day & Rush Hour Intelligence (Kathmandu Valley schedule)
+        const hr = getKathmanduHour();
+        let timeBoost = 0;
+        let timeTag = 'Standard Hrs';
+        let timeTone = 'chip';
+
+        if (hr >= 22.0 || hr < 5.0) {
+          timeBoost = 0.25;
+          timeTag = 'Late Night +25%';
+          timeTone = 'chip indigo';
+        } else if (hr >= 5.0 && hr < 7.0) {
+          timeBoost = 0.12;
+          timeTag = 'Early AM +12%';
+          timeTone = 'chip indigo';
+        } else if (hr >= 8.5 && hr < 10.5) {
+          timeBoost = 0.15;
+          timeTag = 'Morning Rush +15%';
+          timeTone = 'chip amber';
+        } else if (hr >= 16.5 && hr < 19.5) {
+          timeBoost = 0.18;
+          timeTag = 'Evening Rush +18%';
+          timeTone = 'chip amber';
+        }
+
+        // 2. Live Weather Factor (Open-Meteo precipitation & weather_code)
+        let weatherBoost = 0;
+        let weatherTag = `${state.weather.label} ${Math.round(state.weather.tempC)}°C`;
+        let weatherTone = 'chip';
+
+        if (state.weather.isHeavyRain) {
+          weatherBoost = +(0.30 * tier.rainSensitivity).toFixed(2);
+          weatherTag = `Heavy Rain +${Math.round(weatherBoost * 100)}%`;
+          weatherTone = 'chip amber';
+        } else if (state.weather.isRaining) {
+          weatherBoost = +(0.22 * tier.rainSensitivity).toFixed(2);
+          weatherTag = `Rain +${Math.round(weatherBoost * 100)}%`;
+          weatherTone = 'chip amber';
+        }
+
+        // 3. Live Platform Supply vs. Demand Factor (Firebase gps-rt real-time counts)
+        const onlineDrivers = Object.values(state.locations || {}).filter(
+          l => l && l.role === 'driver' && l.online && (!l.updatedAt || Date.now() - l.updatedAt < 7200000)
+        );
+        const nearbyDrivers = onlineDrivers.filter(
+          d => distKm(state.pickup.lat, state.pickup.lng, d.lat, d.lng) <= 4.0
+        );
+        const activeSearching = Object.values(state.rides || {}).filter(
+          r => r && r.status === 'searching'
+        ).length;
+
+        let demandBoost = 0;
+        let demandTag = `${nearbyDrivers.length} Riders Nearby`;
+        let demandTone = 'chip emerald';
+
+        if (onlineDrivers.length === 0) {
+          demandBoost = 0.10;
+          demandTag = 'Low Rider Supply +10%';
+          demandTone = 'chip amber';
+        } else if (activeSearching > nearbyDrivers.length && activeSearching >= 1) {
+          const pressure = Math.min(3, activeSearching - nearbyDrivers.length);
+          demandBoost = +(0.12 + pressure * 0.08).toFixed(2);
+          demandTag = `Busy Platform +${Math.round(demandBoost * 100)}%`;
+          demandTone = 'chip amber';
+        } else if (nearbyDrivers.length === 0) {
+          demandBoost = 0.08;
+          demandTag = 'Extended Pickup +8%';
+          demandTone = 'chip';
+        }
+
+        const totalMultiplier = +(1 + timeBoost + weatherBoost + demandBoost).toFixed(2);
+
+        return {
+          totalMultiplier,
+          timeBoost,
+          timeTag,
+          timeTone,
+          weatherBoost,
+          weatherTag,
+          weatherTone,
+          demandBoost,
+          demandTag,
+          demandTone
+        };
+      }
+
+      function calcRecommendedFare(km, tierId, durationMin = null) {
+        const t = TIERS[tierId] || TIERS.bike;
+        const distance = Math.max(0.4, Number(km) || 2.2);
+        const mins = durationMin != null ? Math.max(2, Number(durationMin)) : Math.max(4, Math.round(distance * 3.2));
+        const factors = evaluatePricingFactors(tierId);
+
+        const rawFare = (t.base + distance * t.perKm + mins * t.perMin) * factors.totalMultiplier;
+        const rounded = Math.round(rawFare / 5) * 5;
+        return Math.max(t.minFloor, rounded);
+      }
+
+      function getCurrentMinFare() {
+        return calcRecommendedFare(state.route?.km || 2.2, state.tier, state.route?.min || null);
+      }
+
+      async function fetchLiveWeather(lat, lng) {
+        const now = Date.now();
+        if (now - state.weather.lastFetchedAt < 300000) return; // Cache 5 mins
+        state.weather.lastFetchedAt = now;
+        try {
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lng.toFixed(4)}&current=precipitation,rain,weather_code,temperature_2m`;
+          const res = await fetch(url);
+          const data = await res.json();
+          const cur = data?.current;
+          if (!cur) return;
+
+          const code = Number(cur.weather_code || 0);
+          const rainMm = Number(cur.rain || cur.precipitation || 0);
+          const tempC = cur.temperature_2m != null ? Number(cur.temperature_2m) : 20;
+
+          // WMO codes: 51-67 drizzle/rain, 80-82 showers, 95-99 thunderstorm
+          const isHeavy = rainMm >= 3.0 || [65, 67, 82, 95, 96, 99].includes(code);
+          const isRain = isHeavy || rainMm > 0.1 || (code >= 51 && code <= 67) || (code >= 80 && code <= 82);
+
+          let label = 'Clear';
+          if (code >= 95) label = 'Storm';
+          else if (isHeavy) label = 'Heavy Rain';
+          else if (isRain) label = 'Rain';
+          else if (code >= 45 && code <= 48) label = 'Fog';
+          else if (code >= 1 && code <= 3) label = 'Cloudy';
+
+          state.weather = {
+            isRaining: isRain,
+            isHeavyRain: isHeavy,
+            tempC,
+            label,
+            lastFetchedAt: now
+          };
+
+          if (!state.fareManuallyEdited) {
+            state.fare = getCurrentMinFare();
+          }
+          renderConsole(true);
+        } catch (_) {}
+      }
+
+      // =========================================================================
+      // 5. AUDIO CHIME, CLIPBOARD & HELPERS
       // =========================================================================
       let audioCtx = null;
       function playNotificationTone(type = 'info') {
@@ -1516,18 +1829,8 @@
         return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
       }
 
-      function calcRecommendedFare(km, tierId) {
-        const t = TIERS[tierId] || TIERS.bike;
-        const distance = Math.max(0.5, Number(km) || 1.0);
-        return Math.max(t.base, Math.round((t.base + distance * t.perKm) / 5) * 5);
-      }
-
-      function getCurrentMinFare() {
-        return calcRecommendedFare(state.route?.km || 2.5, state.tier);
-      }
-
       // =========================================================================
-      // 5. HEADLESS API ENDPOINTS (?api=status | drivers | push | telemetry)
+      // 6. HEADLESS API ENDPOINTS (?api=status | drivers | push | telemetry)
       // =========================================================================
       window.GPSRideAPI = {
         node: `${DB_URL}/${ROOT_NODE}`,
@@ -1625,7 +1928,7 @@
       }
 
       // =========================================================================
-      // 6. MAP ENGINE, CENTER-CROSSHAIR PIN & OSRM ROUTING
+      // 7. MAP ENGINE, PIXEL-EXACT PIN CROSSHAIR & OSRM ROUTING
       // =========================================================================
       let map = null;
       let myMarker = null;
@@ -1642,62 +1945,186 @@
           ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"></path><circle cx="6.5" cy="16.5" r="2.5"></circle><circle cx="16.5" cy="16.5" r="2.5"></circle></svg>`
           : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"></circle><circle cx="18.5" cy="17.5" r="3.5"></circle><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"></path></svg>`;
 
-        return `<div style="transform:rotate(${heading}deg);width:32px;height:32px;border-radius:50%;background:#0b0f18;border:2px solid ${color};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.65);">${svg}</div>`;
+        return `<div style="transform:rotate(${heading}deg);width:32px;height:32px;border-radius:50%;background:linear-gradient(145deg,#131b2e,#090d16);border:2px solid ${color};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.7);">${svg}</div>`;
+      }
+
+      // Dynamically position crosshair in the exact unobstructed center of the map
+      function positionCrosshairInClearViewport() {
+        const ch = document.getElementById('centerCrosshair');
+        if (!ch) return;
+
+        const isDesktop = window.innerWidth >= 820;
+        if (isDesktop) {
+          const wrap = document.getElementById('consoleWrap');
+          const leftBound = wrap ? wrap.getBoundingClientRect().right : 438;
+          const centerX = leftBound + (window.innerWidth - leftBound) / 2;
+          ch.style.left = `${Math.round(centerX)}px`;
+          ch.style.top = `${Math.round(window.innerHeight * 0.48)}px`;
+        } else {
+          const topBar = document.getElementById('topBar');
+          const panel = document.getElementById('consolePanel');
+          const topBound = topBar ? topBar.getBoundingClientRect().bottom : 58;
+          const bottomBound = panel ? panel.getBoundingClientRect().top : window.innerHeight * 0.48;
+          const centerY = Math.max(topBound + 72, (topBound + bottomBound) / 2);
+          ch.style.left = '50%';
+          ch.style.top = `${Math.round(centerY)}px`;
+        }
+      }
+
+      // Compute exact geographic LatLng directly beneath the 2px needle tip
+      function getExactNeedleLatLng() {
+        if (!map) return { lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng };
+        const mapRect = map.getContainer().getBoundingClientRect();
+        const tipEl = document.getElementById('crosshairTip');
+        if (tipEl) {
+          const tipRect = tipEl.getBoundingClientRect();
+          const x = (tipRect.left + tipRect.width / 2) - mapRect.left;
+          const y = (tipRect.top + tipRect.height / 2) - mapRect.top;
+          if (x >= 0 && y >= 0 && x <= mapRect.width && y <= mapRect.height) {
+            const ll = map.containerPointToLatLng(L.point(x, y));
+            return { lat: ll.lat, lng: ll.lng };
+          }
+        }
+        const c = map.getCenter();
+        return { lat: c.lat, lng: c.lng };
+      }
+
+      // Pan map so that a specific LatLng sits directly beneath the crosshair needle tip
+      function panMapToPutCoordUnderNeedle(lat, lng) {
+        if (!map) return;
+        positionCrosshairInClearViewport();
+        const mapRect = map.getContainer().getBoundingClientRect();
+        const tipEl = document.getElementById('crosshairTip');
+        if (!tipEl) {
+          map.panTo([lat, lng]);
+          return;
+        }
+        const tipRect = tipEl.getBoundingClientRect();
+        const tipX = (tipRect.left + tipRect.width / 2) - mapRect.left;
+        const tipY = (tipRect.top + tipRect.height / 2) - mapRect.top;
+        const centerX = mapRect.width / 2;
+        const centerY = mapRect.height / 2;
+
+        const targetPt = map.latLngToContainerPoint([lat, lng]);
+        const newCenterPt = L.point(
+          targetPt.x + (centerX - tipX),
+          targetPt.y + (centerY - tipY)
+        );
+        const newCenterLatLng = map.containerPointToLatLng(newCenterPt);
+        map.panTo(newCenterLatLng, { animate: true, duration: 0.25 });
+      }
+
+      let previewGeocodeTimer = null;
+      function updateCrosshairPreview() {
+        if (!state.pinMode || !map) return;
+        const { lat, lng } = getExactNeedleLatLng();
+        state.pinPreview.lat = lat;
+        state.pinPreview.lng = lng;
+
+        const badge = document.getElementById('crosshairBadge');
+        const confirmBtn = document.getElementById('btnConfirmCrosshair');
+        const modeTitle = state.pinMode === 'pickup' ? 'Pickup' : 'Destination';
+
+        if (badge) {
+          badge.textContent = `${modeTitle}: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        }
+        if (confirmBtn) {
+          confirmBtn.textContent = `Set ${modeTitle} Here`;
+        }
+
+        clearTimeout(previewGeocodeTimer);
+        previewGeocodeTimer = setTimeout(async () => {
+          const label = await reverseGeocode(lat, lng);
+          if (!state.pinMode) return;
+          state.pinPreview.label = label;
+          if (badge) {
+            badge.textContent = `${modeTitle}: ${label}`;
+          }
+        }, 280);
+      }
+
+      function enterManualPinMode(targetMode) {
+        if (state.trackRideId || state.activeRideId) return;
+        if (state.user && state.user.role !== 'passenger') return;
+
+        // Toggle off if clicking the already active mode button
+        if (state.pinMode === targetMode) {
+          exitManualPinMode();
+          return;
+        }
+
+        state.pinMode = targetMode;
+        state.searchResults = [];
+        renderSearchResultsBox();
+        updateCrosshairUI();
+        renderConsole(true);
+
+        // Center existing point under the needle so user starts right from their current pin
+        const existingPt = targetMode === 'pickup' ? state.pickup : state.dropoff;
+        if (existingPt && typeof existingPt.lat === 'number') {
+          requestAnimationFrame(() => {
+            panMapToPutCoordUnderNeedle(existingPt.lat, existingPt.lng);
+            setTimeout(updateCrosshairPreview, 280);
+          });
+        } else {
+          requestAnimationFrame(updateCrosshairPreview);
+        }
+      }
+
+      function exitManualPinMode() {
+        state.pinMode = null;
+        updateCrosshairUI();
+        renderConsole(true);
       }
 
       function updateCrosshairUI() {
         const ch = document.getElementById('centerCrosshair');
-        const badge = document.getElementById('crosshairBadge');
-        if (!ch || !badge) return;
+        const confirmBtn = document.getElementById('btnConfirmCrosshair');
+        if (!ch) return;
 
         const isPassengerBrowsing = !state.trackRideId && !state.activeRideId && (!state.user || state.user.role === 'passenger');
-        if (!isPassengerBrowsing) {
-          ch.classList.remove('visible');
+        if (!isPassengerBrowsing || !state.pinMode) {
+          ch.classList.remove('visible', 'pickup-mode', 'dropoff-mode');
           return;
         }
 
         ch.classList.add('visible');
-        if (state.pinMode === 'pickup') {
-          ch.classList.add('pickup-mode');
-          badge.textContent = 'PAN MAP FOR PICKUP';
-        } else if (state.pinMode === 'mygps') {
-          ch.classList.add('pickup-mode');
-          badge.textContent = 'PAN MAP FOR MY GPS';
-        } else {
-          ch.classList.remove('pickup-mode');
-          badge.textContent = 'PAN MAP FOR DROP-OFF';
+        ch.classList.toggle('pickup-mode', state.pinMode === 'pickup');
+        ch.classList.toggle('dropoff-mode', state.pinMode === 'dropoff');
+        if (confirmBtn) {
+          confirmBtn.className = state.pinMode === 'pickup' ? 'btn-cap emerald sm' : 'btn-cap rose sm';
         }
+        positionCrosshairInClearViewport();
       }
 
-      async function applyPointSelection(lat, lng, mode = state.pinMode, panMap = false) {
-        const label = await reverseGeocode(lat, lng);
-        if (mode === 'mygps') {
-          updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
-          if (!state.activeRideId) {
-            state.pickup = { lat, lng, label, manual: true };
-            await fetchRoadRoute();
-          }
-          toast(`Location pinned: ${label}`);
-        } else if (mode === 'pickup') {
-          state.pickup = { lat, lng, label, manual: true };
-          updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
-          await fetchRoadRoute();
-          toast(`Pickup: ${label}`);
+      async function confirmManualPinSelection(overrideLat = null, overrideLng = null) {
+        if (!state.pinMode) return;
+        const mode = state.pinMode;
+        const coords = (overrideLat != null && overrideLng != null)
+          ? { lat: overrideLat, lng: overrideLng }
+          : getExactNeedleLatLng();
+
+        const label = await reverseGeocode(coords.lat, coords.lng);
+
+        if (mode === 'pickup') {
+          state.pickup = { lat: coords.lat, lng: coords.lng, label, manual: true };
+          updateMyGps(coords.lat, coords.lng, 0, state.myGps.heading, 5, 'manual');
+          fetchLiveWeather(coords.lat, coords.lng);
+          toast(`Pickup set: ${label}`, 'emerald');
         } else {
-          state.dropoff = { lat, lng, label };
-          await fetchRoadRoute();
-          toast(`Drop-off: ${label}`);
+          state.dropoff = { lat: coords.lat, lng: coords.lng, label };
+          toast(`Destination set: ${label}`, 'emerald');
         }
 
+        state.pinMode = null;
+        state.fareManuallyEdited = false;
+        await fetchRoadRoute();
+        updateCrosshairUI();
         syncMapGraphics();
         renderConsole(true);
 
-        if (panMap && map) {
-          if (state.route?.coords && state.route.coords.length > 1) {
-            map.fitBounds(L.latLngBounds(state.route.coords), { padding: [55, 55] });
-          } else {
-            map.flyTo([lat, lng], 16);
-          }
+        if (map && state.route?.coords && state.route.coords.length > 1) {
+          map.fitBounds(L.latLngBounds(state.route.coords), { padding: [55, 55] });
         }
       }
 
@@ -1721,37 +2148,48 @@
 
         const refreshMapLayout = () => {
           if (map) map.invalidateSize({ animate: false });
+          positionCrosshairInClearViewport();
         };
         window.addEventListener('resize', refreshMapLayout);
         window.addEventListener('orientationchange', () => setTimeout(refreshMapLayout, 180));
 
-        // Uber/Pathao Center-Crosshair drag lift & drop
+        // Crosshair drag feedback & exact tip coordinate readout
         map.on('dragstart', () => {
           const ch = document.getElementById('centerCrosshair');
-          if (ch) ch.classList.add('dragging');
+          if (ch && state.pinMode) ch.classList.add('dragging');
         });
 
-        map.on('dragend', async () => {
+        map.on('move', () => {
+          if (state.pinMode) {
+            const { lat, lng } = getExactNeedleLatLng();
+            const badge = document.getElementById('crosshairBadge');
+            const modeTitle = state.pinMode === 'pickup' ? 'Pickup' : 'Destination';
+            if (badge) badge.textContent = `${modeTitle}: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+          }
+        });
+
+        map.on('dragend', () => {
           const ch = document.getElementById('centerCrosshair');
           if (ch) ch.classList.remove('dragging');
-
-          const isPassengerBrowsing = !state.trackRideId && !state.activeRideId && (!state.user || state.user.role === 'passenger');
-          if (!isPassengerBrowsing) return;
-
-          const center = map.getCenter();
-          await applyPointSelection(center.lat, center.lng, state.pinMode, false);
+          if (state.pinMode) {
+            updateCrosshairPreview();
+          }
         });
 
+        // Map click ONLY sets a pin when the user explicitly chose manual pin mode!
         map.on('click', async (e) => {
           if (state.trackRideId) return;
-          const { lat, lng } = e.latlng;
-          if (state.pinMode === 'mygps') {
-            await applyPointSelection(lat, lng, 'mygps', false);
+          if (state.searchResults.length > 0) {
+            state.searchResults = [];
+            renderSearchResultsBox();
+          }
+          if (!state.pinMode) {
+            // Normal map browsing: do NOT unexpectedly move pins on accidental tap
             return;
           }
-          if ((!state.user || state.user.role === 'passenger') && !state.activeRideId) {
-            await applyPointSelection(lat, lng, state.pinMode, false);
-          }
+          const { lat, lng } = e.latlng;
+          panMapToPutCoordUnderNeedle(lat, lng);
+          await confirmManualPinSelection(lat, lng);
         });
       }
 
@@ -1759,7 +2197,10 @@
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
           const d = await res.json();
-          return d?.name || d?.address?.suburb || d?.address?.neighbourhood || d?.address?.road || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+          const road = d?.address?.road || d?.address?.pedestrian || '';
+          const area = d?.name || d?.address?.suburb || d?.address?.neighbourhood || d?.address?.city_district || '';
+          if (area && road && area !== road) return `${area}, ${road}`;
+          return area || road || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
         } catch (_) {
           return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
         }
@@ -1768,6 +2209,10 @@
       let searchTimer = null;
       function schedulePlaceSearch(query, target) {
         state.searchTarget = target;
+        if (state.pinMode) {
+          state.pinMode = null;
+          updateCrosshairUI();
+        }
         clearTimeout(searchTimer);
         const q = (query || '').trim();
         if (q.length < 2) {
@@ -1786,7 +2231,7 @@
             state.searchResults = [];
             renderSearchResultsBox();
           }
-        }, 320);
+        }, 300);
       }
 
       function renderSearchResultsBox() {
@@ -1821,9 +2266,11 @@
             if (state.searchTarget === 'pickup') {
               state.pickup = { lat, lng, label, manual: true };
               updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
+              fetchLiveWeather(lat, lng);
             } else {
               state.dropoff = { lat, lng, label };
             }
+            state.fareManuallyEdited = false;
             await fetchRoadRoute();
             syncMapGraphics();
             renderConsole(true);
@@ -1852,18 +2299,23 @@
             const min = Math.max(2, Math.round(r.duration / 60));
             const coords = r.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
             state.route = { km, min, coords };
-            state.fare = calcRecommendedFare(km, state.tier);
+            if (!state.fareManuallyEdited) {
+              state.fare = calcRecommendedFare(km, state.tier, min);
+            }
             return;
           }
         } catch (_) {}
 
         const km = Math.max(0.5, +distKm(p1.lat, p1.lng, p2.lat, p2.lng).toFixed(2));
+        const min = Math.max(3, Math.round((km / 24) * 60));
         state.route = {
           km,
-          min: Math.max(3, Math.round((km / 25) * 60)),
+          min,
           coords: [[p1.lat, p1.lng], [p2.lat, p2.lng]]
         };
-        state.fare = calcRecommendedFare(km, state.tier);
+        if (!state.fareManuallyEdited) {
+          state.fare = calcRecommendedFare(km, state.tier, min);
+        }
       }
 
       function syncMapGraphics() {
@@ -1883,7 +2335,7 @@
 
           if (pPt) {
             const ic = L.divIcon({
-              html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#10b981;border:2.5px solid #fff;"></div><div class="mk-label">PICKUP</div></div>`,
+              html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#34d399;border:2.5px solid #fff;"></div><div class="mk-label">PICKUP</div></div>`,
               className: '', iconSize: [64, 34], iconAnchor: [32, 8]
             });
             if (!pickupMarker) pickupMarker = L.marker([pPt.lat, pPt.lng], { icon: ic }).addTo(map);
@@ -1892,7 +2344,7 @@
 
           if (dPt) {
             const ic = L.divIcon({
-              html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#f43f5e;border:2.5px solid #fff;"></div><div class="mk-label">DROP</div></div>`,
+              html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#fb7185;border:2.5px solid #fff;"></div><div class="mk-label">DROP</div></div>`,
               className: '', iconSize: [64, 34], iconAnchor: [32, 8]
             });
             if (!dropoffMarker) dropoffMarker = L.marker([dPt.lat, dPt.lng], { icon: ic }).addTo(map);
@@ -1901,13 +2353,13 @@
 
           if (coords && coords.length > 1) {
             if (routeLine) map.removeLayer(routeLine);
-            routeLine = L.polyline(coords, { color: '#22d3ee', weight: 4, opacity: 0.92 }).addTo(map);
+            routeLine = L.polyline(coords, { color: '#38bdf8', weight: 4, opacity: 0.92 }).addTo(map);
           }
 
           if (dLoc && typeof dLoc.lat === 'number' && typeof dLoc.lng === 'number') {
             const plate = ride.driver?.plate || 'RIDER';
             const ic = L.divIcon({
-              html: `<div class="mk-wrap">${vehicleIconSvg(ride.driver?.vehicleType || 'bike', '#22d3ee', dLoc.heading || 0)}<div class="mk-label">${plate}</div></div>`,
+              html: `<div class="mk-wrap">${vehicleIconSvg(ride.driver?.vehicleType || 'bike', '#38bdf8', dLoc.heading || 0)}<div class="mk-label">${plate}</div></div>`,
               className: '', iconSize: [80, 48], iconAnchor: [40, 24]
             });
             if (!trackedDriverMarker) {
@@ -1921,11 +2373,11 @@
           return;
         }
 
-        // 1. Self Marker (Draggable so user can correct location anytime)
+        // 1. Self Marker (Draggable to fine-tune position)
         const isDriver = state.user?.role === 'driver';
         const selfHtml = isDriver
-          ? `<div class="mk-wrap">${vehicleIconSvg(state.user.vehicleType || 'bike', '#22d3ee', state.myGps.heading)}<div class="mk-label">${state.user.plate || 'YOU'}</div></div>`
-          : `<div class="mk-wrap"><div style="width:20px;height:20px;border-radius:50%;background:rgba(34,211,238,0.22);border:2.5px solid #22d3ee;display:flex;align-items:center;justify-content:center;"><div style="width:7px;height:7px;border-radius:50%;background:#22d3ee;"></div></div><div class="mk-label">YOU</div></div>`;
+          ? `<div class="mk-wrap">${vehicleIconSvg(state.user.vehicleType || 'bike', '#38bdf8', state.myGps.heading)}<div class="mk-label">${state.user.plate || 'YOU'}</div></div>`
+          : `<div class="mk-wrap"><div style="width:20px;height:20px;border-radius:50%;background:rgba(56,189,248,0.22);border:2.5px solid #38bdf8;display:flex;align-items:center;justify-content:center;"><div style="width:7px;height:7px;border-radius:50%;background:#38bdf8;"></div></div><div class="mk-label">YOU</div></div>`;
 
         const selfIcon = L.divIcon({ html: selfHtml, className: '', iconSize: [70, 50], iconAnchor: [35, 25] });
         if (!myMarker) {
@@ -1962,11 +2414,11 @@
 
           activeCount++;
           seen.add(uname);
-          const color = loc.role === 'driver' ? '#38bdf8' : '#f59e0b';
+          const color = loc.role === 'driver' ? '#38bdf8' : '#fbbf24';
           const tag = loc.role === 'driver' ? `${loc.plate || uname}` : `${uname}`;
           const html = loc.role === 'driver'
             ? `<div class="mk-wrap">${vehicleIconSvg(loc.vehicleType || 'bike', color, loc.heading || 0)}<div class="mk-label">${tag}</div></div>`
-            : `<div class="mk-wrap"><div style="width:18px;height:18px;border-radius:50%;background:rgba(245,158,11,0.25);border:2px solid #f59e0b;"></div><div class="mk-label">${tag}</div></div>`;
+            : `<div class="mk-wrap"><div style="width:18px;height:18px;border-radius:50%;background:rgba(251,191,36,0.25);border:2px solid #fbbf24;"></div><div class="mk-label">${tag}</div></div>`;
 
           const icon = L.divIcon({ html, className: '', iconSize: [80, 48], iconAnchor: [40, 24] });
           if (peerMarkers.has(uname)) {
@@ -1995,7 +2447,7 @@
 
         if (pPt && (dPt || activeRide || pPt.manual)) {
           const ic = L.divIcon({
-            html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#10b981;border:2.5px solid #fff;"></div><div class="mk-label">PICKUP</div></div>`,
+            html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#34d399;border:2.5px solid #fff;box-shadow:0 0 10px rgba(52,211,153,0.7);"></div><div class="mk-label">PICKUP</div></div>`,
             className: '', iconSize: [64, 34], iconAnchor: [32, 8]
           });
           if (!pickupMarker) {
@@ -2023,7 +2475,7 @@
 
         if (dPt) {
           const ic = L.divIcon({
-            html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#f43f5e;border:2.5px solid #fff;"></div><div class="mk-label">DROP</div></div>`,
+            html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#fb7185;border:2.5px solid #fff;box-shadow:0 0 10px rgba(251,113,133,0.7);"></div><div class="mk-label">DROP</div></div>`,
             className: '', iconSize: [64, 34], iconAnchor: [32, 8]
           });
           if (!dropoffMarker) {
@@ -2050,7 +2502,7 @@
 
         if (coords && coords.length > 1) {
           if (routeLine) map.removeLayer(routeLine);
-          routeLine = L.polyline(coords, { color: '#22d3ee', weight: 4, opacity: 0.92 }).addTo(map);
+          routeLine = L.polyline(coords, { color: '#38bdf8', weight: 4, opacity: 0.92 }).addTo(map);
         } else if (routeLine) {
           map.removeLayer(routeLine);
           routeLine = null;
@@ -2058,7 +2510,7 @@
       }
 
       // =========================================================================
-      // 7. REAL-TIME FIREBASE LISTENERS, QUICK-STATUS ALERTS & AUTO-ARRIVAL
+      // 8. REAL-TIME FIREBASE LISTENERS, QUICK-STATUS ALERTS & AUTO-ARRIVAL
       // =========================================================================
       function bindRealtimeStreams() {
         dbApi.ref('live_locations').on('value', (snap) => {
@@ -2084,7 +2536,7 @@
         if (state.autoArrivedFired[ride.rideId]) return;
 
         const dKm = distKm(state.myGps.lat, state.myGps.lng, ride.pickup.lat, ride.pickup.lng);
-        if (dKm <= 0.05) { // Within 50 meters of pickup
+        if (dKm <= 0.05) {
           state.autoArrivedFired[ride.rideId] = true;
           playNotificationTone('accepted');
           toast('Within 50m of Pickup — Auto-marked Arrived!', 'emerald');
@@ -2128,7 +2580,6 @@
             }
           }
 
-          // Alert on incoming 1-Tap Quick Status Pill from the other party
           const qs = tracked.quickStatus;
           if (qs && qs.ts && qs.ts > state.lastQuickStatusTs) {
             state.lastQuickStatusTs = qs.ts;
@@ -2139,7 +2590,6 @@
             }
           }
 
-          // Notify passenger when a new driver bid arrives
           if (state.user.role === 'passenger' && tracked.status === 'searching') {
             const bidsCount = Object.keys(tracked.bids || {}).length;
             if (bidsCount > state.lastKnownBidsCount) {
@@ -2169,7 +2619,6 @@
           state.lastQuickStatusTs = 0;
         }
 
-        // Notify online driver when a new passenger request appears
         if (state.user.role === 'driver' && state.driverOnline && !state.activeRideId) {
           const openCount = getOpenRequests().length;
           if (openCount > state.lastOpenRequestsCount) {
@@ -2181,7 +2630,7 @@
       }
 
       // =========================================================================
-      // 8. HIGH-ACCURACY HARDWARE GPS & 1-SECOND LIVE PING ENGINE
+      // 9. HIGH-ACCURACY HARDWARE GPS & 1-SECOND LIVE PING ENGINE
       // =========================================================================
       let lastPushTs = 0;
       let lastReverseGeocodeTs = 0;
@@ -2200,6 +2649,8 @@
             accuracy ? Math.round(accuracy) : null,
             'hardware'
           );
+
+          fetchLiveWeather(latitude, longitude);
 
           if (!hasCenteredInitialGps && map && !state.trackRideId) {
             hasCenteredInitialGps = true;
@@ -2230,6 +2681,7 @@
             accText.textContent = state.myGps.source === 'manual' ? 'Pinned' : 'Map Pin';
           }
           if (dot) dot.classList.remove('live');
+          fetchLiveWeather(state.pickup.lat, state.pickup.lng);
           pushGpsToRtdb(true);
         };
 
@@ -2326,7 +2778,7 @@
       }
 
       // =========================================================================
-      // 9. ACCOUNT SYSTEM & REAL-TIME FINANCIAL LEDGER (gps-rt/users)
+      // 10. ACCOUNT SYSTEM & REAL-TIME FINANCIAL LEDGER (gps-rt/users)
       // =========================================================================
       let userStreamRef = null;
 
@@ -2454,7 +2906,6 @@
           createdAt: Date.now()
         };
 
-        // Fast 2-step rider onboarding: only Vehicle Type & Plate required upfront
         if (role === 'driver') {
           const vehicleType = document.getElementById('regVehType').value;
           const plate = document.getElementById('regPlate').value.trim().toUpperCase();
@@ -2494,13 +2945,12 @@
       }
 
       // =========================================================================
-      // 10. RIDE LIFECYCLE, BOOST, QUICK STATUS PILLS & LIVE TRIP-SHARE
+      // 11. RIDE LIFECYCLE, BOOST, QUICK STATUS PILLS & LIVE TRIP-SHARE
       // =========================================================================
       async function requestRide() {
-        // Browse-First: Prompt Sign In / Create Account right at booking if unauthenticated
         if (!state.user) {
           if (!state.dropoff || !state.route) {
-            return toast('Pan map or search your destination first');
+            return toast('Set your destination first');
           }
           state.pendingBookAfterAuth = true;
           openAuthModal('Sign in or create an account to dispatch your ride');
@@ -2513,6 +2963,7 @@
         const minFare = getCurrentMinFare();
         const finalFare = Math.max(minFare, Number(state.fare) || minFare);
         state.fare = finalFare;
+        const pricingFactors = evaluatePricingFactors(state.tier);
 
         recordRecentDestination(state.dropoff);
 
@@ -2524,6 +2975,12 @@
           tier: state.tier,
           fareNPR: finalFare,
           minFareNPR: minFare,
+          pricingFactors: {
+            multiplier: pricingFactors.totalMultiplier,
+            time: pricingFactors.timeTag,
+            weather: pricingFactors.weatherTag,
+            demand: pricingFactors.demandTag
+          },
           paymentMethod: state.payMode,
           distanceKm: state.route.km,
           durationMin: state.route.min,
@@ -2545,6 +3002,8 @@
         await dbApi.set(`rides/${rideId}`, rideData);
         state.activeRideId = rideId;
         state.lastKnownRideStatus = 'searching';
+        state.pinMode = null;
+        updateCrosshairUI();
         toast('Searching for nearby riders...');
         renderConsole(true);
       }
@@ -2748,7 +3207,7 @@
       }
 
       // =========================================================================
-      // 11. SLIDE-TO-ADVANCE INTERACTIVE WIDGET
+      // 12. SLIDE-TO-ADVANCE INTERACTIVE WIDGET
       // =========================================================================
       function bindSlideToAdvance(containerId, onComplete, validateBeforeSlide = null) {
         const track = document.getElementById(containerId);
@@ -2830,7 +3289,7 @@
       }
 
       // =========================================================================
-      // 12. NON-FLICKERING CONSOLE RENDERER
+      // 13. NON-FLICKERING CONSOLE RENDERER
       // =========================================================================
       function getViewKey() {
         if (state.trackRideId) return `track_${state.trackRideId}`;
@@ -3074,7 +3533,7 @@
 
         state.renderedViewKey = key;
 
-        // 1. Passenger Views (Includes Browse-First Guest Passenger Mode)
+        // 1. Passenger Views
         if (!state.user || state.user.role === 'passenger') {
           const ride = state.activeRideId ? state.rides[state.activeRideId] : null;
 
@@ -3158,22 +3617,26 @@
             return;
           }
 
-          // 2-Tap Passenger Booking View (Browse-First + Home/Work/Recent Chips + Center Pin)
-          const km = state.route?.km || 2.5;
+          // Passenger Booking View: Type Location OR Choose Manual Pin for Pickup / Destination
+          const km = state.route?.km || 2.2;
+          const durMin = state.route?.min || null;
           const minFare = getCurrentMinFare();
-          if (state.fare < minFare) state.fare = minFare;
+          if (!state.fareManuallyEdited || state.fare < minFare) {
+            state.fare = minFare;
+          }
           const canDecrease = Number(state.fare) > minFare;
           const { home, work, recent } = state.savedPlaces;
+          const factors = evaluatePricingFactors(state.tier);
 
           panel.innerHTML = `
             <div class="sheet-grip"></div>
             <div class="row-between">
               <div id="nearbyRidersCount" style="font-size:11px;font-weight:800;color:var(--accent);letter-spacing:0.03em;">NEARBY RIDERS (0)</div>
-              <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);">${state.route ? `${state.route.km} km • ${state.route.min} min` : 'Pan map or tap chip'}</div>
+              <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);">${state.route ? `${state.route.km} km • ${state.route.min} min` : 'Type or Pin locations'}</div>
             </div>
             <div class="chip-rail" id="nearbyRidersRail"></div>
 
-            <!-- 1-Tap Saved (Home / Work) & Recent Destination Chips -->
+            <!-- Saved (Home / Work) & Recent Destination Chips -->
             <div class="chip-rail" id="savedPlacesRail">
               <div class="chip ${home ? 'emerald' : ''}" id="chipHome" role="button" tabindex="0">
                 ${home ? `Home: ${home.label}` : '+ Save Home'}
@@ -3186,25 +3649,41 @@
               `).join('')}
             </div>
 
+            <!-- Dual Input: Type Location OR Tap "Pin on Map" for Pickup & Destination -->
             <div style="display:flex;flex-direction:column;gap:7px;">
-              <div class="field-wrap">
-                <span style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
-                <input class="field-input" id="inPickup" type="text" value="${state.pickup.label}" placeholder="Pickup location" />
-                <div class="btn-cap sm" id="btnUseHardwareGps" role="button" tabindex="0" style="height:26px;padding:0 9px;font-size:10.5px;">GPS</div>
+              <div class="field-wrap ${state.pinMode === 'pickup' ? 'pin-active-pickup' : ''}">
+                <span style="width:8px;height:8px;border-radius:50%;background:#34d399;flex-shrink:0;"></span>
+                <input class="field-input" id="inPickup" type="text" value="${state.pickup.label}" placeholder="Type pickup location..." />
+                <div class="pin-inline-btn ${state.pinMode === 'pickup' ? 'active-pickup' : ''}" id="btnPinPickup" role="button" tabindex="0" title="Set Pickup Pin manually on map">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  <span>${state.pinMode === 'pickup' ? 'Pinning' : 'Pin'}</span>
+                </div>
               </div>
-              <div class="field-wrap">
-                <span style="width:8px;height:8px;border-radius:50%;background:#f43f5e;flex-shrink:0;"></span>
-                <input class="field-input" id="inDropoff" type="text" value="${state.dropoff ? state.dropoff.label : ''}" placeholder="Pan map pin or search destination" />
+
+              <div class="field-wrap ${state.pinMode === 'dropoff' ? 'pin-active-dropoff' : ''}">
+                <span style="width:8px;height:8px;border-radius:50%;background:#fb7185;flex-shrink:0;"></span>
+                <input class="field-input" id="inDropoff" type="text" value="${state.dropoff ? state.dropoff.label : ''}" placeholder="Type destination or tap Pin..." />
                 ${state.dropoff ? `<div class="clear-btn" id="btnClearDropoff" role="button" tabindex="0" title="Clear destination">×</div>` : ''}
+                <div class="pin-inline-btn ${state.pinMode === 'dropoff' ? 'active-dropoff' : ''}" id="btnPinDropoff" role="button" tabindex="0" title="Set Destination Pin manually on map">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  <span>${state.pinMode === 'dropoff' ? 'Pinning' : 'Pin'}</span>
+                </div>
               </div>
               <div class="search-results" id="liveSearchResults" style="display:none;"></div>
+            </div>
+
+            <!-- Live Multi-Factor Pricing Telemetry Strip -->
+            <div class="chip-rail" id="pricingFactorsRail">
+              <div class="${factors.weatherTone}">${factors.weatherTag}</div>
+              <div class="${factors.timeTone}">${factors.timeTag}</div>
+              <div class="${factors.demandTone}">${factors.demandTag}</div>
             </div>
 
             <div class="tier-grid">
               ${Object.values(TIERS).map(t => `
                 <div class="tier-item ${state.tier === t.id ? 'selected' : ''}" data-tier="${t.id}" role="button" tabindex="0">
                   <div class="tier-title">${t.name}</div>
-                  <div class="tier-fare">रु.${calcRecommendedFare(km, t.id)}</div>
+                  <div class="tier-fare">रु.${calcRecommendedFare(km, t.id, durMin)}</div>
                   <div class="tier-eta">${t.etaAdd + Math.round(km * 2)}m</div>
                 </div>
               `).join('')}
@@ -3221,17 +3700,23 @@
             </div>
 
             <div class="btn-cap primary full" id="btnBookNow" role="button" tabindex="0">
-              ${state.user ? `Request Ride • रु.${state.fare}` : `Request Ride • रु.${state.fare}`}
+              Request Ride • रु.${state.fare}
             </div>
           `;
 
           updateDynamicListsOnly();
+          requestAnimationFrame(positionCrosshairInClearViewport);
+
+          // Manual Pin Mode Triggers for Pickup & Destination
+          document.getElementById('btnPinPickup')?.addEventListener('click', () => enterManualPinMode('pickup'));
+          document.getElementById('btnPinDropoff')?.addEventListener('click', () => enterManualPinMode('dropoff'));
 
           // Saved & Recent Place Chips Handlers
           document.getElementById('chipHome')?.addEventListener('click', async () => {
             if (state.savedPlaces.home) {
               const h = state.savedPlaces.home;
               state.dropoff = { lat: h.lat, lng: h.lng, label: h.label };
+              state.fareManuallyEdited = false;
               await fetchRoadRoute();
               syncMapGraphics();
               renderConsole(true);
@@ -3239,9 +3724,9 @@
               toast(`Destination: Home (${h.label})`);
             } else {
               const target = state.dropoff || {
-                lat: map ? map.getCenter().lat : state.myGps.lat,
-                lng: map ? map.getCenter().lng : state.myGps.lng,
-                label: state.dropoff?.label || await reverseGeocode(map ? map.getCenter().lat : state.myGps.lat, map ? map.getCenter().lng : state.myGps.lng)
+                lat: state.myGps.lat,
+                lng: state.myGps.lng,
+                label: await reverseGeocode(state.myGps.lat, state.myGps.lng)
               };
               state.savedPlaces.home = { lat: target.lat, lng: target.lng, label: target.label };
               persistSavedPlaces(state.savedPlaces);
@@ -3254,6 +3739,7 @@
             if (state.savedPlaces.work) {
               const w = state.savedPlaces.work;
               state.dropoff = { lat: w.lat, lng: w.lng, label: w.label };
+              state.fareManuallyEdited = false;
               await fetchRoadRoute();
               syncMapGraphics();
               renderConsole(true);
@@ -3261,9 +3747,9 @@
               toast(`Destination: Work (${w.label})`);
             } else {
               const target = state.dropoff || {
-                lat: map ? map.getCenter().lat : state.myGps.lat,
-                lng: map ? map.getCenter().lng : state.myGps.lng,
-                label: state.dropoff?.label || await reverseGeocode(map ? map.getCenter().lat : state.myGps.lat, map ? map.getCenter().lng : state.myGps.lng)
+                lat: state.myGps.lat,
+                lng: state.myGps.lng,
+                label: await reverseGeocode(state.myGps.lat, state.myGps.lng)
               };
               state.savedPlaces.work = { lat: target.lat, lng: target.lng, label: target.label };
               persistSavedPlaces(state.savedPlaces);
@@ -3277,6 +3763,7 @@
               const rec = state.savedPlaces.recent[Number(el.getAttribute('data-recent-idx'))];
               if (!rec) return;
               state.dropoff = { lat: rec.lat, lng: rec.lng, label: rec.label };
+              state.fareManuallyEdited = false;
               await fetchRoadRoute();
               syncMapGraphics();
               renderConsole(true);
@@ -3296,36 +3783,16 @@
             state.dropoff = null;
             state.route = null;
             state.searchResults = [];
+            state.fareManuallyEdited = false;
             syncMapGraphics();
             renderConsole(true);
-          });
-
-          document.getElementById('btnUseHardwareGps')?.addEventListener('click', () => {
-            state.pickup.manual = false;
-            state.myGps.source = 'default';
-            if ('geolocation' in navigator) {
-              navigator.geolocation.getCurrentPosition(
-                async (pos) => {
-                  const { latitude, longitude, accuracy } = pos.coords;
-                  const label = await reverseGeocode(latitude, longitude);
-                  state.pickup = { lat: latitude, lng: longitude, label, manual: false };
-                  updateMyGps(latitude, longitude, 0, state.myGps.heading, accuracy ? Math.round(accuracy) : null, 'hardware');
-                  await fetchRoadRoute();
-                  syncMapGraphics();
-                  renderConsole(true);
-                  if (map) map.flyTo([latitude, longitude], 16);
-                  toast('Synced to hardware GPS');
-                },
-                () => toast('Hardware GPS unavailable — pan map pin'),
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 }
-              );
-            }
           });
 
           panel.querySelectorAll('[data-tier]').forEach(el => {
             el.addEventListener('click', () => {
               state.tier = el.getAttribute('data-tier');
-              state.fare = calcRecommendedFare(state.route?.km || 2.5, state.tier);
+              state.fareManuallyEdited = false;
+              state.fare = calcRecommendedFare(state.route?.km || 2.2, state.tier, state.route?.min || null);
               renderConsole(true);
             });
           });
@@ -3333,15 +3800,17 @@
           document.getElementById('btnFareDown')?.addEventListener('click', () => {
             const floor = getCurrentMinFare();
             if (Number(state.fare) <= floor) {
-              toast(`Minimum recommended fare is रु.${floor}`);
+              toast(`Minimum smart fare is रु.${floor}`);
               return;
             }
             state.fare = Math.max(floor, Number(state.fare) - 10);
+            state.fareManuallyEdited = state.fare > floor;
             renderConsole(true);
           });
 
           document.getElementById('btnFareUp')?.addEventListener('click', () => {
             state.fare = Number(state.fare) + 10;
+            state.fareManuallyEdited = true;
             renderConsole(true);
           });
 
@@ -3349,10 +3818,12 @@
             const floor = getCurrentMinFare();
             const entered = parseInt(e.target.value, 10) || floor;
             if (entered < floor) {
-              toast(`Minimum fare for this distance is रु.${floor}`);
+              toast(`Minimum smart fare for current conditions is रु.${floor}`);
               state.fare = floor;
+              state.fareManuallyEdited = false;
             } else {
               state.fare = entered;
+              state.fareManuallyEdited = entered > floor;
             }
             renderConsole(true);
           });
@@ -3367,7 +3838,7 @@
           return;
         }
 
-        // 2. Driver / Rider Views (Eyes-On-The-Road Flow)
+        // 2. Driver / Rider Views
         const ride = state.activeRideId ? state.rides[state.activeRideId] : null;
         if (ride) {
           const target = ride.status === 'in_progress' ? ride.dropoff : ride.pickup;
@@ -3480,7 +3951,7 @@
           return;
         }
 
-        // Driver Radar View (Includes Live Income Readout)
+        // Driver Radar View
         const driverStats = getUserFinancialSummary(state.user);
         panel.innerHTML = `
           <div class="row-between">
@@ -3510,41 +3981,43 @@
       }
 
       // =========================================================================
-      // 13. EVENT BINDINGS & BOOTSTRAP
+      // 14. EVENT BINDINGS & BOOTSTRAP
       // =========================================================================
       function bindUIEvents() {
+        // Crosshair Confirm & Done buttons
+        document.getElementById('btnConfirmCrosshair').addEventListener('click', () => {
+          confirmManualPinSelection();
+        });
+
+        document.getElementById('btnCancelCrosshair').addEventListener('click', () => {
+          exitManualPinMode();
+        });
+
         document.getElementById('toolLocate').addEventListener('click', () => {
           state.myGps.source = 'default';
           if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
-              (pos) => {
+              async (pos) => {
                 const { latitude, longitude, accuracy } = pos.coords;
                 updateMyGps(latitude, longitude, 0, state.myGps.heading, accuracy ? Math.round(accuracy) : null, 'hardware');
+                if ((!state.user || state.user.role === 'passenger') && !state.activeRideId) {
+                  const label = await reverseGeocode(latitude, longitude);
+                  state.pickup = { lat: latitude, lng: longitude, label, manual: false };
+                  await fetchRoadRoute();
+                  renderConsole(true);
+                }
                 if (map) map.flyTo([latitude, longitude], 16);
                 toast('Centered on live GPS');
               },
               () => {
                 if (map) map.flyTo([state.myGps.lat, state.myGps.lng], 16);
-                toast('Pan map pin to adjust location');
+                toast('Hardware GPS unavailable — use Pin button');
               },
               { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 }
             );
           } else if (map) {
             map.flyTo([state.myGps.lat, state.myGps.lng], 16);
           }
-        });
-
-        document.getElementById('toolPinMode').addEventListener('click', () => {
-          const modes = ['dropoff', 'pickup', 'mygps'];
-          const labels = {
-            dropoff: 'Pin: Destination',
-            pickup: 'Pin: Pickup',
-            mygps: 'Pin: My GPS'
-          };
-          state.pinMode = modes[(modes.indexOf(state.pinMode) + 1) % modes.length];
-          document.getElementById('pinModeLabel').textContent = labels[state.pinMode];
-          updateCrosshairUI();
-          toast(`Pan or tap map for ${labels[state.pinMode].replace('Pin: ', '')}`);
         });
 
         function renderProfileModal() {
@@ -3580,13 +4053,13 @@
                 </div>
                 <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent);">@${u.username} • ${u.phone}</div>
                 ${isDriver ? `
-                  <div style="font-size:12px;color:var(--text-secondary);padding-top:6px;border-top:1px solid var(--border-subtle);">
+                  <div style="font-size:12px;color:var(--text-secondary);padding-top:6px;border-top:1px solid var(--border-silk);">
                     Vehicle: <strong style="color:var(--text-primary);">${u.vehicleModel} (${u.vehicleType.toUpperCase()})</strong><br/>
                     Plate: <strong style="font-family:var(--font-mono);color:var(--accent);">${u.plate}</strong><br/>
                     License: <strong style="font-family:var(--font-mono);color:var(--text-primary);">${u.license}</strong>
                   </div>
                 ` : `
-                  <div class="row-between" style="padding-top:6px;border-top:1px solid var(--border-subtle);">
+                  <div class="row-between" style="padding-top:6px;border-top:1px solid var(--border-silk);">
                     <div style="font-size:11px;color:var(--text-secondary);">Saved: ${state.savedPlaces.home ? 'Home' : 'No Home'} • ${state.savedPlaces.work ? 'Work' : 'No Work'}</div>
                     <div class="chip" id="btnResetSavedPlaces" role="button" tabindex="0">Clear Saved</div>
                   </div>
@@ -3701,6 +4174,7 @@
         bindUIEvents();
         bindRealtimeStreams();
         startLiveGpsEngine();
+        fetchLiveWeather(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
         syncMapGraphics();
         renderConsole(true);
 
