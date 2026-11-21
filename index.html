@@ -23,7 +23,7 @@
   <style>
     :root {
       --bg-base: #07090e;
-      --bg-elevated: rgba(13, 17, 26, 0.92);
+      --bg-elevated: rgba(13, 17, 26, 0.93);
       --bg-card: linear-gradient(145deg, rgba(21, 27, 40, 0.95), rgba(11, 15, 23, 0.98));
       --bg-inset: rgba(6, 9, 15, 0.92);
       --border-subtle: rgba(255, 255, 255, 0.08);
@@ -119,6 +119,103 @@
       display: none !important;
     }
 
+    /* Uber / Pathao Style Center-Crosshair Pin */
+    .center-crosshair {
+      position: absolute;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -100%);
+      z-index: 15;
+      pointer-events: none;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @media (min-width: 820px) {
+      .center-crosshair {
+        left: calc(50% + 205px);
+        top: 50%;
+      }
+    }
+
+    .center-crosshair.visible {
+      display: flex;
+    }
+
+    .center-crosshair.dragging {
+      transform: translate(-50%, calc(-100% - 14px));
+    }
+
+    .crosshair-badge {
+      padding: 4px 10px;
+      border-radius: var(--pill);
+      background: rgba(7, 9, 14, 0.94);
+      border: 1px solid var(--border-active);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      white-space: nowrap;
+      margin-bottom: 4px;
+    }
+
+    .center-crosshair.pickup-mode .crosshair-badge {
+      border-color: rgba(16, 185, 129, 0.65);
+      color: var(--accent-emerald);
+    }
+
+    .crosshair-head {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f43f5e, #e11d48);
+      border: 3px solid #ffffff;
+      box-shadow: 0 6px 16px rgba(244, 63, 94, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .center-crosshair.pickup-mode .crosshair-head {
+      background: linear-gradient(135deg, #10b981, #059669);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.55);
+    }
+
+    .crosshair-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ffffff;
+    }
+
+    .crosshair-stem {
+      width: 3px;
+      height: 12px;
+      background: #ffffff;
+      border-radius: 0 0 3px 3px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+
+    .crosshair-shadow {
+      position: absolute;
+      bottom: -3px;
+      width: 10px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(34, 211, 238, 0.6);
+      box-shadow: 0 0 8px rgba(34, 211, 238, 0.8);
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .center-crosshair.dragging .crosshair-shadow {
+      transform: scale(1.65);
+      opacity: 0.45;
+    }
+
     /* Custom Capsule Controls */
     .btn-cap {
       display: inline-flex;
@@ -189,6 +286,95 @@
 
     .btn-cap.full {
       width: 100%;
+    }
+
+    /* Large Slide-to-Advance Action Bar (Eyes-On-The-Road Rider Control) */
+    .slide-track {
+      position: relative;
+      width: 100%;
+      height: 54px;
+      border-radius: var(--pill);
+      background: var(--bg-inset);
+      border: 1px solid rgba(34, 211, 238, 0.35);
+      box-shadow: var(--shadow-inset);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .slide-track.emerald {
+      border-color: rgba(16, 185, 129, 0.45);
+    }
+
+    .slide-track.amber {
+      border-color: rgba(245, 158, 11, 0.45);
+    }
+
+    .slide-track.disabled {
+      opacity: 0.42;
+      pointer-events: none;
+    }
+
+    .slide-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 50px;
+      border-radius: var(--pill);
+      background: linear-gradient(90deg, rgba(34, 211, 238, 0.16), rgba(34, 211, 238, 0.34));
+      pointer-events: none;
+    }
+
+    .slide-track.emerald .slide-fill {
+      background: linear-gradient(90deg, rgba(16, 185, 129, 0.16), rgba(16, 185, 129, 0.34));
+    }
+
+    .slide-track.amber .slide-fill {
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.16), rgba(245, 158, 11, 0.34));
+    }
+
+    .slide-label {
+      position: relative;
+      z-index: 2;
+      font-size: 12.5px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      padding-left: 34px;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+
+    .slide-thumb {
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #22d3ee 0%, #0284c7 100%);
+      color: #041019;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      cursor: grab;
+    }
+
+    .slide-track.emerald .slide-thumb {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #03150e;
+    }
+
+    .slide-track.amber .slide-thumb {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #180d02;
     }
 
     /* Top Header HUD */
@@ -336,7 +522,7 @@
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-outset);
       padding: 14px;
-      max-height: 56dvh;
+      max-height: 58dvh;
       overflow-y: auto;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
@@ -372,7 +558,7 @@
         top: 64px;
         bottom: 12px;
         margin-top: 0;
-        width: 410px;
+        width: 416px;
         padding: 0;
         justify-content: space-between;
       }
@@ -441,45 +627,6 @@
       background: rgba(255, 255, 255, 0.16);
       color: var(--text-primary);
     }
-      .console-panel {
-        max-height: calc(100dvh - 104px);
-      }
-    }
-
-    /* Neumorphic Inset Inputs */
-    .field-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      height: 40px;
-      padding: 0 12px;
-      border-radius: var(--pill);
-      background: var(--bg-inset);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: var(--shadow-inset);
-      transition: border-color 0.18s ease;
-    }
-
-    .field-wrap:focus-within {
-      border-color: var(--border-active);
-    }
-
-    .field-input {
-      width: 100%;
-      height: 100%;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text-primary);
-      font-family: var(--font-sans);
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .field-input::placeholder {
-      color: var(--text-muted);
-    }
 
     .field-label {
       font-size: 10.5px;
@@ -529,7 +676,7 @@
       text-overflow: ellipsis;
     }
 
-    /* Horizontal Live Riders Strip */
+    /* Horizontal Live Riders & Saved Chips Strip */
     .chip-rail {
       display: flex;
       align-items: center;
@@ -541,7 +688,7 @@
     .chip-rail::-webkit-scrollbar { display: none; }
 
     .chip {
-      height: 28px;
+      height: 29px;
       padding: 0 11px;
       border-radius: var(--pill);
       background: rgba(255, 255, 255, 0.04);
@@ -562,6 +709,18 @@
       background: rgba(34, 211, 238, 0.12);
       border-color: var(--border-active);
       color: var(--accent);
+    }
+
+    .chip.emerald {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: var(--accent-emerald);
+    }
+
+    .chip.amber {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: var(--accent-amber);
     }
 
     /* Vehicle Tiers */
@@ -864,7 +1023,7 @@
       align-items: center;
       gap: 8px;
       transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.22s ease;
-      max-width: 90vw;
+      max-width: 92vw;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -933,6 +1092,14 @@
   <div id="app">
     <div id="map"></div>
 
+    <!-- Uber / Pathao Style Center-Crosshair Pin -->
+    <div class="center-crosshair" id="centerCrosshair" aria-hidden="true">
+      <div class="crosshair-badge" id="crosshairBadge">PAN MAP TO SET DROP-OFF</div>
+      <div class="crosshair-head"><div class="crosshair-dot"></div></div>
+      <div class="crosshair-stem"></div>
+      <div class="crosshair-shadow"></div>
+    </div>
+
     <!-- Top Header Bar -->
     <div class="top-bar">
       <div class="hud-pill">
@@ -961,8 +1128,8 @@
       </div>
     </div>
 
-    <!-- Map Tools (Locate Hardware GPS + Manual Map Pin Mode) -->
-    <div class="map-tools">
+    <!-- Map Tools (Locate Hardware GPS + Center Pin Target Switch) -->
+    <div class="map-tools" id="mapTools">
       <div class="map-tool-pill" id="toolLocate" role="button" tabindex="0" title="Snap to Hardware GPS">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -970,7 +1137,7 @@
         </svg>
         <span>My GPS</span>
       </div>
-      <div class="map-tool-pill active" id="toolPinMode" role="button" tabindex="0" title="Switch Map Tap Target">
+      <div class="map-tool-pill active" id="toolPinMode" role="button" tabindex="0" title="Switch Center Pin & Tap Target">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
@@ -986,12 +1153,15 @@
     </div>
   </div>
 
-  <!-- Auth Modal (Sign In / Create Account) -->
+  <!-- Auth Modal (Shown at Booking or via Sign In Button) -->
   <div class="overlay-mask" id="authOverlay">
     <div class="dialog-card">
       <div class="row-between">
-        <div style="font-size:17px;font-weight:800;letter-spacing:-0.02em;">GPS Ride Telemetry</div>
-        <div class="tag" style="font-family:var(--font-mono);">gps-rt</div>
+        <div>
+          <div style="font-size:17px;font-weight:800;letter-spacing:-0.02em;">Continue to GPS Ride</div>
+          <div id="authContextHint" style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Sign in or create an account to confirm</div>
+        </div>
+        <div class="btn-cap sm" id="btnCloseAuth" role="button" tabindex="0">Browse Map</div>
       </div>
 
       <div class="seg-bar">
@@ -1016,7 +1186,7 @@
         <div class="btn-cap primary full" id="btnDoLogin" role="button" tabindex="0" style="margin-top:4px;">Sign In</div>
       </div>
 
-      <!-- Create Account View -->
+      <!-- Create Account View (Fast 2-Step Rider Onboarding) -->
       <div id="viewCreate" style="display:none;flex-direction:column;gap:10px;">
         <div class="role-grid">
           <div class="role-box active" id="rolePassenger" role="button" tabindex="0">
@@ -1058,6 +1228,7 @@
           </div>
         </div>
 
+        <!-- Fast Rider Onboarding: Only Vehicle Type + Plate required upfront -->
         <div id="driverFields" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border-subtle);">
           <div class="grid-2">
             <div>
@@ -1072,28 +1243,35 @@
               </div>
             </div>
             <div>
-              <div class="field-label">Vehicle Model</div>
-              <div class="field-wrap"><input class="field-input" id="regVehModel" type="text" placeholder="Model" /></div>
-            </div>
-          </div>
-          <div class="grid-2">
-            <div>
               <div class="field-label">Number Plate</div>
-              <div class="field-wrap"><input class="field-input" id="regPlate" type="text" placeholder="Plate No." /></div>
-            </div>
-            <div>
-              <div class="field-label">Vehicle Color</div>
-              <div class="field-wrap"><input class="field-input" id="regColor" type="text" placeholder="Color" /></div>
+              <div class="field-wrap"><input class="field-input" id="regPlate" type="text" placeholder="BA 02 PA 1234" /></div>
             </div>
           </div>
-          <div class="grid-2">
-            <div>
-              <div class="field-label">License No.</div>
-              <div class="field-wrap"><input class="field-input" id="regLicense" type="text" placeholder="License No." /></div>
+
+          <div class="chip" id="btnToggleDriverExtra" role="button" tabindex="0" style="align-self:flex-start;">
+            + Optional Vehicle &amp; License Details (or add later)
+          </div>
+
+          <div id="driverExtraFields" style="display:none;flex-direction:column;gap:8px;">
+            <div class="grid-2">
+              <div>
+                <div class="field-label">Vehicle Model</div>
+                <div class="field-wrap"><input class="field-input" id="regVehModel" type="text" placeholder="e.g. Pulsar 150" /></div>
+              </div>
+              <div>
+                <div class="field-label">Vehicle Color</div>
+                <div class="field-wrap"><input class="field-input" id="regColor" type="text" placeholder="e.g. Black" /></div>
+              </div>
             </div>
-            <div>
-              <div class="field-label">Bluebook / NID</div>
-              <div class="field-wrap"><input class="field-input" id="regBluebook" type="text" placeholder="Bluebook / NID" /></div>
+            <div class="grid-2">
+              <div>
+                <div class="field-label">License No.</div>
+                <div class="field-wrap"><input class="field-input" id="regLicense" type="text" placeholder="License No." /></div>
+              </div>
+              <div>
+                <div class="field-label">Bluebook / NID</div>
+                <div class="field-wrap"><input class="field-input" id="regBluebook" type="text" placeholder="Bluebook / NID" /></div>
+              </div>
             </div>
           </div>
         </div>
@@ -1162,7 +1340,43 @@
       };
 
       // =========================================================================
-      // 2. STATE & PRICING TIERS (No Gimmicks, No Fake Movement, No Presets)
+      // 2. SAVED & RECENT PLACES STORAGE (Home, Work, Last 3 Trips)
+      // =========================================================================
+      const PLACES_STORAGE_KEY = 'gps_rt_saved_places_v1';
+
+      function loadSavedPlaces() {
+        try {
+          const raw = localStorage.getItem(PLACES_STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            return {
+              home: parsed.home || null,
+              work: parsed.work || null,
+              recent: Array.isArray(parsed.recent) ? parsed.recent.slice(0, 3) : []
+            };
+          }
+        } catch (_) {}
+        return { home: null, work: null, recent: [] };
+      }
+
+      function persistSavedPlaces(places) {
+        try {
+          localStorage.setItem(PLACES_STORAGE_KEY, JSON.stringify(places));
+        } catch (_) {}
+      }
+
+      function recordRecentDestination(place) {
+        if (!place || typeof place.lat !== 'number' || typeof place.lng !== 'number') return;
+        const cleanLabel = (place.label || `${place.lat.toFixed(4)}, ${place.lng.toFixed(4)}`).trim();
+        const filtered = state.savedPlaces.recent.filter(
+          (item) => item.label.toLowerCase() !== cleanLabel.toLowerCase()
+        );
+        state.savedPlaces.recent = [{ lat: place.lat, lng: place.lng, label: cleanLabel }, ...filtered].slice(0, 3);
+        persistSavedPlaces(state.savedPlaces);
+      }
+
+      // =========================================================================
+      // 3. STATE & PRICING TIERS
       // =========================================================================
       const DEFAULT_CENTER = { lat: 27.7172, lng: 85.3240 };
 
@@ -1173,8 +1387,19 @@
         xl:   { id: 'xl',   name: 'Prime XL', base: 180, perKm: 58, etaAdd: 4 }
       };
 
+      const QUICK_STATUS_PILLS = {
+        passenger: ['Coming out now', 'On the main road', 'Please wait 1 min'],
+        driver: ['On my way', 'In traffic (2 min)', 'At pickup point']
+      };
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const trackRideParam = urlParams.get('track');
+
       const state = {
         user: null,
+        trackRideId: trackRideParam ? trackRideParam.trim() : null,
+        pendingBookAfterAuth: false,
+        savedPlaces: loadSavedPlaces(),
         locations: {},
         rides: {},
         myGps: {
@@ -1202,6 +1427,8 @@
         lastKnownRideStatus: null,
         lastKnownBidsCount: 0,
         lastOpenRequestsCount: 0,
+        lastQuickStatusTs: 0,
+        autoArrivedFired: {},
         regRole: 'passenger',
         otpInput: '',
         renderedViewKey: '',
@@ -1210,7 +1437,7 @@
       };
 
       // =========================================================================
-      // 3. AUDIO CHIME & HELPERS
+      // 4. AUDIO CHIME, CLIPBOARD & HELPERS
       // =========================================================================
       let audioCtx = null;
       function playNotificationTone(type = 'info') {
@@ -1241,6 +1468,25 @@
         } catch (_) {}
       }
 
+      function copyTextToClipboard(text) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'fixed';
+          ta.style.top = '-9999px';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          ta.setSelectionRange(0, ta.value.length);
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          return ok;
+        } catch (_) {
+          return false;
+        }
+      }
+
       let toastTimer = null;
       const toastEl = document.getElementById('toast');
       toastEl?.addEventListener('transitionend', () => {
@@ -1257,7 +1503,7 @@
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
           el.classList.remove('show');
-        }, 2800);
+        }, 3000);
       }
 
       function distKm(lat1, lon1, lat2, lon2) {
@@ -1270,7 +1516,6 @@
         return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
       }
 
-      // Recommended fare floor for a given distance & tier (cannot bargain below this)
       function calcRecommendedFare(km, tierId) {
         const t = TIERS[tierId] || TIERS.bike;
         const distance = Math.max(0.5, Number(km) || 1.0);
@@ -1282,7 +1527,7 @@
       }
 
       // =========================================================================
-      // 4. HEADLESS API ENDPOINTS (?api=status | drivers | push | telemetry)
+      // 5. HEADLESS API ENDPOINTS (?api=status | drivers | push | telemetry)
       // =========================================================================
       window.GPSRideAPI = {
         node: `${DB_URL}/${ROOT_NODE}`,
@@ -1310,8 +1555,7 @@
       };
 
       async function checkQueryApi() {
-        const params = new URLSearchParams(window.location.search);
-        const cmd = params.get('api');
+        const cmd = urlParams.get('api');
         if (!cmd) return false;
 
         const out = document.getElementById('apiOutput');
@@ -1338,9 +1582,9 @@
             const drivers = Object.values(locs).filter(x => x?.role === 'driver');
             out.textContent = JSON.stringify({ ok: true, count: drivers.length, drivers }, null, 2);
           } else if (cmd === 'push') {
-            const user = params.get('user');
-            const lat = parseFloat(params.get('lat'));
-            const lng = parseFloat(params.get('lng'));
+            const user = urlParams.get('user');
+            const lat = parseFloat(urlParams.get('lat'));
+            const lng = parseFloat(urlParams.get('lng'));
             if (!user || Number.isNaN(lat) || Number.isNaN(lng)) {
               out.textContent = JSON.stringify({ ok: false, error: 'Missing user, lat, or lng' }, null, 2);
             } else {
@@ -1348,16 +1592,16 @@
                 username: user,
                 lat,
                 lng,
-                speed: parseFloat(params.get('speed') || '0'),
-                heading: parseFloat(params.get('heading') || '0'),
-                role: params.get('role') || 'driver',
-                vehicleType: params.get('vehicle') || 'bike',
-                plate: params.get('plate') || ''
+                speed: parseFloat(urlParams.get('speed') || '0'),
+                heading: parseFloat(urlParams.get('heading') || '0'),
+                role: urlParams.get('role') || 'driver',
+                vehicleType: urlParams.get('vehicle') || 'bike',
+                plate: urlParams.get('plate') || ''
               });
               out.textContent = JSON.stringify({ ok: true, pushed: res }, null, 2);
             }
           } else if (cmd === 'telemetry') {
-            const rideId = params.get('ride');
+            const rideId = urlParams.get('ride');
             const raw = rideId ? await dbApi.get(`rides/${rideId}`) : await dbApi.get('rides');
             let data = raw;
             if (rideId && raw) {
@@ -1381,12 +1625,13 @@
       }
 
       // =========================================================================
-      // 5. MAP ENGINE, DRAGGABLE PINS & OSRM ROUTING
+      // 6. MAP ENGINE, CENTER-CROSSHAIR PIN & OSRM ROUTING
       // =========================================================================
       let map = null;
       let myMarker = null;
       let pickupMarker = null;
       let dropoffMarker = null;
+      let trackedDriverMarker = null;
       let routeLine = null;
       let hasCenteredInitialGps = false;
       const peerMarkers = new Map();
@@ -1398,6 +1643,62 @@
           : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"></circle><circle cx="18.5" cy="17.5" r="3.5"></circle><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"></path></svg>`;
 
         return `<div style="transform:rotate(${heading}deg);width:32px;height:32px;border-radius:50%;background:#0b0f18;border:2px solid ${color};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.65);">${svg}</div>`;
+      }
+
+      function updateCrosshairUI() {
+        const ch = document.getElementById('centerCrosshair');
+        const badge = document.getElementById('crosshairBadge');
+        if (!ch || !badge) return;
+
+        const isPassengerBrowsing = !state.trackRideId && !state.activeRideId && (!state.user || state.user.role === 'passenger');
+        if (!isPassengerBrowsing) {
+          ch.classList.remove('visible');
+          return;
+        }
+
+        ch.classList.add('visible');
+        if (state.pinMode === 'pickup') {
+          ch.classList.add('pickup-mode');
+          badge.textContent = 'PAN MAP FOR PICKUP';
+        } else if (state.pinMode === 'mygps') {
+          ch.classList.add('pickup-mode');
+          badge.textContent = 'PAN MAP FOR MY GPS';
+        } else {
+          ch.classList.remove('pickup-mode');
+          badge.textContent = 'PAN MAP FOR DROP-OFF';
+        }
+      }
+
+      async function applyPointSelection(lat, lng, mode = state.pinMode, panMap = false) {
+        const label = await reverseGeocode(lat, lng);
+        if (mode === 'mygps') {
+          updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
+          if (!state.activeRideId) {
+            state.pickup = { lat, lng, label, manual: true };
+            await fetchRoadRoute();
+          }
+          toast(`Location pinned: ${label}`);
+        } else if (mode === 'pickup') {
+          state.pickup = { lat, lng, label, manual: true };
+          updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
+          await fetchRoadRoute();
+          toast(`Pickup: ${label}`);
+        } else {
+          state.dropoff = { lat, lng, label };
+          await fetchRoadRoute();
+          toast(`Drop-off: ${label}`);
+        }
+
+        syncMapGraphics();
+        renderConsole(true);
+
+        if (panMap && map) {
+          if (state.route?.coords && state.route.coords.length > 1) {
+            map.fitBounds(L.latLngBounds(state.route.coords), { padding: [55, 55] });
+          } else {
+            map.flyTo([lat, lng], 16);
+          }
+        }
       }
 
       function initMap() {
@@ -1424,34 +1725,32 @@
         window.addEventListener('resize', refreshMapLayout);
         window.addEventListener('orientationchange', () => setTimeout(refreshMapLayout, 180));
 
+        // Uber/Pathao Center-Crosshair drag lift & drop
+        map.on('dragstart', () => {
+          const ch = document.getElementById('centerCrosshair');
+          if (ch) ch.classList.add('dragging');
+        });
+
+        map.on('dragend', async () => {
+          const ch = document.getElementById('centerCrosshair');
+          if (ch) ch.classList.remove('dragging');
+
+          const isPassengerBrowsing = !state.trackRideId && !state.activeRideId && (!state.user || state.user.role === 'passenger');
+          if (!isPassengerBrowsing) return;
+
+          const center = map.getCenter();
+          await applyPointSelection(center.lat, center.lng, state.pinMode, false);
+        });
+
         map.on('click', async (e) => {
+          if (state.trackRideId) return;
           const { lat, lng } = e.latlng;
           if (state.pinMode === 'mygps') {
-            updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
-            if (state.user?.role === 'passenger' && !state.activeRideId) {
-              const label = await reverseGeocode(lat, lng);
-              state.pickup = { lat, lng, label, manual: true };
-              await fetchRoadRoute();
-            }
-            syncMapGraphics();
-            renderConsole(true);
-            toast('Location pinned manually');
+            await applyPointSelection(lat, lng, 'mygps', false);
             return;
           }
-
-          if (state.user?.role === 'passenger' && !state.activeRideId) {
-            const label = await reverseGeocode(lat, lng);
-            if (state.pinMode === 'pickup') {
-              state.pickup = { lat, lng, label, manual: true };
-              updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
-              toast(`Pickup set: ${label}`);
-            } else {
-              state.dropoff = { lat, lng, label };
-              toast(`Destination set: ${label}`);
-            }
-            await fetchRoadRoute();
-            syncMapGraphics();
-            renderConsole(true);
+          if ((!state.user || state.user.role === 'passenger') && !state.activeRideId) {
+            await applyPointSelection(lat, lng, state.pinMode, false);
           }
         });
       }
@@ -1569,6 +1868,58 @@
 
       function syncMapGraphics() {
         if (!map) return;
+        updateCrosshairUI();
+
+        // Dedicated Live Trip-Share Safety View (?track=RIDE_ID)
+        if (state.trackRideId) {
+          const ride = state.rides[state.trackRideId];
+          if (myMarker) { map.removeLayer(myMarker); myMarker = null; }
+          if (!ride) return;
+
+          const pPt = ride.pickup;
+          const dPt = ride.dropoff;
+          const coords = ride.routeCoords;
+          const dLoc = ride.driver?.username ? (state.locations[ride.driver.username] || ride.driverGps) : ride.driverGps;
+
+          if (pPt) {
+            const ic = L.divIcon({
+              html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#10b981;border:2.5px solid #fff;"></div><div class="mk-label">PICKUP</div></div>`,
+              className: '', iconSize: [64, 34], iconAnchor: [32, 8]
+            });
+            if (!pickupMarker) pickupMarker = L.marker([pPt.lat, pPt.lng], { icon: ic }).addTo(map);
+            else pickupMarker.setLatLng([pPt.lat, pPt.lng]);
+          }
+
+          if (dPt) {
+            const ic = L.divIcon({
+              html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#f43f5e;border:2.5px solid #fff;"></div><div class="mk-label">DROP</div></div>`,
+              className: '', iconSize: [64, 34], iconAnchor: [32, 8]
+            });
+            if (!dropoffMarker) dropoffMarker = L.marker([dPt.lat, dPt.lng], { icon: ic }).addTo(map);
+            else dropoffMarker.setLatLng([dPt.lat, dPt.lng]);
+          }
+
+          if (coords && coords.length > 1) {
+            if (routeLine) map.removeLayer(routeLine);
+            routeLine = L.polyline(coords, { color: '#22d3ee', weight: 4, opacity: 0.92 }).addTo(map);
+          }
+
+          if (dLoc && typeof dLoc.lat === 'number' && typeof dLoc.lng === 'number') {
+            const plate = ride.driver?.plate || 'RIDER';
+            const ic = L.divIcon({
+              html: `<div class="mk-wrap">${vehicleIconSvg(ride.driver?.vehicleType || 'bike', '#22d3ee', dLoc.heading || 0)}<div class="mk-label">${plate}</div></div>`,
+              className: '', iconSize: [80, 48], iconAnchor: [40, 24]
+            });
+            if (!trackedDriverMarker) {
+              trackedDriverMarker = L.marker([dLoc.lat, dLoc.lng], { icon: ic, zIndexOffset: 950 }).addTo(map);
+              map.setView([dLoc.lat, dLoc.lng], 16);
+            } else {
+              trackedDriverMarker.setLatLng([dLoc.lat, dLoc.lng]);
+              trackedDriverMarker.setIcon(ic);
+            }
+          }
+          return;
+        }
 
         // 1. Self Marker (Draggable so user can correct location anytime)
         const isDriver = state.user?.role === 'driver';
@@ -1587,7 +1938,7 @@
           myMarker.on('dragend', async (ev) => {
             const { lat, lng } = ev.target.getLatLng();
             updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
-            if (state.user?.role === 'passenger' && !state.activeRideId) {
+            if ((!state.user || state.user.role === 'passenger') && !state.activeRideId) {
               const label = await reverseGeocode(lat, lng);
               state.pickup = { lat, lng, label, manual: true };
               await fetchRoadRoute();
@@ -1640,7 +1991,7 @@
         const pPt = activeRide ? activeRide.pickup : state.pickup;
         const dPt = activeRide ? activeRide.dropoff : state.dropoff;
         const coords = activeRide ? activeRide.routeCoords : state.route?.coords;
-        const canDragPins = !activeRide && state.user?.role === 'passenger';
+        const canDragPins = !activeRide && (!state.user || state.user.role === 'passenger');
 
         if (pPt && (dPt || activeRide || pPt.manual)) {
           const ic = L.divIcon({
@@ -1707,14 +2058,14 @@
       }
 
       // =========================================================================
-      // 6. REAL-TIME FIREBASE LISTENERS & PATHAO RIDE ALERTS
+      // 7. REAL-TIME FIREBASE LISTENERS, QUICK-STATUS ALERTS & AUTO-ARRIVAL
       // =========================================================================
       function bindRealtimeStreams() {
         dbApi.ref('live_locations').on('value', (snap) => {
           state.locations = snap.val() || {};
           syncMapGraphics();
           updateDynamicListsOnly();
-          if (state.activeRideId) {
+          if (state.activeRideId || state.trackRideId) {
             renderConsole(false);
           }
         });
@@ -1727,10 +2078,24 @@
         });
       }
 
+      async function checkDriverAutoArrivalGeofence(ride) {
+        if (!state.user || state.user.role !== 'driver') return;
+        if (!ride || ride.status !== 'accepted' || !ride.pickup) return;
+        if (state.autoArrivedFired[ride.rideId]) return;
+
+        const dKm = distKm(state.myGps.lat, state.myGps.lng, ride.pickup.lat, ride.pickup.lng);
+        if (dKm <= 0.05) { // Within 50 meters of pickup
+          state.autoArrivedFired[ride.rideId] = true;
+          playNotificationTone('accepted');
+          toast('Within 50m of Pickup — Auto-marked Arrived!', 'emerald');
+          await advanceTrip(ride.rideId, 'arrived');
+        }
+      }
+
       function resolveActiveRide() {
+        if (state.trackRideId) return;
         if (!state.user) return;
 
-        // Track ride transitions for instant Pathao-like user notifications
         let tracked = state.activeRideId ? state.rides[state.activeRideId] : null;
         if (!tracked) {
           tracked = Object.values(state.rides).find((r) => {
@@ -1763,6 +2128,17 @@
             }
           }
 
+          // Alert on incoming 1-Tap Quick Status Pill from the other party
+          const qs = tracked.quickStatus;
+          if (qs && qs.ts && qs.ts > state.lastQuickStatusTs) {
+            state.lastQuickStatusTs = qs.ts;
+            if (qs.senderRole !== state.user.role) {
+              playNotificationTone('info');
+              const who = qs.senderRole === 'driver' ? 'Rider' : 'Passenger';
+              toast(`${who}: "${qs.text}"`, 'emerald');
+            }
+          }
+
           // Notify passenger when a new driver bid arrives
           if (state.user.role === 'passenger' && tracked.status === 'searching') {
             const bidsCount = Object.keys(tracked.bids || {}).length;
@@ -1778,14 +2154,19 @@
           if (tracked.status === 'completed' || tracked.status === 'cancelled') {
             state.activeRideId = null;
             state.lastKnownRideStatus = null;
+            state.lastQuickStatusTs = 0;
           } else {
             state.activeRideId = tracked.rideId;
             state.lastKnownRideStatus = tracked.status;
+            if (state.user.role === 'driver' && tracked.status === 'accepted') {
+              checkDriverAutoArrivalGeofence(tracked);
+            }
           }
         } else {
           state.activeRideId = null;
           state.lastKnownRideStatus = null;
           state.lastKnownBidsCount = 0;
+          state.lastQuickStatusTs = 0;
         }
 
         // Notify online driver when a new passenger request appears
@@ -1800,7 +2181,7 @@
       }
 
       // =========================================================================
-      // 7. HIGH-ACCURACY HARDWARE GPS & 1-SECOND LIVE PING ENGINE
+      // 8. HIGH-ACCURACY HARDWARE GPS & 1-SECOND LIVE PING ENGINE
       // =========================================================================
       let lastPushTs = 0;
       let lastReverseGeocodeTs = 0;
@@ -1820,12 +2201,12 @@
             'hardware'
           );
 
-          if (!hasCenteredInitialGps && map) {
+          if (!hasCenteredInitialGps && map && !state.trackRideId) {
             hasCenteredInitialGps = true;
             map.setView([latitude, longitude], 16);
           }
 
-          if (state.user?.role === 'passenger' && !state.activeRideId && !state.pickup.manual) {
+          if ((!state.user || state.user.role === 'passenger') && !state.activeRideId && !state.pickup.manual) {
             state.pickup.lat = latitude;
             state.pickup.lng = longitude;
             const now = Date.now();
@@ -1874,7 +2255,7 @@
 
         // Ping live GPS every 1 second (1000ms)
         setInterval(() => {
-          if (state.user) pushGpsToRtdb(true);
+          if (state.user && !state.trackRideId) pushGpsToRtdb(true);
         }, 1000);
       }
 
@@ -1895,12 +2276,19 @@
           if (dot) dot.classList.remove('live');
         }
 
+        if (state.user?.role === 'driver' && state.activeRideId) {
+          const ride = state.rides[state.activeRideId];
+          if (ride && ride.status === 'accepted') {
+            checkDriverAutoArrivalGeofence(ride);
+          }
+        }
+
         syncMapGraphics();
         pushGpsToRtdb(true);
       }
 
       async function pushGpsToRtdb(force = false) {
-        if (!state.user) return;
+        if (!state.user || state.trackRideId) return;
         const now = Date.now();
         if (!force && now - lastPushTs < 900) return;
         lastPushTs = now;
@@ -1938,7 +2326,7 @@
       }
 
       // =========================================================================
-      // 8. ACCOUNT SYSTEM & REAL-TIME FINANCIAL LEDGER (gps-rt/users)
+      // 9. ACCOUNT SYSTEM & REAL-TIME FINANCIAL LEDGER (gps-rt/users)
       // =========================================================================
       let userStreamRef = null;
 
@@ -1983,6 +2371,12 @@
         dbApi.ref(`live_locations/${userObj.username}/online`).onDisconnect().set(false);
       }
 
+      function openAuthModal(contextHint = 'Sign in or create an account to confirm') {
+        const hintEl = document.getElementById('authContextHint');
+        if (hintEl) hintEl.textContent = contextHint;
+        document.getElementById('authOverlay').classList.add('open');
+      }
+
       function getUserFinancialSummary(u) {
         if (!u) return { amount: 0, trips: 0, history: [] };
         const completed = Object.values(state.rides || {})
@@ -2004,6 +2398,22 @@
         };
       }
 
+      async function handlePostAuthFlow(user) {
+        setSession(user);
+        document.getElementById('authOverlay').classList.remove('open');
+        toast(`Signed in as ${user.fullName}`, 'emerald');
+        pushGpsToRtdb(true);
+        syncMapGraphics();
+        renderConsole(true);
+
+        if (state.pendingBookAfterAuth) {
+          state.pendingBookAfterAuth = false;
+          if (user.role === 'passenger' && state.dropoff && state.route) {
+            await requestRide();
+          }
+        }
+      }
+
       async function signIn() {
         const username = document.getElementById('inUser').value.trim().toLowerCase();
         const password = document.getElementById('inPass').value;
@@ -2014,12 +2424,7 @@
           if (!user) return toast('Account not found');
           if (user.password !== password) return toast('Invalid password');
 
-          setSession(user);
-          document.getElementById('authOverlay').classList.remove('open');
-          toast(`Signed in as ${user.fullName}`, 'emerald');
-          pushGpsToRtdb(true);
-          syncMapGraphics();
-          renderConsole(true);
+          await handlePostAuthFlow(user);
         } catch (_) {
           toast('Database connection error');
         }
@@ -2049,24 +2454,31 @@
           createdAt: Date.now()
         };
 
+        // Fast 2-step rider onboarding: only Vehicle Type & Plate required upfront
         if (role === 'driver') {
           const vehicleType = document.getElementById('regVehType').value;
-          const vehicleModel = document.getElementById('regVehModel').value.trim();
           const plate = document.getElementById('regPlate').value.trim().toUpperCase();
+          const vehicleModel = document.getElementById('regVehModel').value.trim();
           const color = document.getElementById('regColor').value.trim();
           const license = document.getElementById('regLicense').value.trim();
           const bluebook = document.getElementById('regBluebook').value.trim();
 
-          if (!vehicleModel || !plate || !license) {
-            return toast('Vehicle model, plate, and license required');
+          if (!plate) {
+            return toast('Vehicle plate number is required');
           }
+          const defaultModelMap = {
+            bike: 'Motorbike',
+            car: 'Hatchback / Sedan',
+            ev: 'Electric Cab',
+            xl: 'Prime XL SUV'
+          };
           Object.assign(payload, {
             vehicleType,
-            vehicleModel,
+            vehicleModel: vehicleModel || defaultModelMap[vehicleType] || 'Vehicle',
             plate,
             color: color || 'Standard',
-            license,
-            bluebook: bluebook || 'Verified'
+            license: license || 'Add in Profile',
+            bluebook: bluebook || 'Add in Profile'
           });
         }
 
@@ -2075,27 +2487,34 @@
           if (exists) return toast('Username already taken');
 
           await dbApi.set(`users/${username}`, payload);
-          setSession(payload);
-          document.getElementById('authOverlay').classList.remove('open');
-          toast('Account created', 'emerald');
-          pushGpsToRtdb(true);
-          syncMapGraphics();
-          renderConsole(true);
+          await handlePostAuthFlow(payload);
         } catch (_) {
           toast('Failed to create account');
         }
       }
 
       // =========================================================================
-      // 9. RIDE LIFECYCLE, MINIMUM RECOMMENDED FARE & PATHAO TRIP STATES
+      // 10. RIDE LIFECYCLE, BOOST, QUICK STATUS PILLS & LIVE TRIP-SHARE
       // =========================================================================
       async function requestRide() {
-        if (!state.user || state.user.role !== 'passenger') return;
+        // Browse-First: Prompt Sign In / Create Account right at booking if unauthenticated
+        if (!state.user) {
+          if (!state.dropoff || !state.route) {
+            return toast('Pan map or search your destination first');
+          }
+          state.pendingBookAfterAuth = true;
+          openAuthModal('Sign in or create an account to dispatch your ride');
+          return;
+        }
+
+        if (state.user.role !== 'passenger') return;
         if (!state.dropoff || !state.route) return toast('Set your destination first');
 
         const minFare = getCurrentMinFare();
         const finalFare = Math.max(minFare, Number(state.fare) || minFare);
         state.fare = finalFare;
+
+        recordRecentDestination(state.dropoff);
 
         const rideId = `R_${Date.now().toString(36).toUpperCase()}`;
         const otp = String(Math.floor(1000 + Math.random() * 9000));
@@ -2119,6 +2538,7 @@
           },
           driver: null,
           bids: {},
+          quickStatus: null,
           createdAt: Date.now()
         };
 
@@ -2127,6 +2547,54 @@
         state.lastKnownRideStatus = 'searching';
         toast('Searching for nearby riders...');
         renderConsole(true);
+      }
+
+      async function boostActiveSearchFare(rideId, delta = 10) {
+        const ride = state.rides[rideId];
+        if (!ride || ride.status !== 'searching') return;
+        const nextFare = (Number(ride.fareNPR) || 0) + delta;
+        await dbApi.update(`rides/${rideId}`, {
+          fareNPR: nextFare,
+          boostedAt: Date.now()
+        });
+        playNotificationTone('info');
+        toast(`Fare boosted to रु.${nextFare} for faster pickup!`, 'emerald');
+        renderConsole(true);
+      }
+
+      async function sendQuickStatusPill(rideId, text) {
+        if (!state.user || !rideId || !text) return;
+        const ts = Date.now();
+        state.lastQuickStatusTs = ts;
+        await dbApi.update(`rides/${rideId}`, {
+          quickStatus: {
+            senderRole: state.user.role,
+            senderName: state.user.fullName,
+            text,
+            ts
+          }
+        });
+        toast(`Sent: "${text}"`);
+      }
+
+      async function shareLiveTripLink(rideId) {
+        const shareUrl = `${window.location.origin}${window.location.pathname}?track=${encodeURIComponent(rideId)}`;
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: 'GPS Ride Live Trip Tracker',
+              text: 'Track my live GPS ride progress in real time:',
+              url: shareUrl
+            });
+            return;
+          } catch (_) {}
+        }
+        const copied = copyTextToClipboard(shareUrl);
+        if (copied) {
+          toast('Live trip tracking link copied!', 'emerald');
+        } else {
+          toast(`Share URL: ?track=${rideId}`);
+        }
       }
 
       async function cancelRide(rideId) {
@@ -2280,13 +2748,96 @@
       }
 
       // =========================================================================
-      // 10. NON-FLICKERING CONSOLE RENDERER
+      // 11. SLIDE-TO-ADVANCE INTERACTIVE WIDGET
+      // =========================================================================
+      function bindSlideToAdvance(containerId, onComplete, validateBeforeSlide = null) {
+        const track = document.getElementById(containerId);
+        if (!track) return;
+        const thumb = track.querySelector('.slide-thumb');
+        const fill = track.querySelector('.slide-fill');
+        const label = track.querySelector('.slide-label');
+        if (!thumb || !fill) return;
+
+        let dragging = false;
+        let startX = 0;
+        let maxTravel = 0;
+        let currentX = 0;
+        let triggered = false;
+
+        const resetSlider = () => {
+          thumb.style.transition = 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
+          fill.style.transition = 'width 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
+          thumb.style.transform = 'translateX(0px)';
+          fill.style.width = '50px';
+          if (label) label.style.opacity = '1';
+        };
+
+        const onPointerDown = (e) => {
+          if (triggered) return;
+          if (validateBeforeSlide && !validateBeforeSlide()) {
+            return;
+          }
+          dragging = true;
+          startX = e.clientX;
+          maxTravel = Math.max(40, track.clientWidth - thumb.offsetWidth - 8);
+          thumb.style.transition = 'none';
+          fill.style.transition = 'none';
+          track.setPointerCapture(e.pointerId);
+        };
+
+        const onPointerMove = (e) => {
+          if (!dragging || triggered) return;
+          const dx = Math.max(0, Math.min(maxTravel, e.clientX - startX));
+          currentX = dx;
+          thumb.style.transform = `translateX(${dx}px)`;
+          fill.style.width = `${dx + 50}px`;
+          if (label) label.style.opacity = String(Math.max(0.2, 1 - dx / maxTravel));
+        };
+
+        const onPointerUp = (e) => {
+          if (!dragging || triggered) return;
+          dragging = false;
+          try { track.releasePointerCapture(e.pointerId); } catch (_) {}
+
+          if (currentX >= maxTravel * 0.8) {
+            triggered = true;
+            thumb.style.transition = 'transform 0.14s ease';
+            fill.style.transition = 'width 0.14s ease';
+            thumb.style.transform = `translateX(${maxTravel}px)`;
+            fill.style.width = '100%';
+            Promise.resolve(onComplete()).finally(() => {
+              triggered = false;
+              resetSlider();
+            });
+          } else {
+            currentX = 0;
+            resetSlider();
+          }
+        };
+
+        track.addEventListener('pointerdown', onPointerDown);
+        track.addEventListener('pointermove', onPointerMove);
+        track.addEventListener('pointerup', onPointerUp);
+        track.addEventListener('pointercancel', onPointerUp);
+
+        track.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (validateBeforeSlide && !validateBeforeSlide()) return;
+            onComplete();
+          }
+        });
+      }
+
+      // =========================================================================
+      // 12. NON-FLICKERING CONSOLE RENDERER
       // =========================================================================
       function getViewKey() {
-        if (!state.user) return 'guest';
+        if (state.trackRideId) return `track_${state.trackRideId}`;
+        if (!state.user) return 'p_book_guest';
         const r = state.activeRideId ? state.rides[state.activeRideId] : null;
         if (state.user.role === 'passenger') {
-          if (!r) return 'p_book';
+          if (!r) return 'p_book_auth';
           return r.status === 'searching' ? `p_search_${r.rideId}` : `p_active_${r.rideId}_${r.status}`;
         } else {
           if (!r) return `d_radar_${state.driverOnline}`;
@@ -2296,7 +2847,7 @@
 
       function updateDynamicListsOnly() {
         const key = getViewKey();
-        if (key === 'p_book') {
+        if (key.startsWith('p_book')) {
           const rail = document.getElementById('nearbyRidersRail');
           const countEl = document.getElementById('nearbyRidersCount');
           if (!rail || !countEl) return;
@@ -2379,14 +2930,87 @@
         });
       }
 
+      function renderQuickStatusBannerHtml(ride) {
+        if (!ride?.quickStatus?.text) return '';
+        const who = ride.quickStatus.senderRole === 'driver' ? 'Rider' : 'Passenger';
+        return `<div class="tag emerald" style="width:100%;justify-content:center;height:26px;">${who}: "${ride.quickStatus.text}"</div>`;
+      }
+
       function renderConsole(force = false) {
         const key = getViewKey();
         const panel = document.getElementById('consolePanel');
 
+        // 0. Live Trip-Share Safety Tracker Mode (?track=RIDE_ID)
+        if (state.trackRideId) {
+          const ride = state.rides[state.trackRideId];
+          document.getElementById('mapTools').style.display = 'none';
+          if (!ride) {
+            panel.innerHTML = `
+              <div class="row-between">
+                <div class="tag amber">LIVE TRIP TRACKER</div>
+                <div class="btn-cap sm" id="btnExitTrack" role="button" tabindex="0">Open App</div>
+              </div>
+              <div style="font-size:12px;color:var(--text-secondary);">Loading live telemetry for trip <span style="font-family:var(--font-mono);color:var(--accent);">${state.trackRideId}</span>...</div>
+            `;
+            document.getElementById('btnExitTrack')?.addEventListener('click', () => {
+              window.location.href = window.location.pathname;
+            });
+            return;
+          }
+
+          const d = ride.driver || {};
+          const dLoc = d.username ? (state.locations[d.username] || ride.driverGps) : ride.driverGps;
+          let liveDistanceText = 'Waiting for rider GPS...';
+          if (dLoc && typeof dLoc.lat === 'number') {
+            const target = ride.status === 'in_progress' ? ride.dropoff : ride.pickup;
+            const km = +distKm(dLoc.lat, dLoc.lng, target.lat, target.lng).toFixed(2);
+            const mins = Math.max(1, Math.round((km / 28) * 60));
+            liveDistanceText = `${km} km to ${ride.status === 'in_progress' ? 'destination' : 'pickup'} • ~${mins} min`;
+          }
+
+          panel.innerHTML = `
+            <div class="row-between">
+              <div class="tag emerald">LIVE SAFETY TRACK • ${ride.status.replace('_', ' ').toUpperCase()}</div>
+              <div class="btn-cap sm" id="btnExitTrack" role="button" tabindex="0">Open App</div>
+            </div>
+            <div class="data-card">
+              <div class="row-between">
+                <div>
+                  <div style="font-size:14px;font-weight:800;">${d.fullName || 'Searching Rider'}</div>
+                  <div style="font-size:11.5px;color:var(--text-secondary);">${d.vehicleModel || ''} • <span style="font-family:var(--font-mono);color:var(--accent);">${d.plate || 'Pending'}</span></div>
+                </div>
+                <div style="font-family:var(--font-mono);font-size:15px;font-weight:800;color:var(--accent);">रु.${ride.fareNPR}</div>
+              </div>
+              <div style="font-size:11.5px;color:var(--text-secondary);">
+                ${ride.pickup?.label || ''} → <strong style="color:var(--text-primary);">${ride.dropoff?.label || ''}</strong>
+              </div>
+              <div style="font-size:11.5px;color:var(--accent-emerald);font-weight:700;">${liveDistanceText}</div>
+            </div>
+          `;
+          document.getElementById('btnExitTrack')?.addEventListener('click', () => {
+            window.location.href = window.location.pathname;
+          });
+          return;
+        }
+
+        // Incremental in-place updates without tearing down active inputs or sliders
         if (!force && key === state.renderedViewKey) {
           if (key.startsWith('p_search_')) {
-            const bidsContainer = document.getElementById('passengerBidsList');
             const ride = state.rides[state.activeRideId];
+            const bidsContainer = document.getElementById('passengerBidsList');
+            const fareBadge = document.getElementById('searchFareBadge');
+            const boostPrompt = document.getElementById('searchBoostPrompt');
+
+            if (ride && fareBadge) {
+              fareBadge.textContent = `Searching Riders • रु.${ride.fareNPR}`;
+            }
+            if (ride && boostPrompt) {
+              const elapsedSec = Math.floor((Date.now() - (ride.createdAt || Date.now())) / 1000);
+              boostPrompt.textContent = elapsedSec >= 15
+                ? `Searching ${elapsedSec}s — Boost fare for priority pickup:`
+                : `Instant-match active (${elapsedSec}s) • Optional boost:`;
+            }
+
             if (bidsContainer && ride) {
               const bids = Object.values(ride.bids || {});
               bidsContainer.innerHTML = bids.length === 0
@@ -2415,6 +3039,10 @@
           if (key.startsWith('p_active_')) {
             const ride = state.rides[state.activeRideId];
             const liveRiderInfo = document.getElementById('activeRiderDistance');
+            const qsBanner = document.getElementById('activeQuickStatusBanner');
+            if (ride && qsBanner) {
+              qsBanner.innerHTML = renderQuickStatusBannerHtml(ride);
+            }
             if (ride && liveRiderInfo && ride.driver?.username) {
               const dLoc = state.locations[ride.driver.username] || ride.driverGps;
               if (dLoc && typeof dLoc.lat === 'number') {
@@ -2426,45 +3054,56 @@
             }
           }
 
+          if (key.startsWith('d_active_')) {
+            const ride = state.rides[state.activeRideId];
+            const remEl = document.getElementById('driverRemainingDist');
+            const qsBanner = document.getElementById('driverQuickStatusBanner');
+            if (ride && qsBanner) {
+              qsBanner.innerHTML = renderQuickStatusBannerHtml(ride);
+            }
+            if (ride && remEl) {
+              const target = ride.status === 'in_progress' ? ride.dropoff : ride.pickup;
+              const remKm = +distKm(state.myGps.lat, state.myGps.lng, target.lat, target.lng).toFixed(2);
+              remEl.textContent = `${remKm} km to ${ride.status === 'in_progress' ? 'drop-off' : 'pickup'}`;
+            }
+          }
+
           updateDynamicListsOnly();
           return;
         }
 
         state.renderedViewKey = key;
 
-        // 1. Unauthenticated Prompt
-        if (!state.user) {
-          panel.innerHTML = `
-            <div class="row-between">
-              <div>
-                <div style="font-size:14px;font-weight:800;">Account Required</div>
-                <div style="font-size:11.5px;color:var(--text-secondary);">Sign in or register as Passenger or Driver</div>
-              </div>
-              <div class="btn-cap primary sm" id="btnOpenAuth" role="button" tabindex="0">Continue</div>
-            </div>
-          `;
-          document.getElementById('btnOpenAuth')?.addEventListener('click', () => {
-            document.getElementById('authOverlay').classList.add('open');
-          });
-          return;
-        }
-
-        // 2. Passenger Views
-        if (state.user.role === 'passenger') {
+        // 1. Passenger Views (Includes Browse-First Guest Passenger Mode)
+        if (!state.user || state.user.role === 'passenger') {
           const ride = state.activeRideId ? state.rides[state.activeRideId] : null;
 
           if (ride && ride.status === 'searching') {
+            const elapsedSec = Math.floor((Date.now() - (ride.createdAt || Date.now())) / 1000);
             panel.innerHTML = `
               <div class="row-between">
-                <div class="tag">Searching Riders • रु.${ride.fareNPR}</div>
+                <div class="tag" id="searchFareBadge">Searching Riders • रु.${ride.fareNPR}</div>
                 <div class="btn-cap danger sm" id="btnCancelSearch" role="button" tabindex="0">Cancel</div>
               </div>
               <div style="font-size:12px;color:var(--text-secondary);">
                 ${ride.pickup.label} → <strong style="color:var(--text-primary);">${ride.dropoff.label}</strong> (${ride.distanceKm} km)
               </div>
+              <div class="data-card" style="padding:9px 11px;">
+                <div class="row-between">
+                  <div id="searchBoostPrompt" style="font-size:11px;font-weight:700;color:var(--accent-amber);">
+                    ${elapsedSec >= 15 ? `Searching ${elapsedSec}s — Boost fare for priority pickup:` : `Instant-match active (${elapsedSec}s) • Optional boost:`}
+                  </div>
+                  <div style="display:flex;gap:6px;">
+                    <div class="btn-cap amber sm" id="btnBoost10" role="button" tabindex="0">+रु.10</div>
+                    <div class="btn-cap amber sm" id="btnBoost20" role="button" tabindex="0">+रु.20</div>
+                  </div>
+                </div>
+              </div>
               <div id="passengerBidsList" style="display:flex;flex-direction:column;gap:8px;"></div>
             `;
             document.getElementById('btnCancelSearch')?.addEventListener('click', () => cancelRide(ride.rideId));
+            document.getElementById('btnBoost10')?.addEventListener('click', () => boostActiveSearchFare(ride.rideId, 10));
+            document.getElementById('btnBoost20')?.addEventListener('click', () => boostActiveSearchFare(ride.rideId, 20));
             renderConsole(false);
             return;
           }
@@ -2482,6 +3121,7 @@
                 <div class="tag emerald">${labels[ride.status] || ride.status}</div>
                 ${showPin ? `<div class="tag amber" style="font-family:var(--font-mono);">PIN ${ride.otp}</div>` : `<div class="tag">VERIFIED</div>`}
               </div>
+              <div id="activeQuickStatusBanner">${renderQuickStatusBannerHtml(ride)}</div>
               ${showPin ? `<div style="font-size:11px;color:var(--accent-amber);">Share this 4-digit PIN with your rider at pickup to start the trip.</div>` : ''}
               <div class="data-card">
                 <div class="row-between">
@@ -2493,29 +3133,58 @@
                   </div>
                   <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                     <div style="font-family:var(--font-mono);font-size:16px;font-weight:800;color:var(--accent);">रु.${ride.fareNPR}</div>
-                    ${d.phone ? `<a class="btn-cap emerald sm" href="tel:${d.phone}">Call Rider</a>` : ''}
+                    <div style="display:flex;gap:6px;">
+                      <div class="btn-cap sm" id="btnShareTrip" role="button" tabindex="0">Share Trip</div>
+                      ${d.phone ? `<a class="btn-cap emerald sm" href="tel:${d.phone}">Call</a>` : ''}
+                    </div>
                   </div>
+                </div>
+                <div class="chip-rail">
+                  ${QUICK_STATUS_PILLS.passenger.map((txt, i) => `
+                    <div class="chip active" data-p-qs="${i}" role="button" tabindex="0">${txt}</div>
+                  `).join('')}
                 </div>
                 ${ride.status === 'accepted' ? `<div class="btn-cap danger sm full" id="btnCancelMatched" role="button" tabindex="0">Cancel Ride</div>` : ''}
               </div>
             `;
+            document.getElementById('btnShareTrip')?.addEventListener('click', () => shareLiveTripLink(ride.rideId));
+            panel.querySelectorAll('[data-p-qs]').forEach(el => {
+              el.addEventListener('click', () => {
+                const txt = QUICK_STATUS_PILLS.passenger[Number(el.getAttribute('data-p-qs'))];
+                sendQuickStatusPill(ride.rideId, txt);
+              });
+            });
             document.getElementById('btnCancelMatched')?.addEventListener('click', () => cancelRide(ride.rideId));
             return;
           }
 
-          // Passenger Booking View (Zero Presets + Manual Pickup/Dropoff + Min Fare Floor)
+          // 2-Tap Passenger Booking View (Browse-First + Home/Work/Recent Chips + Center Pin)
           const km = state.route?.km || 2.5;
           const minFare = getCurrentMinFare();
           if (state.fare < minFare) state.fare = minFare;
           const canDecrease = Number(state.fare) > minFare;
+          const { home, work, recent } = state.savedPlaces;
 
           panel.innerHTML = `
             <div class="sheet-grip"></div>
             <div class="row-between">
               <div id="nearbyRidersCount" style="font-size:11px;font-weight:800;color:var(--accent);letter-spacing:0.03em;">NEARBY RIDERS (0)</div>
-              <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);">${state.route ? `${state.route.km} km • ${state.route.min} min` : 'Tap map or search'}</div>
+              <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);">${state.route ? `${state.route.km} km • ${state.route.min} min` : 'Pan map or tap chip'}</div>
             </div>
             <div class="chip-rail" id="nearbyRidersRail"></div>
+
+            <!-- 1-Tap Saved (Home / Work) & Recent Destination Chips -->
+            <div class="chip-rail" id="savedPlacesRail">
+              <div class="chip ${home ? 'emerald' : ''}" id="chipHome" role="button" tabindex="0">
+                ${home ? `Home: ${home.label}` : '+ Save Home'}
+              </div>
+              <div class="chip ${work ? 'amber' : ''}" id="chipWork" role="button" tabindex="0">
+                ${work ? `Work: ${work.label}` : '+ Save Work'}
+              </div>
+              ${recent.map((r, idx) => `
+                <div class="chip" data-recent-idx="${idx}" role="button" tabindex="0">${r.label}</div>
+              `).join('')}
+            </div>
 
             <div style="display:flex;flex-direction:column;gap:7px;">
               <div class="field-wrap">
@@ -2525,7 +3194,7 @@
               </div>
               <div class="field-wrap">
                 <span style="width:8px;height:8px;border-radius:50%;background:#f43f5e;flex-shrink:0;"></span>
-                <input class="field-input" id="inDropoff" type="text" value="${state.dropoff ? state.dropoff.label : ''}" placeholder="Search destination or tap map" />
+                <input class="field-input" id="inDropoff" type="text" value="${state.dropoff ? state.dropoff.label : ''}" placeholder="Pan map pin or search destination" />
                 ${state.dropoff ? `<div class="clear-btn" id="btnClearDropoff" role="button" tabindex="0" title="Clear destination">×</div>` : ''}
               </div>
               <div class="search-results" id="liveSearchResults" style="display:none;"></div>
@@ -2551,10 +3220,70 @@
               <div class="chip active" id="btnPaySwitch" role="button" tabindex="0">${state.payMode}</div>
             </div>
 
-            <div class="btn-cap primary full" id="btnBookNow" role="button" tabindex="0">Request Ride • रु.${state.fare}</div>
+            <div class="btn-cap primary full" id="btnBookNow" role="button" tabindex="0">
+              ${state.user ? `Request Ride • रु.${state.fare}` : `Request Ride • रु.${state.fare}`}
+            </div>
           `;
 
           updateDynamicListsOnly();
+
+          // Saved & Recent Place Chips Handlers
+          document.getElementById('chipHome')?.addEventListener('click', async () => {
+            if (state.savedPlaces.home) {
+              const h = state.savedPlaces.home;
+              state.dropoff = { lat: h.lat, lng: h.lng, label: h.label };
+              await fetchRoadRoute();
+              syncMapGraphics();
+              renderConsole(true);
+              if (map && state.route?.coords) map.fitBounds(L.latLngBounds(state.route.coords), { padding: [55, 55] });
+              toast(`Destination: Home (${h.label})`);
+            } else {
+              const target = state.dropoff || {
+                lat: map ? map.getCenter().lat : state.myGps.lat,
+                lng: map ? map.getCenter().lng : state.myGps.lng,
+                label: state.dropoff?.label || await reverseGeocode(map ? map.getCenter().lat : state.myGps.lat, map ? map.getCenter().lng : state.myGps.lng)
+              };
+              state.savedPlaces.home = { lat: target.lat, lng: target.lng, label: target.label };
+              persistSavedPlaces(state.savedPlaces);
+              renderConsole(true);
+              toast(`Saved Home: ${target.label}`, 'emerald');
+            }
+          });
+
+          document.getElementById('chipWork')?.addEventListener('click', async () => {
+            if (state.savedPlaces.work) {
+              const w = state.savedPlaces.work;
+              state.dropoff = { lat: w.lat, lng: w.lng, label: w.label };
+              await fetchRoadRoute();
+              syncMapGraphics();
+              renderConsole(true);
+              if (map && state.route?.coords) map.fitBounds(L.latLngBounds(state.route.coords), { padding: [55, 55] });
+              toast(`Destination: Work (${w.label})`);
+            } else {
+              const target = state.dropoff || {
+                lat: map ? map.getCenter().lat : state.myGps.lat,
+                lng: map ? map.getCenter().lng : state.myGps.lng,
+                label: state.dropoff?.label || await reverseGeocode(map ? map.getCenter().lat : state.myGps.lat, map ? map.getCenter().lng : state.myGps.lng)
+              };
+              state.savedPlaces.work = { lat: target.lat, lng: target.lng, label: target.label };
+              persistSavedPlaces(state.savedPlaces);
+              renderConsole(true);
+              toast(`Saved Work: ${target.label}`, 'emerald');
+            }
+          });
+
+          panel.querySelectorAll('[data-recent-idx]').forEach(el => {
+            el.addEventListener('click', async () => {
+              const rec = state.savedPlaces.recent[Number(el.getAttribute('data-recent-idx'))];
+              if (!rec) return;
+              state.dropoff = { lat: rec.lat, lng: rec.lng, label: rec.label };
+              await fetchRoadRoute();
+              syncMapGraphics();
+              renderConsole(true);
+              if (map && state.route?.coords) map.fitBounds(L.latLngBounds(state.route.coords), { padding: [55, 55] });
+              toast(`Destination: ${rec.label}`);
+            });
+          });
 
           const inPickup = document.getElementById('inPickup');
           const inDropoff = document.getElementById('inDropoff');
@@ -2587,7 +3316,7 @@
                   if (map) map.flyTo([latitude, longitude], 16);
                   toast('Synced to hardware GPS');
                 },
-                () => toast('Hardware GPS unavailable — drag pin on map'),
+                () => toast('Hardware GPS unavailable — pan map pin'),
                 { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 }
               );
             }
@@ -2638,57 +3367,116 @@
           return;
         }
 
-        // 3. Driver / Rider Views
+        // 2. Driver / Rider Views (Eyes-On-The-Road Flow)
         const ride = state.activeRideId ? state.rides[state.activeRideId] : null;
         if (ride) {
           const target = ride.status === 'in_progress' ? ride.dropoff : ride.pickup;
           const remKm = +distKm(state.myGps.lat, state.myGps.lng, target.lat, target.lng).toFixed(2);
+          const travelMode = state.user.vehicleType === 'bike' ? 'two-wheeler' : 'driving';
+          const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${target.lat},${target.lng}&travelmode=${travelMode}`;
 
-          let ctrl = '';
+          let sliderHtml = '';
+          let otpBoxHtml = '';
           if (ride.status === 'accepted') {
-            ctrl = `<div class="btn-cap amber full" id="btnActArrived" role="button" tabindex="0">Arrived at Pickup (${remKm} km)</div>`;
+            sliderHtml = `
+              <div class="slide-track amber" id="riderSlideAction" role="slider" tabindex="0" aria-label="Slide to Mark Arrived">
+                <div class="slide-fill"></div>
+                <div class="slide-thumb">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+                <div class="slide-label">Slide to Mark Arrived</div>
+              </div>
+            `;
           } else if (ride.status === 'arrived') {
-            ctrl = `
-              <div style="display:flex;flex-direction:column;gap:6px;">
-                <div style="font-size:11px;color:var(--text-secondary);">Ask passenger for their 4-digit trip PIN</div>
-                <div style="display:flex;gap:8px;">
-                  <div class="field-wrap" style="flex:1;">
-                    <input class="field-input" id="inOtp" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="${state.otpInput}" placeholder="Enter 4-digit PIN" autocomplete="one-time-code" style="font-family:var(--font-mono);font-size:15px;font-weight:700;letter-spacing:0.22em;text-align:center;" />
-                  </div>
-                  <div class="btn-cap emerald" id="btnActStart" role="button" tabindex="0">Verify &amp; Start</div>
+            otpBoxHtml = `
+              <div style="display:flex;flex-direction:column;gap:5px;">
+                <div style="font-size:11px;color:var(--accent-amber);font-weight:700;">Ask passenger for 4-digit PIN, then slide below:</div>
+                <div class="field-wrap">
+                  <input class="field-input" id="inOtp" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="${state.otpInput}" placeholder="Enter 4-digit PIN" autocomplete="one-time-code" style="font-family:var(--font-mono);font-size:16px;font-weight:800;letter-spacing:0.26em;text-align:center;" />
                 </div>
               </div>
             `;
+            sliderHtml = `
+              <div class="slide-track emerald" id="riderSlideAction" role="slider" tabindex="0" aria-label="Slide to Verify PIN and Start">
+                <div class="slide-fill"></div>
+                <div class="slide-thumb">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+                <div class="slide-label">Slide to Start Trip</div>
+              </div>
+            `;
           } else if (ride.status === 'in_progress') {
-            ctrl = `<div class="btn-cap primary full" id="btnActDone" role="button" tabindex="0">Complete Trip • रु.${ride.fareNPR}</div>`;
+            sliderHtml = `
+              <div class="slide-track" id="riderSlideAction" role="slider" tabindex="0" aria-label="Slide to Complete Trip">
+                <div class="slide-fill"></div>
+                <div class="slide-thumb">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="slide-label">Slide to Complete • रु.${ride.fareNPR}</div>
+              </div>
+            `;
           }
 
           panel.innerHTML = `
             <div class="row-between">
               <div class="tag emerald">${ride.status.replace('_', ' ').toUpperCase()}</div>
+              <div id="driverRemainingDist" style="font-family:var(--font-mono);font-size:11.5px;color:var(--text-secondary);">${remKm} km to ${ride.status === 'in_progress' ? 'drop-off' : 'pickup'}</div>
               <div style="font-family:var(--font-mono);font-size:15px;font-weight:800;color:var(--accent);">रु.${ride.fareNPR}</div>
             </div>
+            <div id="driverQuickStatusBanner">${renderQuickStatusBannerHtml(ride)}</div>
             <div class="data-card">
               <div class="row-between">
                 <div style="font-size:13.5px;font-weight:800;">${ride.passenger?.fullName}</div>
-                ${ride.passenger?.phone ? `<a class="btn-cap emerald sm" href="tel:${ride.passenger.phone}">Call Passenger</a>` : ''}
+                <div style="display:flex;gap:6px;">
+                  <a class="btn-cap primary sm" href="${navUrl}" target="_blank" rel="noopener noreferrer">Navigate</a>
+                  ${ride.passenger?.phone ? `<a class="btn-cap emerald sm" href="tel:${ride.passenger.phone}">Call</a>` : ''}
+                </div>
               </div>
               <div style="font-size:11.5px;color:var(--text-secondary);">
                 Pickup: <strong style="color:var(--text-primary);">${ride.pickup.label}</strong><br/>
                 Drop: <strong style="color:var(--accent);">${ride.dropoff.label}</strong> (${ride.distanceKm} km)
               </div>
-              ${ctrl}
+              <div class="chip-rail">
+                ${QUICK_STATUS_PILLS.driver.map((txt, i) => `
+                  <div class="chip active" data-d-qs="${i}" role="button" tabindex="0">${txt}</div>
+                `).join('')}
+              </div>
+              ${otpBoxHtml}
+              ${sliderHtml}
             </div>
           `;
 
-          document.getElementById('btnActArrived')?.addEventListener('click', () => advanceTrip(ride.rideId, 'arrived'));
+          panel.querySelectorAll('[data-d-qs]').forEach(el => {
+            el.addEventListener('click', () => {
+              const txt = QUICK_STATUS_PILLS.driver[Number(el.getAttribute('data-d-qs'))];
+              sendQuickStatusPill(ride.rideId, txt);
+            });
+          });
+
           document.getElementById('inOtp')?.addEventListener('input', (e) => {
             const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
             e.target.value = digits;
             state.otpInput = digits;
           });
-          document.getElementById('btnActStart')?.addEventListener('click', () => advanceTrip(ride.rideId, 'in_progress'));
-          document.getElementById('btnActDone')?.addEventListener('click', () => advanceTrip(ride.rideId, 'completed'));
+
+          if (ride.status === 'accepted') {
+            bindSlideToAdvance('riderSlideAction', () => advanceTrip(ride.rideId, 'arrived'));
+          } else if (ride.status === 'arrived') {
+            bindSlideToAdvance(
+              'riderSlideAction',
+              () => advanceTrip(ride.rideId, 'in_progress'),
+              () => {
+                const enteredPin = (state.otpInput || '').trim();
+                if (!/^\d{4}$/.test(enteredPin)) {
+                  toast('Enter the 4-digit PIN from passenger first');
+                  return false;
+                }
+                return true;
+              }
+            );
+          } else if (ride.status === 'in_progress') {
+            bindSlideToAdvance('riderSlideAction', () => advanceTrip(ride.rideId, 'completed'));
+          }
           return;
         }
 
@@ -2697,7 +3485,7 @@
         panel.innerHTML = `
           <div class="row-between">
             <div>
-              <div style="font-size:13px;font-weight:800;">${state.user.vehicleModel} • <span style="font-family:var(--font-mono);color:var(--accent);">${state.user.plate}</span></div>
+              <div style="font-size:13px;font-weight:800;">${state.user.vehicleModel || state.user.vehicleType.toUpperCase()} • <span style="font-family:var(--font-mono);color:var(--accent);">${state.user.plate}</span></div>
               <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
                 <span id="openReqCount" style="font-size:11px;color:var(--text-secondary);">REQUESTS (0)</span>
                 <span style="font-size:11px;color:var(--text-muted);">•</span>
@@ -2722,7 +3510,7 @@
       }
 
       // =========================================================================
-      // 11. EVENT BINDINGS & BOOTSTRAP
+      // 13. EVENT BINDINGS & BOOTSTRAP
       // =========================================================================
       function bindUIEvents() {
         document.getElementById('toolLocate').addEventListener('click', () => {
@@ -2737,7 +3525,7 @@
               },
               () => {
                 if (map) map.flyTo([state.myGps.lat, state.myGps.lng], 16);
-                toast('Drag your pin on map to adjust');
+                toast('Pan map pin to adjust location');
               },
               { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 }
             );
@@ -2755,7 +3543,8 @@
           };
           state.pinMode = modes[(modes.indexOf(state.pinMode) + 1) % modes.length];
           document.getElementById('pinModeLabel').textContent = labels[state.pinMode];
-          toast(`Tap map to set ${labels[state.pinMode].replace('Pin: ', '')}`);
+          updateCrosshairUI();
+          toast(`Pan or tap map for ${labels[state.pinMode].replace('Pin: ', '')}`);
         });
 
         function renderProfileModal() {
@@ -2796,7 +3585,12 @@
                     Plate: <strong style="font-family:var(--font-mono);color:var(--accent);">${u.plate}</strong><br/>
                     License: <strong style="font-family:var(--font-mono);color:var(--text-primary);">${u.license}</strong>
                   </div>
-                ` : ''}
+                ` : `
+                  <div class="row-between" style="padding-top:6px;border-top:1px solid var(--border-subtle);">
+                    <div style="font-size:11px;color:var(--text-secondary);">Saved: ${state.savedPlaces.home ? 'Home' : 'No Home'} • ${state.savedPlaces.work ? 'Work' : 'No Work'}</div>
+                    <div class="chip" id="btnResetSavedPlaces" role="button" tabindex="0">Clear Saved</div>
+                  </div>
+                `}
               </div>
 
               <div class="stat-grid">
@@ -2816,15 +3610,29 @@
               </div>
             </div>
           `;
+
+          document.getElementById('btnResetSavedPlaces')?.addEventListener('click', () => {
+            state.savedPlaces = { home: null, work: null, recent: [] };
+            persistSavedPlaces(state.savedPlaces);
+            renderProfileModal();
+            renderConsole(true);
+            toast('Saved places cleared');
+          });
         }
 
         document.getElementById('btnAccount').addEventListener('click', () => {
           if (!state.user) {
-            document.getElementById('authOverlay').classList.add('open');
+            state.pendingBookAfterAuth = false;
+            openAuthModal('Sign in as Passenger or Driver / Rider');
             return;
           }
           renderProfileModal();
           document.getElementById('profileOverlay').classList.add('open');
+        });
+
+        document.getElementById('btnCloseAuth').addEventListener('click', () => {
+          state.pendingBookAfterAuth = false;
+          document.getElementById('authOverlay').classList.remove('open');
         });
 
         document.getElementById('btnCloseProfile').addEventListener('click', () => {
@@ -2841,8 +3649,9 @@
           state.activeRideId = null;
           document.getElementById('hudUserText').textContent = 'Sign In';
           document.getElementById('profileOverlay').classList.remove('open');
-          document.getElementById('authOverlay').classList.add('open');
+          syncMapGraphics();
           renderConsole(true);
+          toast('Signed out — browsing map');
         });
 
         document.getElementById('tabSignIn').addEventListener('click', () => {
@@ -2873,6 +3682,13 @@
           document.getElementById('driverFields').style.display = 'flex';
         });
 
+        document.getElementById('btnToggleDriverExtra').addEventListener('click', () => {
+          const box = document.getElementById('driverExtraFields');
+          if (!box) return;
+          const isOpen = box.style.display === 'flex';
+          box.style.display = isOpen ? 'none' : 'flex';
+        });
+
         document.getElementById('btnDoLogin').addEventListener('click', signIn);
         document.getElementById('btnDoRegister').addEventListener('click', createAccount);
       }
@@ -2885,11 +3701,10 @@
         bindUIEvents();
         bindRealtimeStreams();
         startLiveGpsEngine();
+        syncMapGraphics();
         renderConsole(true);
 
-        if (!state.user) {
-          document.getElementById('authOverlay').classList.add('open');
-        } else {
+        if (state.user && !state.trackRideId) {
           pushGpsToRtdb(true);
         }
       })();
