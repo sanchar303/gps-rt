@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#07090e" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>GPS Ride Telemetry</title>
@@ -217,7 +218,10 @@
       box-shadow: var(--shadow-outset);
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 9px;
+      min-width: 0;
+      max-width: calc(100vw - 122px);
+      overflow: hidden;
     }
 
     .brand-mark {
@@ -238,20 +242,40 @@
       font-weight: 800;
       letter-spacing: -0.01em;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .telemetry-strip {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
       font-family: var(--font-mono);
       font-size: 11px;
       color: var(--text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .telemetry-strip .val {
       color: var(--accent);
       font-weight: 600;
+    }
+
+    .gps-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    .gps-dot.live {
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
     }
 
     /* Right Floating Map Tools */
@@ -329,7 +353,19 @@
       border-radius: 99px;
     }
 
+    .sheet-grip {
+      width: 34px;
+      height: 4px;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.16);
+      margin: -4px auto 2px;
+      flex-shrink: 0;
+    }
+
     @media (min-width: 820px) {
+      .sheet-grip {
+        display: none;
+      }
       .console-wrap {
         position: absolute;
         left: 14px;
@@ -340,6 +376,71 @@
         padding: 0;
         justify-content: space-between;
       }
+      .console-panel {
+        max-height: calc(100dvh - 104px);
+      }
+    }
+
+    /* Neumorphic Inset Inputs */
+    .field-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 42px;
+      padding: 0 12px;
+      border-radius: var(--pill);
+      background: var(--bg-inset);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: var(--shadow-inset);
+      transition: border-color 0.18s ease;
+    }
+
+    .field-wrap:focus-within {
+      border-color: var(--border-active);
+    }
+
+    .field-input {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    @media (min-width: 820px) {
+      .field-input {
+        font-size: 13px;
+      }
+    }
+
+    .field-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .clear-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .clear-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--text-primary);
+    }
       .console-panel {
         max-height: calc(100dvh - 104px);
       }
@@ -744,23 +845,26 @@
       position: fixed;
       top: max(60px, calc(env(safe-area-inset-top) + 48px));
       left: 50%;
-      transform: translateX(-50%) translateY(-160%);
+      transform: translate3d(-50%, -22px, 0);
+      opacity: 0;
+      visibility: hidden;
       z-index: 9990;
-      min-height: 38px;
-      padding: 8px 18px;
+      min-height: 36px;
+      padding: 7px 16px;
       border-radius: var(--pill);
-      background: rgba(10, 15, 25, 0.97);
+      background: rgba(10, 15, 25, 0.96);
       backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
       border: 1px solid var(--border-active);
-      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.72);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.68);
       color: var(--text-primary);
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 700;
       display: flex;
       align-items: center;
       gap: 8px;
-      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-      max-width: 92vw;
+      transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.22s ease;
+      max-width: 90vw;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -768,7 +872,9 @@
     }
 
     #toast.show {
-      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      visibility: visible;
+      transform: translate3d(-50%, 0, 0);
     }
 
     #toast.emerald {
@@ -821,7 +927,7 @@
   <pre id="apiOutput"></pre>
 
   <!-- Live Status Banner / Toast -->
-  <div id="toast"><span id="toastMsg">Ready</span></div>
+  <div id="toast" aria-live="polite"><span id="toastMsg"></span></div>
 
   <!-- Main Viewport-Locked App -->
   <div id="app">
@@ -835,12 +941,12 @@
             <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
           </svg>
         </div>
-        <span class="brand-title">GPS Ride Telemetry</span>
+        <span class="brand-title">GPS Ride</span>
         <div class="telemetry-strip">
           <span class="hide-sm">|</span>
-          <span class="val hide-sm" id="hudCoords">Locating...</span>
+          <span class="val hide-sm" id="hudCoords">27.7172, 85.3240</span>
           <span>|</span>
-          <span class="val" id="hudAcc">GPS</span>
+          <span class="val" id="hudAcc"><span class="gps-dot" id="hudGpsDot"></span><span id="hudAccText">Ready</span></span>
           <span>|</span>
           <span class="val" id="hudPeers">0 Active</span>
         </div>
@@ -1084,7 +1190,7 @@
         pickup: {
           lat: DEFAULT_CENTER.lat,
           lng: DEFAULT_CENTER.lng,
-          label: 'Locating GPS...',
+          label: 'Kathmandu',
           manual: false
         },
         dropoff: null,
@@ -1136,14 +1242,22 @@
       }
 
       let toastTimer = null;
+      const toastEl = document.getElementById('toast');
+      toastEl?.addEventListener('transitionend', () => {
+        if (!toastEl.classList.contains('show')) {
+          document.getElementById('toastMsg').textContent = '';
+        }
+      });
+
       function toast(text, variant = 'default') {
+        if (!text) return;
         const el = document.getElementById('toast');
         document.getElementById('toastMsg').textContent = text;
         el.className = variant === 'emerald' ? 'show emerald' : 'show';
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
           el.classList.remove('show');
-        }, 3400);
+        }, 2800);
       }
 
       function distKm(lat1, lon1, lat2, lon2) {
@@ -1303,6 +1417,12 @@
             maxZoom: 19
           }).addTo(map);
         });
+
+        const refreshMapLayout = () => {
+          if (map) map.invalidateSize({ animate: false });
+        };
+        window.addEventListener('resize', refreshMapLayout);
+        window.addEventListener('orientationchange', () => setTimeout(refreshMapLayout, 180));
 
         map.on('click', async (e) => {
           const { lat, lng } = e.latlng;
@@ -1686,55 +1806,70 @@
       let lastReverseGeocodeTs = 0;
 
       function startLiveGpsEngine() {
+        const applyHardwarePosition = async (pos) => {
+          if (state.myGps.source === 'manual') return;
+
+          const { latitude, longitude, speed, heading, accuracy } = pos.coords;
+          const speedKmh = speed ? Math.round(speed * 3.6) : 0;
+          updateMyGps(
+            latitude,
+            longitude,
+            speedKmh,
+            heading || state.myGps.heading,
+            accuracy ? Math.round(accuracy) : null,
+            'hardware'
+          );
+
+          if (!hasCenteredInitialGps && map) {
+            hasCenteredInitialGps = true;
+            map.setView([latitude, longitude], 16);
+          }
+
+          if (state.user?.role === 'passenger' && !state.activeRideId && !state.pickup.manual) {
+            state.pickup.lat = latitude;
+            state.pickup.lng = longitude;
+            const now = Date.now();
+            if (now - lastReverseGeocodeTs > 15000) {
+              lastReverseGeocodeTs = now;
+              state.pickup.label = await reverseGeocode(latitude, longitude);
+              const inP = document.getElementById('inPickup');
+              if (inP && document.activeElement !== inP) inP.value = state.pickup.label;
+            }
+            if (state.dropoff) {
+              await fetchRoadRoute();
+              syncMapGraphics();
+            }
+          }
+        };
+
+        const handleGpsUnavailable = () => {
+          const accText = document.getElementById('hudAccText');
+          const dot = document.getElementById('hudGpsDot');
+          if (accText && state.myGps.source !== 'hardware') {
+            accText.textContent = state.myGps.source === 'manual' ? 'Pinned' : 'Map Pin';
+          }
+          if (dot) dot.classList.remove('live');
+          pushGpsToRtdb(true);
+        };
+
         if ('geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(applyHardwarePosition, handleGpsUnavailable, {
+            enableHighAccuracy: true,
+            maximumAge: 5000,
+            timeout: 7000
+          });
+
           navigator.geolocation.watchPosition(
-            async (pos) => {
-              // Do not overwrite if user manually pinned their location on map
-              if (state.myGps.source === 'manual') return;
-
-              const { latitude, longitude, speed, heading, accuracy } = pos.coords;
-              const speedKmh = speed ? Math.round(speed * 3.6) : 0;
-              updateMyGps(
-                latitude,
-                longitude,
-                speedKmh,
-                heading || state.myGps.heading,
-                accuracy ? Math.round(accuracy) : null,
-                'hardware'
-              );
-
-              if (!hasCenteredInitialGps && map) {
-                hasCenteredInitialGps = true;
-                map.setView([latitude, longitude], 16);
-              }
-
-              if (state.user?.role === 'passenger' && !state.activeRideId && !state.pickup.manual) {
-                state.pickup.lat = latitude;
-                state.pickup.lng = longitude;
-                const now = Date.now();
-                if (now - lastReverseGeocodeTs > 15000) {
-                  lastReverseGeocodeTs = now;
-                  state.pickup.label = await reverseGeocode(latitude, longitude);
-                  const inP = document.getElementById('inPickup');
-                  if (inP && document.activeElement !== inP) inP.value = state.pickup.label;
-                }
-              }
-            },
-            () => {
-              document.getElementById('hudAcc').textContent = 'PIN GPS';
-              if (state.pickup.label === 'Locating GPS...') {
-                state.pickup.label = 'Pin Pickup on Map';
-                const inP = document.getElementById('inPickup');
-                if (inP) inP.value = state.pickup.label;
-              }
-              pushGpsToRtdb(true);
-            },
+            applyHardwarePosition,
+            handleGpsUnavailable,
             {
               enableHighAccuracy: true,
               maximumAge: 0,
               timeout: 10000
             }
           );
+        } else {
+          handleGpsUnavailable();
         }
 
         // Ping live GPS every 1 second (1000ms)
@@ -1745,10 +1880,20 @@
 
       function updateMyGps(lat, lng, speed = 0, heading = 0, accuracy = null, source = 'hardware') {
         state.myGps = { lat, lng, speed, heading, accuracy, source };
-        document.getElementById('hudCoords').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-        document.getElementById('hudAcc').textContent = source === 'manual'
-          ? 'Manual Pin'
-          : (accuracy ? `±${accuracy}m` : 'Live GPS');
+        document.getElementById('hudCoords').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+        const accText = document.getElementById('hudAccText');
+        const dot = document.getElementById('hudGpsDot');
+        if (source === 'hardware') {
+          if (accText) accText.textContent = accuracy ? `±${accuracy}m` : 'Live';
+          if (dot) dot.classList.add('live');
+        } else if (source === 'manual') {
+          if (accText) accText.textContent = 'Pinned';
+          if (dot) dot.classList.remove('live');
+        } else {
+          if (accText) accText.textContent = 'Ready';
+          if (dot) dot.classList.remove('live');
+        }
 
         syncMapGraphics();
         pushGpsToRtdb(true);
@@ -2365,6 +2510,7 @@
           const canDecrease = Number(state.fare) > minFare;
 
           panel.innerHTML = `
+            <div class="sheet-grip"></div>
             <div class="row-between">
               <div id="nearbyRidersCount" style="font-size:11px;font-weight:800;color:var(--accent);letter-spacing:0.03em;">NEARBY RIDERS (0)</div>
               <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);">${state.route ? `${state.route.km} km • ${state.route.min} min` : 'Tap map or search'}</div>
@@ -2380,6 +2526,7 @@
               <div class="field-wrap">
                 <span style="width:8px;height:8px;border-radius:50%;background:#f43f5e;flex-shrink:0;"></span>
                 <input class="field-input" id="inDropoff" type="text" value="${state.dropoff ? state.dropoff.label : ''}" placeholder="Search destination or tap map" />
+                ${state.dropoff ? `<div class="clear-btn" id="btnClearDropoff" role="button" tabindex="0" title="Clear destination">×</div>` : ''}
               </div>
               <div class="search-results" id="liveSearchResults" style="display:none;"></div>
             </div>
@@ -2415,6 +2562,14 @@
           inPickup?.addEventListener('focus', () => inPickup.select());
           inPickup?.addEventListener('input', (e) => schedulePlaceSearch(e.target.value, 'pickup'));
           inDropoff?.addEventListener('input', (e) => schedulePlaceSearch(e.target.value, 'dropoff'));
+
+          document.getElementById('btnClearDropoff')?.addEventListener('click', () => {
+            state.dropoff = null;
+            state.route = null;
+            state.searchResults = [];
+            syncMapGraphics();
+            renderConsole(true);
+          });
 
           document.getElementById('btnUseHardwareGps')?.addEventListener('click', () => {
             state.pickup.manual = false;
