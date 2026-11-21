@@ -22,11 +22,11 @@
   <style>
     :root {
       --bg-base: #07090e;
-      --bg-elevated: rgba(13, 17, 26, 0.88);
-      --bg-card: linear-gradient(145deg, rgba(21, 27, 40, 0.92), rgba(11, 15, 23, 0.96));
-      --bg-inset: rgba(6, 9, 15, 0.9);
+      --bg-elevated: rgba(13, 17, 26, 0.9);
+      --bg-card: linear-gradient(145deg, rgba(21, 27, 40, 0.94), rgba(11, 15, 23, 0.98));
+      --bg-inset: rgba(6, 9, 15, 0.92);
       --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-active: rgba(34, 211, 238, 0.42);
+      --border-active: rgba(34, 211, 238, 0.45);
       --accent: #22d3ee;
       --accent-blue: #38bdf8;
       --accent-emerald: #10b981;
@@ -35,7 +35,7 @@
       --text-primary: #f8fafc;
       --text-secondary: #94a3b8;
       --text-muted: #64748b;
-      --shadow-outset: 0 12px 32px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+      --shadow-outset: 0 12px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.07);
       --shadow-inset: inset 3px 3px 7px rgba(0, 0, 0, 0.72), inset -2px -2px 5px rgba(255, 255, 255, 0.025);
       --pill: 9999px;
       --radius-lg: 24px;
@@ -70,7 +70,7 @@
       touch-action: manipulation;
     }
 
-    /* Headless API JSON View (?api=...) */
+    /* Headless JSON API View (?api=...) */
     #apiOutput {
       position: fixed;
       inset: 0;
@@ -88,7 +88,7 @@
       word-break: break-word;
     }
 
-    /* Viewport-Locked Application Shell */
+    /* Viewport-Locked App Shell */
     #app {
       position: relative;
       width: 100%;
@@ -98,15 +98,19 @@
       flex-direction: column;
     }
 
-    /* Fullscreen Map Canvas */
+    /* Fullscreen Map Layer with Keyless Dark Tile Styling */
     #map {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       z-index: 1;
-      background: #080b12;
+      background: #090c13;
       touch-action: pan-x pan-y;
+    }
+
+    #map .leaflet-tile-pane {
+      filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(94%) saturate(75%);
     }
 
     .leaflet-control-attribution,
@@ -114,7 +118,7 @@
       display: none !important;
     }
 
-    /* Custom Capsule Controls (Div-based, Zero Native Buttons) */
+    /* Custom Capsule Buttons (Zero Native <button> Tags) */
     .btn-cap {
       display: inline-flex;
       align-items: center;
@@ -137,7 +141,7 @@
     }
 
     .btn-cap:hover {
-      border-color: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.22);
     }
 
     .btn-cap:active {
@@ -180,7 +184,7 @@
       width: 100%;
     }
 
-    /* Top Bar */
+    /* Top Header HUD */
     .top-bar {
       position: relative;
       z-index: 20;
@@ -244,7 +248,7 @@
       font-weight: 600;
     }
 
-    /* Right Floating Map Controls */
+    /* Right Floating Map Tools */
     .map-tools {
       position: absolute;
       right: 14px;
@@ -277,7 +281,7 @@
       border-color: var(--border-active);
     }
 
-    /* Primary Console Container (Responsive Mobile Sheet / Desktop Sidebar) */
+    /* Responsive Console Container */
     .console-wrap {
       position: relative;
       z-index: 25;
@@ -299,7 +303,7 @@
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-outset);
       padding: 14px;
-      max-height: 54dvh;
+      max-height: 55dvh;
       overflow-y: auto;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
@@ -334,6 +338,7 @@
 
     /* Neumorphic Inset Inputs */
     .field-wrap {
+      position: relative;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -376,7 +381,45 @@
       padding-left: 10px;
     }
 
-    /* Horizontal Chip Rail */
+    /* Live Autocomplete Dropdown */
+    .search-results {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: rgba(9, 12, 20, 0.98);
+      border: 1px solid var(--border-active);
+      border-radius: 16px;
+      padding: 6px;
+      max-height: 145px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .search-item {
+      padding: 8px 11px;
+      border-radius: 11px;
+      font-size: 12px;
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background 0.14s ease;
+    }
+
+    .search-item:hover {
+      background: rgba(34, 211, 238, 0.12);
+    }
+
+    .search-item span.sub {
+      font-size: 10.5px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Horizontal Live Riders Strip */
     .chip-rail {
       display: flex;
       align-items: center;
@@ -490,7 +533,7 @@
       text-align: center;
     }
 
-    /* Data Cards (Bids / Open Requests / Active Trip) */
+    /* Data Cards */
     .data-card {
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
@@ -672,8 +715,8 @@
       margin-top: 2px;
       padding: 2px 7px;
       border-radius: var(--pill);
-      background: rgba(7, 9, 14, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(7, 9, 14, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.16);
       color: #f8fafc;
       font-family: var(--font-mono);
       font-size: 9.5px;
@@ -854,27 +897,27 @@
             </div>
             <div>
               <div class="field-label">Vehicle Model</div>
-              <div class="field-wrap"><input class="field-input" id="regVehModel" type="text" placeholder="Pulsar NS200" /></div>
+              <div class="field-wrap"><input class="field-input" id="regVehModel" type="text" placeholder="Model" /></div>
             </div>
           </div>
           <div class="grid-2">
             <div>
               <div class="field-label">Number Plate</div>
-              <div class="field-wrap"><input class="field-input" id="regPlate" type="text" placeholder="BA 98 PA 4521" /></div>
+              <div class="field-wrap"><input class="field-input" id="regPlate" type="text" placeholder="Plate No." /></div>
             </div>
             <div>
               <div class="field-label">Vehicle Color</div>
-              <div class="field-wrap"><input class="field-input" id="regColor" type="text" placeholder="Black" /></div>
+              <div class="field-wrap"><input class="field-input" id="regColor" type="text" placeholder="Color" /></div>
             </div>
           </div>
           <div class="grid-2">
             <div>
               <div class="field-label">License No.</div>
-              <div class="field-wrap"><input class="field-input" id="regLicense" type="text" placeholder="01-06-00482910" /></div>
+              <div class="field-wrap"><input class="field-input" id="regLicense" type="text" placeholder="License No." /></div>
             </div>
             <div>
               <div class="field-label">Bluebook / NID</div>
-              <div class="field-wrap"><input class="field-input" id="regBluebook" type="text" placeholder="27-01-76-04129" /></div>
+              <div class="field-wrap"><input class="field-input" id="regBluebook" type="text" placeholder="Bluebook / NID" /></div>
             </div>
           </div>
         </div>
@@ -943,9 +986,9 @@
       };
 
       // =========================================================================
-      // 2. STATE & CONSTANTS
+      // 2. STATE & CONSTANTS (Zero Preset Locations)
       // =========================================================================
-      const KTM = { lat: 27.7172, lng: 85.3240 };
+      const DEFAULT_CENTER = { lat: 27.7172, lng: 85.3240 };
 
       const TIERS = {
         bike: { id: 'bike', name: 'Bike', base: 40, perKm: 18, etaAdd: 1 },
@@ -954,25 +997,15 @@
         xl:   { id: 'xl',   name: 'Prime XL', base: 180, perKm: 58, etaAdd: 4 }
       };
 
-      const HUBS = [
-        { name: 'Thamel', lat: 27.7154, lng: 85.3123 },
-        { name: 'Baneshwor', lat: 27.6882, lng: 85.3356 },
-        { name: 'Airport (TIA)', lat: 27.6981, lng: 85.3592 },
-        { name: 'Patan', lat: 27.6727, lng: 85.3253 },
-        { name: 'Kalanki', lat: 27.6939, lng: 85.2816 },
-        { name: 'Koteshwor', lat: 27.6756, lng: 85.3459 },
-        { name: 'Boudha', lat: 27.7215, lng: 85.3620 }
-      ];
-
       const state = {
         user: null,
         locations: {},
         rides: {},
-        myGps: { lat: KTM.lat, lng: KTM.lng, speed: 0, heading: 0 },
+        myGps: { lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng, speed: 0, heading: 0 },
         driverOnline: true,
         simulating: false,
         pinMode: 'dropoff', // 'dropoff' | 'pickup' | 'gps'
-        pickup: { lat: KTM.lat, lng: KTM.lng, label: 'Current GPS (Kathmandu)', manual: false },
+        pickup: { lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng, label: 'Current Live GPS', manual: false },
         dropoff: null,
         route: null,
         tier: 'bike',
@@ -1103,7 +1136,7 @@
       }
 
       // =========================================================================
-      // 5. MAP ENGINE & SMOOTH MARKERS
+      // 5. MAP ENGINE (Keyless Dark OpenStreetMap + Fallback)
       // =========================================================================
       let map = null;
       let myMarker = null;
@@ -1123,16 +1156,25 @@
 
       function initMap() {
         map = L.map('map', {
-          center: [KTM.lat, KTM.lng],
+          center: [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng],
           zoom: 15,
           zoomControl: false,
           attributionControl: false
         });
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          maxZoom: 19,
-          subdomains: 'abcd'
+        // Keyless OpenStreetMap tiles styled into dark theme via CSS filter on .leaflet-tile-pane
+        const primaryTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19
         }).addTo(map);
+
+        let fallbackLoaded = false;
+        primaryTiles.on('tileerror', () => {
+          if (fallbackLoaded) return;
+          fallbackLoaded = true;
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19
+          }).addTo(map);
+        });
 
         map.on('click', async (e) => {
           const { lat, lng } = e.latlng;
@@ -1148,7 +1190,7 @@
               toast(`Pickup: ${label}`);
             } else {
               state.dropoff = { lat, lng, label };
-              toast(`Drop-off: ${label}`);
+              toast(`Destination: ${label}`);
             }
             await fetchRoadRoute();
             syncMapGraphics();
@@ -1281,7 +1323,7 @@
 
         if (coords && coords.length > 1) {
           if (routeLine) map.removeLayer(routeLine);
-          routeLine = L.polyline(coords, { color: '#22d3ee', weight: 4, opacity: 0.9 }).addTo(map);
+          routeLine = L.polyline(coords, { color: '#22d3ee', weight: 4.5, opacity: 0.92 }).addTo(map);
         } else if (routeLine) {
           map.removeLayer(routeLine);
           routeLine = null;
@@ -1289,7 +1331,7 @@
       }
 
       // =========================================================================
-      // 6. REAL-TIME FIREBASE LISTENERS (Zero-Lag WebSocket Sync)
+      // 6. REAL-TIME FIREBASE LISTENERS (WebSocket Sync + Presence)
       // =========================================================================
       function bindRealtimeStreams() {
         dbApi.ref('live_locations').on('value', (snap) => {
@@ -1325,9 +1367,10 @@
       }
 
       // =========================================================================
-      // 7. GPS TRACKER & SIMULATOR
+      // 7. LIVE GPS TRACKER & SIMULATOR
       // =========================================================================
       let lastPushTs = 0;
+      let centeredOnce = false;
 
       function startGpsWatcher() {
         if ('geolocation' in navigator) {
@@ -1336,6 +1379,10 @@
               if (state.simulating) return;
               const { latitude, longitude, speed, heading } = pos.coords;
               setMyGps(latitude, longitude, speed ? Math.round(speed * 3.6) : 0, heading || state.myGps.heading);
+              if (!centeredOnce && map) {
+                centeredOnce = true;
+                map.setView([latitude, longitude], 15);
+              }
             },
             () => pushGpsToRtdb(true),
             { enableHighAccuracy: true, maximumAge: 1500, timeout: 8000 }
@@ -1367,6 +1414,9 @@
 
         const online = state.user.role === 'driver' ? state.driverOnline : true;
         try {
+          const locRef = dbApi.ref(`live_locations/${state.user.username}`);
+          locRef.onDisconnect().update({ online: false, updatedAt: firebase.database.ServerValue.TIMESTAMP });
+
           await window.GPSRideAPI.push({
             username: state.user.username,
             fullName: state.user.fullName,
@@ -1520,7 +1570,27 @@
       }
 
       // =========================================================================
-      // 9. RIDE LIFECYCLE & FARE NEGOTIATION
+      // 9. LIVE GEOCODING AUTOCOMPLETE (Zero Hardcoded Presets)
+      // =========================================================================
+      async function searchPlaces(query) {
+        if (!query || query.length < 2) return [];
+        try {
+          const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=np&q=${encodeURIComponent(query)}`;
+          const res = await fetch(url);
+          const list = await res.json();
+          return (list || []).map(item => ({
+            title: item.name || item.display_name.split(',')[0],
+            subtitle: item.display_name,
+            lat: parseFloat(item.lat),
+            lng: parseFloat(item.lon)
+          }));
+        } catch (_) {
+          return [];
+        }
+      }
+
+      // =========================================================================
+      // 10. RIDE LIFECYCLE & FARE NEGOTIATION
       // =========================================================================
       async function requestRide() {
         if (!state.user || state.user.role !== 'passenger') return;
@@ -1637,7 +1707,7 @@
       }
 
       // =========================================================================
-      // 10. NON-FLICKERING CONSOLE RENDERER
+      // 11. NON-FLICKERING CONSOLE RENDERER
       // =========================================================================
       function getViewKey() {
         if (!state.user) return 'guest';
@@ -1740,7 +1810,6 @@
         const key = getViewKey();
         const panel = document.getElementById('consolePanel');
 
-        // For searching state, refresh bids list cleanly without flickering outer frame
         if (!force && key === state.renderedViewKey) {
           if (key.startsWith('p_search_')) {
             const bidsContainer = document.getElementById('passengerBidsList');
@@ -1843,29 +1912,27 @@
             return;
           }
 
-          // Booking View
+          // Booking View (Zero Hardcoded Presets — Live Search + Direct Map Tap)
           const km = state.route?.km || 2.5;
           panel.innerHTML = `
             <div class="row-between">
               <div id="nearbyRidersCount" style="font-size:11px;font-weight:800;color:var(--accent);letter-spacing:0.03em;">NEARBY RIDERS (0)</div>
-              <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);">${state.route ? `${state.route.km} km • ${state.route.min} min` : 'Select destination'}</div>
+              <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);">${state.route ? `${state.route.km} km • ${state.route.min} min` : 'Tap map or search'}</div>
             </div>
             <div class="chip-rail" id="nearbyRidersRail"></div>
 
             <div style="display:flex;flex-direction:column;gap:7px;">
               <div class="field-wrap">
                 <span style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
-                <input class="field-input" id="inPickup" type="text" value="${state.pickup.label}" readonly />
+                <input class="field-input" id="inPickup" type="text" value="${state.pickup.label}" placeholder="Pickup location" />
+                <div class="btn-cap sm" id="btnUseGpsPickup" role="button" tabindex="0" style="height:26px;padding:0 9px;font-size:10.5px;">GPS</div>
               </div>
               <div class="field-wrap">
                 <span style="width:8px;height:8px;border-radius:50%;background:#f43f5e;flex-shrink:0;"></span>
-                <input class="field-input" id="inDropoff" type="text" value="${state.dropoff ? state.dropoff.label : ''}" placeholder="Destination or tap map" />
-                <div class="btn-cap sm" id="btnFindDest" role="button" tabindex="0" style="height:28px;padding:0 10px;">Set</div>
+                <input class="field-input" id="inDropoff" type="text" value="${state.dropoff ? state.dropoff.label : ''}" placeholder="Search destination or tap map" autocomplete="off" />
+                <div class="btn-cap sm" id="btnFindDest" role="button" tabindex="0" style="height:26px;padding:0 10px;">Go</div>
               </div>
-            </div>
-
-            <div class="chip-rail">
-              ${HUBS.map(h => `<div class="chip" data-hub="${h.name}" data-lat="${h.lat}" data-lng="${h.lng}">${h.name}</div>`).join('')}
+              <div id="destSuggestions" class="search-results" style="display:none;"></div>
             </div>
 
             <div class="tier-grid">
@@ -1893,37 +1960,65 @@
 
           updateDynamicListsOnly();
 
-          panel.querySelectorAll('[data-hub]').forEach(el => {
-            el.addEventListener('click', async () => {
-              state.dropoff = {
-                lat: parseFloat(el.getAttribute('data-lat')),
-                lng: parseFloat(el.getAttribute('data-lng')),
-                label: el.getAttribute('data-hub')
-              };
-              await fetchRoadRoute();
+          document.getElementById('btnUseGpsPickup')?.addEventListener('click', () => {
+            state.pickup = { lat: state.myGps.lat, lng: state.myGps.lng, label: 'Current Live GPS', manual: false };
+            fetchRoadRoute().then(() => {
               syncMapGraphics();
               renderConsole(true);
-              if (map && state.route?.coords) map.fitBounds(L.latLngBounds(state.route.coords), { padding: [50, 50] });
             });
+            toast('Pickup set to live GPS');
+          });
+
+          // Live Debounced Autocomplete for Destination
+          let searchDebounce = null;
+          const destInput = document.getElementById('inDropoff');
+          const suggBox = document.getElementById('destSuggestions');
+
+          const selectDestination = async (place) => {
+            state.dropoff = { lat: place.lat, lng: place.lng, label: place.title };
+            suggBox.style.display = 'none';
+            await fetchRoadRoute();
+            syncMapGraphics();
+            renderConsole(true);
+            if (map && state.route?.coords) {
+              map.fitBounds(L.latLngBounds(state.route.coords), { padding: [50, 50] });
+            }
+          };
+
+          destInput?.addEventListener('input', (e) => {
+            const q = e.target.value.trim();
+            clearTimeout(searchDebounce);
+            if (q.length < 2) {
+              suggBox.style.display = 'none';
+              return;
+            }
+            searchDebounce = setTimeout(async () => {
+              const results = await searchPlaces(q);
+              if (!results.length) {
+                suggBox.style.display = 'none';
+                return;
+              }
+              suggBox.innerHTML = results.map((r, i) => `
+                <div class="search-item" data-idx="${i}">
+                  <strong>${r.title}</strong>
+                  <span class="sub">${r.subtitle}</span>
+                </div>
+              `).join('');
+              suggBox.style.display = 'flex';
+              suggBox.querySelectorAll('.search-item').forEach(item => {
+                item.addEventListener('click', () => selectDestination(results[Number(item.getAttribute('data-idx'))]));
+              });
+            }, 320);
           });
 
           document.getElementById('btnFindDest')?.addEventListener('click', async () => {
-            const q = document.getElementById('inDropoff').value.trim();
+            const q = destInput.value.trim();
             if (!q) return;
-            try {
-              const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q + ', Nepal')}`);
-              const arr = await res.json();
-              if (arr?.[0]) {
-                state.dropoff = { lat: parseFloat(arr[0].lat), lng: parseFloat(arr[0].lon), label: arr[0].display_name.split(',')[0] };
-                await fetchRoadRoute();
-                syncMapGraphics();
-                renderConsole(true);
-                if (map && state.route?.coords) map.fitBounds(L.latLngBounds(state.route.coords), { padding: [50, 50] });
-              } else {
-                toast('Location not found');
-              }
-            } catch (_) {
-              toast('Search offline — tap map');
+            const results = await searchPlaces(q);
+            if (results[0]) {
+              await selectDestination(results[0]);
+            } else {
+              toast('Location not found — tap map');
             }
           });
 
@@ -2025,7 +2120,7 @@
       }
 
       // =========================================================================
-      // 11. EVENT BINDINGS & BOOTSTRAP
+      // 12. EVENT BINDINGS & BOOTSTRAP
       // =========================================================================
       function bindUIEvents() {
         document.getElementById('toolLocate').addEventListener('click', () => {
@@ -2037,7 +2132,7 @@
 
         document.getElementById('toolPinMode').addEventListener('click', () => {
           const modes = ['dropoff', 'pickup', 'gps'];
-          const names = { dropoff: 'Map Tap: Drop-off', pickup: 'Map Tap: Pickup', gps: 'Map Tap: Move GPS' };
+          const names = { dropoff: 'Map Tap: Destination', pickup: 'Map Tap: Pickup', gps: 'Map Tap: Move GPS' };
           state.pinMode = modes[(modes.indexOf(state.pinMode) + 1) % modes.length];
           toast(names[state.pinMode]);
         });
