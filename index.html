@@ -3,46 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#06080d" />
+  <meta name="theme-color" content="#07090e" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>GPS Ride Telemetry</title>
   <link rel="icon" type="image/png" href="favicon.png" />
 
-  <!-- Fonts & Leaflet Map -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
+  <!-- Firebase Realtime Database SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
   <style>
     :root {
-      --bg-void: #06080d;
-      --bg-surface: rgba(14, 19, 30, 0.78);
-      --bg-surface-strong: rgba(11, 15, 24, 0.92);
-      --bg-neu-raised: linear-gradient(145deg, rgba(24, 32, 48, 0.88), rgba(12, 16, 26, 0.95));
-      --bg-neu-inset: rgba(7, 10, 17, 0.85);
-      --border-glass: rgba(255, 255, 255, 0.09);
-      --border-glow: rgba(0, 245, 212, 0.35);
-      --accent-primary: #00f5d4;
-      --accent-secondary: #38bdf8;
-      --accent-amber: #fbbf24;
-      --accent-coral: #fb7185;
+      --bg-base: #07090e;
+      --bg-elevated: rgba(13, 17, 26, 0.88);
+      --bg-card: linear-gradient(145deg, rgba(21, 27, 40, 0.92), rgba(11, 15, 23, 0.96));
+      --bg-inset: rgba(6, 9, 15, 0.9);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-active: rgba(34, 211, 238, 0.42);
+      --accent: #22d3ee;
+      --accent-blue: #38bdf8;
       --accent-emerald: #10b981;
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --shadow-outset: 0 10px 30px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      --shadow-inset: inset 3px 3px 8px rgba(0, 0, 0, 0.65), inset -2px -2px 6px rgba(255, 255, 255, 0.03);
-      --radius-capsule: 9999px;
-      --radius-card: 26px;
-      --radius-panel: 30px;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --shadow-outset: 0 12px 32px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+      --shadow-inset: inset 3px 3px 7px rgba(0, 0, 0, 0.72), inset -2px -2px 5px rgba(255, 255, 255, 0.025);
+      --pill: 9999px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
       --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
 
-    * {
+    *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
@@ -50,91 +52,53 @@
       user-select: none;
     }
 
-    input, textarea, select {
+    input, select, textarea {
       user-select: text;
+      -webkit-user-select: text;
     }
 
     html, body {
+      position: fixed;
+      inset: 0;
       width: 100%;
       height: 100dvh;
       overflow: hidden;
       overscroll-behavior: none;
-      background: var(--bg-void);
-      color: var(--text-main);
+      background: var(--bg-base);
+      color: var(--text-primary);
       font-family: var(--font-sans);
       touch-action: manipulation;
     }
 
-    /* Stealth Blank API View */
-    #stealthVoid {
+    /* Headless API JSON View (?api=...) */
+    #apiOutput {
       position: fixed;
       inset: 0;
-      background: var(--bg-void);
-      z-index: 9000;
-      display: flex;
-      align-items: flex-end;
-      justify-content: flex-end;
-      padding: 14px;
-      transition: opacity 0.35s ease, visibility 0.35s ease;
-    }
-
-    #stealthVoid.hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-
-    .stealth-beacon {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: rgba(0, 245, 212, 0.14);
-      cursor: pointer;
-      transition: transform 0.2s ease, background 0.2s ease;
-    }
-
-    .stealth-beacon:hover {
-      background: rgba(0, 245, 212, 0.65);
-      transform: scale(1.6);
-    }
-
-    /* Raw API JSON Output Mode (?api=...) */
-    #apiJsonView {
-      position: fixed;
-      inset: 0;
-      background: #05070b;
-      color: #00f5d4;
+      z-index: 9999;
+      background: #06080d;
+      color: #22d3ee;
       font-family: var(--font-mono);
       font-size: 12px;
       line-height: 1.55;
-      padding: 18px;
+      padding: 20px;
       overflow-y: auto;
-      z-index: 9500;
       display: none;
       user-select: text;
       white-space: pre-wrap;
       word-break: break-word;
     }
 
-    /* Main Full-Viewport App Shell */
-    #appShell {
+    /* Viewport-Locked Application Shell */
+    #app {
       position: relative;
       width: 100%;
       height: 100dvh;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.35s ease;
     }
 
-    #appShell.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    /* Fullscreen Map Layer */
+    /* Fullscreen Map Canvas */
     #map {
       position: absolute;
       inset: 0;
@@ -142,6 +106,7 @@
       height: 100%;
       z-index: 1;
       background: #080b12;
+      touch-action: pan-x pan-y;
     }
 
     .leaflet-control-attribution,
@@ -149,77 +114,74 @@
       display: none !important;
     }
 
-    /* Custom Capsule Interactive Elements (No <button> tags) */
-    .cap-btn {
+    /* Custom Capsule Controls (Div-based, Zero Native Buttons) */
+    .btn-cap {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      border-radius: var(--radius-capsule);
-      padding: 11px 18px;
-      font-size: 13px;
+      gap: 7px;
+      height: 40px;
+      padding: 0 16px;
+      border-radius: var(--pill);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-outset);
+      color: var(--text-primary);
+      font-size: 12.5px;
       font-weight: 700;
       letter-spacing: 0.01em;
       cursor: pointer;
-      border: 1px solid var(--border-glass);
-      background: var(--bg-neu-raised);
-      color: var(--text-main);
-      box-shadow: var(--shadow-outset);
-      transition: transform 0.16s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-      text-align: center;
-      line-height: 1.2;
+      white-space: nowrap;
+      transition: transform 0.14s ease, border-color 0.18s ease, background 0.18s ease;
       flex-shrink: 0;
     }
 
-    .cap-btn:hover {
+    .btn-cap:hover {
       border-color: rgba(255, 255, 255, 0.2);
-      transform: translateY(-1px);
     }
 
-    .cap-btn:active {
+    .btn-cap:active {
       transform: scale(0.97);
       box-shadow: var(--shadow-inset);
     }
 
-    .cap-btn.primary {
-      background: linear-gradient(135deg, #00f5d4 0%, #0ea5e9 100%);
+    .btn-cap.primary {
+      background: linear-gradient(135deg, #22d3ee 0%, #0284c7 100%);
       color: #041019;
-      border-color: rgba(255, 255, 255, 0.35);
-      box-shadow: 0 8px 24px rgba(0, 245, 212, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      border-color: rgba(255, 255, 255, 0.32);
+      box-shadow: 0 8px 22px rgba(34, 211, 238, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
 
-    .cap-btn.emerald {
+    .btn-cap.emerald {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: #03150e;
-      border-color: rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 22px rgba(16, 185, 129, 0.28);
+      border-color: rgba(255, 255, 255, 0.28);
     }
 
-    .cap-btn.amber {
-      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-      color: #1c1002;
-      border-color: rgba(255, 255, 255, 0.3);
+    .btn-cap.amber {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #180d02;
+      border-color: rgba(255, 255, 255, 0.28);
     }
 
-    .cap-btn.danger {
-      background: linear-gradient(135deg, rgba(251, 113, 133, 0.22), rgba(225, 29, 72, 0.28));
+    .btn-cap.danger {
+      background: rgba(244, 63, 94, 0.16);
       color: #fda4af;
-      border-color: rgba(251, 113, 133, 0.35);
+      border-color: rgba(244, 63, 94, 0.34);
     }
 
-    .cap-btn.sm {
-      padding: 7px 13px;
-      font-size: 12px;
+    .btn-cap.sm {
+      height: 32px;
+      padding: 0 12px;
+      font-size: 11.5px;
     }
 
-    .cap-btn.icon-only {
-      width: 42px;
-      height: 42px;
-      padding: 0;
+    .btn-cap.full {
+      width: 100%;
     }
 
-    /* Top Floating Glass HUD */
-    .top-hud {
+    /* Top Bar */
+    .top-bar {
       position: relative;
       z-index: 20;
       padding: max(12px, env(safe-area-inset-top)) 14px 8px;
@@ -230,497 +192,488 @@
       pointer-events: none;
     }
 
-    .top-hud > * {
+    .top-bar > * {
       pointer-events: auto;
     }
 
-    .glass-pill {
+    .hud-pill {
+      height: 40px;
+      padding: 0 14px;
+      border-radius: var(--pill);
+      background: var(--bg-elevated);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-outset);
       display: inline-flex;
       align-items: center;
-      gap: 9px;
-      padding: 8px 14px;
-      border-radius: var(--radius-capsule);
-      background: var(--bg-surface);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid var(--border-glass);
-      box-shadow: var(--shadow-outset);
+      gap: 10px;
     }
 
-    .brand-dot {
-      width: 9px;
-      height: 9px;
+    .brand-mark {
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
-      background: var(--accent-primary);
-      box-shadow: 0 0 12px var(--accent-primary);
-      animation: pulseGlow 2s infinite;
+      background: rgba(34, 211, 238, 0.14);
+      border: 1px solid rgba(34, 211, 238, 0.36);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      flex-shrink: 0;
     }
 
-    @keyframes pulseGlow {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.45; transform: scale(0.85); }
-    }
-
-    .hud-title {
+    .brand-title {
       font-size: 13px;
       font-weight: 800;
       letter-spacing: -0.01em;
       white-space: nowrap;
     }
 
-    .hud-sub {
-      font-family: var(--font-mono);
-      font-size: 10.5px;
-      color: var(--accent-primary);
-      white-space: nowrap;
-    }
-
-    .hud-actions {
+    .telemetry-strip {
       display: flex;
       align-items: center;
       gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
     }
 
-    /* Map Floating Side Controls */
-    .map-side-tools {
+    .telemetry-strip .val {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Right Floating Map Controls */
+    .map-tools {
       position: absolute;
       right: 14px;
-      top: 74px;
+      top: max(64px, calc(env(safe-area-inset-top) + 52px));
       z-index: 18;
       display: flex;
       flex-direction: column;
-      gap: 9px;
+      gap: 8px;
     }
 
-    .tool-bubble {
-      width: 44px;
-      height: 44px;
+    .map-tool-btn {
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background: var(--bg-surface-strong);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--border-glass);
+      background: var(--bg-elevated);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border-subtle);
       box-shadow: var(--shadow-outset);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--text-main);
+      color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.18s ease;
+      transition: color 0.15s ease, border-color 0.15s ease;
     }
 
-    .tool-bubble:hover, .tool-bubble.active {
-      border-color: var(--accent-primary);
-      color: var(--accent-primary);
-      box-shadow: 0 0 18px rgba(0, 245, 212, 0.25);
+    .map-tool-btn:hover, .map-tool-btn.active {
+      color: var(--accent);
+      border-color: var(--border-active);
     }
 
-    /* Telemetry Strip Pill */
-    .telemetry-bar {
-      position: relative;
-      z-index: 18;
-      margin: 0 auto;
-      padding: 6px 14px;
-      border-radius: var(--radius-capsule);
-      background: rgba(8, 12, 20, 0.82);
-      backdrop-filter: blur(14px);
-      border: 1px solid rgba(0, 245, 212, 0.18);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-muted);
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      max-width: calc(100vw - 120px);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .telemetry-bar span.val {
-      color: var(--accent-primary);
-      font-weight: 600;
-    }
-
-    /* Bottom Dock Container */
-    .bottom-dock {
+    /* Primary Console Container (Responsive Mobile Sheet / Desktop Sidebar) */
+    .console-wrap {
       position: relative;
       z-index: 25;
       margin-top: auto;
       width: 100%;
-      max-width: 560px;
-      align-self: center;
       padding: 0 10px max(10px, env(safe-area-inset-bottom));
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      max-height: 66dvh;
+      gap: 6px;
+      pointer-events: none;
     }
 
-    .dock-panel {
-      background: var(--bg-surface-strong);
+    .console-panel {
+      pointer-events: auto;
+      background: var(--bg-elevated);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--border-glass);
-      border-radius: var(--radius-panel);
-      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.09);
-      padding: 16px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-outset);
+      padding: 14px;
+      max-height: 54dvh;
       overflow-y: auto;
+      overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
-    .dock-panel::-webkit-scrollbar {
+    .console-panel::-webkit-scrollbar {
       width: 4px;
     }
-    .dock-panel::-webkit-scrollbar-thumb {
+    .console-panel::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.14);
       border-radius: 99px;
     }
 
-    /* Neumorphic Inputs */
-    .neu-input-wrap {
-      position: relative;
+    @media (min-width: 820px) {
+      .console-wrap {
+        position: absolute;
+        left: 14px;
+        top: 64px;
+        bottom: 12px;
+        margin-top: 0;
+        width: 400px;
+        padding: 0;
+        justify-content: space-between;
+      }
+      .console-panel {
+        max-height: calc(100dvh - 104px);
+      }
+    }
+
+    /* Neumorphic Inset Inputs */
+    .field-wrap {
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: var(--bg-neu-inset);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: var(--radius-capsule);
-      padding: 10px 15px;
+      gap: 8px;
+      height: 40px;
+      padding: 0 14px;
+      border-radius: var(--pill);
+      background: var(--bg-inset);
+      border: 1px solid rgba(255, 255, 255, 0.06);
       box-shadow: var(--shadow-inset);
-      transition: border-color 0.2s ease;
+      transition: border-color 0.18s ease;
     }
 
-    .neu-input-wrap:focus-within {
-      border-color: var(--accent-primary);
+    .field-wrap:focus-within {
+      border-color: var(--border-active);
     }
 
-    .neu-input {
+    .field-input {
       width: 100%;
+      height: 100%;
       background: transparent;
       border: none;
       outline: none;
-      color: var(--text-main);
+      color: var(--text-primary);
       font-family: var(--font-sans);
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 500;
     }
 
-    .neu-input::placeholder {
-      color: var(--text-dim);
+    .field-input::placeholder {
+      color: var(--text-muted);
     }
 
-    /* Quick Landmark Chips */
-    .chip-row {
+    .field-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      padding-left: 10px;
+    }
+
+    /* Horizontal Chip Rail */
+    .chip-rail {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
       overflow-x: auto;
-      padding-bottom: 2px;
       scrollbar-width: none;
-    }
-    .chip-row::-webkit-scrollbar { display: none; }
-
-    .mini-chip {
-      padding: 6px 12px;
-      border-radius: var(--radius-capsule);
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 11.5px;
-      font-weight: 600;
-      color: var(--text-muted);
-      white-space: nowrap;
-      cursor: pointer;
-      transition: all 0.15s ease;
       flex-shrink: 0;
     }
+    .chip-rail::-webkit-scrollbar { display: none; }
 
-    .mini-chip:hover, .mini-chip.active {
-      background: rgba(0, 245, 212, 0.14);
-      border-color: rgba(0, 245, 212, 0.4);
-      color: var(--accent-primary);
-    }
-
-    /* Vehicle Tier Cards */
-    .tier-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-
-    .tier-card {
-      background: var(--bg-neu-raised);
-      border: 1px solid var(--border-glass);
-      border-radius: 20px;
-      padding: 10px 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-      transition: all 0.18s ease;
-      text-align: center;
-    }
-
-    .tier-card.selected {
-      border-color: var(--accent-primary);
-      background: linear-gradient(155deg, rgba(0, 245, 212, 0.16), rgba(14, 165, 233, 0.12));
-      box-shadow: 0 0 20px rgba(0, 245, 212, 0.18);
-    }
-
-    .tier-name {
-      font-size: 11.5px;
-      font-weight: 700;
-    }
-
-    .tier-price {
-      font-family: var(--font-mono);
-      font-size: 11.5px;
-      font-weight: 700;
-      color: var(--accent-primary);
-    }
-
-    .tier-eta {
-      font-size: 10px;
-      color: var(--text-dim);
-    }
-
-    /* inDrive Fare Bidding Bar */
-    .fare-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-glass);
-      border-radius: var(--radius-capsule);
-      padding: 6px 10px;
-    }
-
-    .fare-input-box {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-family: var(--font-mono);
-      font-weight: 700;
-      font-size: 15px;
-      color: var(--accent-primary);
-    }
-
-    .fare-input-box input {
-      width: 72px;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text-main);
-      font-family: var(--font-mono);
-      font-size: 16px;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    /* Bid / Request Cards */
-    .feed-card {
-      background: var(--bg-neu-raised);
-      border: 1px solid var(--border-glass);
-      border-radius: 22px;
-      padding: 13px 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
-      box-shadow: var(--shadow-outset);
-    }
-
-    .feed-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .badge-pill {
+    .chip {
+      height: 28px;
+      padding: 0 11px;
+      border-radius: var(--pill);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 4px 10px;
-      border-radius: var(--radius-capsule);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    }
+
+    .chip:hover, .chip.active {
+      background: rgba(34, 211, 238, 0.12);
+      border-color: var(--border-active);
+      color: var(--accent);
+    }
+
+    /* Vehicle Tiers */
+    .tier-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .tier-item {
+      padding: 8px 4px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .tier-item.selected {
+      border-color: var(--accent);
+      background: linear-gradient(150deg, rgba(34, 211, 238, 0.15), rgba(2, 132, 199, 0.12));
+    }
+
+    .tier-title {
       font-size: 11px;
       font-weight: 700;
-      background: rgba(0, 245, 212, 0.12);
-      color: var(--accent-primary);
-      border: 1px solid rgba(0, 245, 212, 0.25);
     }
 
-    .badge-pill.amber {
-      background: rgba(251, 191, 36, 0.14);
-      color: var(--accent-amber);
-      border-color: rgba(251, 191, 36, 0.28);
+    .tier-fare {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
     }
 
-    .badge-pill.emerald {
-      background: rgba(16, 185, 129, 0.14);
+    .tier-eta {
+      font-size: 9.5px;
+      color: var(--text-muted);
+    }
+
+    /* Fare Negotiator Bar */
+    .fare-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 4px 6px;
+      border-radius: var(--pill);
+      background: var(--bg-inset);
+      border: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    .fare-center {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .fare-center input {
+      width: 64px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    /* Data Cards (Bids / Open Requests / Active Trip) */
+    .data-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 11px 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .row-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .tag {
+      height: 22px;
+      padding: 0 9px;
+      border-radius: var(--pill);
+      font-size: 10.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(34, 211, 238, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(34, 211, 238, 0.25);
+      white-space: nowrap;
+    }
+
+    .tag.emerald {
+      background: rgba(16, 185, 129, 0.12);
       color: var(--accent-emerald);
-      border-color: rgba(16, 185, 129, 0.28);
+      border-color: rgba(16, 185, 129, 0.25);
     }
 
-    /* Fullscreen Auth & Profile Modals */
-    .modal-backdrop {
+    .tag.amber {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--accent-amber);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    /* Account & Profile Overlays */
+    .overlay-mask {
       position: fixed;
       inset: 0;
       z-index: 60;
-      background: rgba(4, 6, 11, 0.84);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(5, 7, 12, 0.82);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
       display: none;
       align-items: center;
       justify-content: center;
       padding: 16px;
     }
 
-    .modal-backdrop.open {
+    .overlay-mask.open {
       display: flex;
     }
 
-    .modal-card {
+    .dialog-card {
       width: 100%;
-      max-width: 440px;
+      max-width: 420px;
       max-height: 88dvh;
       overflow-y: auto;
-      background: linear-gradient(160deg, rgba(18, 24, 38, 0.96), rgba(9, 12, 20, 0.98));
-      border: 1px solid var(--border-glass);
-      border-radius: 30px;
-      padding: 22px;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      overscroll-behavior: contain;
+      background: linear-gradient(160deg, rgba(17, 22, 34, 0.97), rgba(9, 12, 19, 0.99));
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.82), inset 0 1px 0 rgba(255, 255, 255, 0.08);
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
     }
 
-    .segmented-tabs {
+    .seg-bar {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      padding: 5px;
-      border-radius: var(--radius-capsule);
-      background: var(--bg-neu-inset);
+      gap: 4px;
+      padding: 4px;
+      border-radius: var(--pill);
+      background: var(--bg-inset);
       box-shadow: var(--shadow-inset);
     }
 
-    .seg-tab {
-      padding: 9px 12px;
-      border-radius: var(--radius-capsule);
-      text-align: center;
-      font-size: 13px;
+    .seg-btn {
+      height: 34px;
+      border-radius: var(--pill);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12.5px;
       font-weight: 700;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background 0.18s ease, color 0.18s ease;
     }
 
-    .seg-tab.active {
-      background: linear-gradient(135deg, #00f5d4, #0ea5e9);
+    .seg-btn.active {
+      background: linear-gradient(135deg, #22d3ee, #0284c7);
       color: #041019;
-      box-shadow: 0 4px 14px rgba(0, 245, 212, 0.28);
     }
 
-    .role-selector {
+    .role-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 8px;
     }
 
-    .role-card {
-      padding: 14px 12px;
-      border-radius: 22px;
-      background: var(--bg-neu-raised);
-      border: 1.5px solid var(--border-glass);
+    .role-box {
+      padding: 12px 10px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       cursor: pointer;
       text-align: center;
-      transition: all 0.2s ease;
+      transition: border-color 0.18s ease, background 0.18s ease;
     }
 
-    .role-card.active {
-      border-color: var(--accent-primary);
-      background: rgba(0, 245, 212, 0.1);
-      box-shadow: 0 0 22px rgba(0, 245, 212, 0.16);
+    .role-box.active {
+      border-color: var(--accent);
+      background: rgba(34, 211, 238, 0.1);
     }
 
-    .field-grid {
+    .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 8px;
     }
 
-    .field-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-muted);
-      margin-bottom: 5px;
-      padding-left: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    /* Custom Toast Notification */
-    #toastBox {
+    /* Toast Notification */
+    #toast {
       position: fixed;
-      top: max(16px, env(safe-area-inset-top));
+      top: max(14px, env(safe-area-inset-top));
       left: 50%;
-      transform: translateX(-50%) translateY(-120%);
-      z-index: 9999;
-      padding: 10px 18px;
-      border-radius: var(--radius-capsule);
-      background: rgba(12, 18, 30, 0.94);
-      backdrop-filter: blur(18px);
-      border: 1px solid var(--border-glow);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
-      color: var(--text-main);
-      font-size: 12.5px;
+      transform: translateX(-50%) translateY(-130%);
+      z-index: 9990;
+      height: 36px;
+      padding: 0 16px;
+      border-radius: var(--pill);
+      background: rgba(12, 16, 26, 0.96);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-active);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+      color: var(--text-primary);
+      font-size: 12px;
       font-weight: 700;
       display: flex;
       align-items: center;
       gap: 8px;
-      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-      max-width: 92vw;
+      transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+      max-width: 90vw;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      pointer-events: none;
     }
 
-    #toastBox.show {
+    #toast.show {
       transform: translateX(-50%) translateY(0);
     }
 
-    /* Footer */
-    .app-footer {
-      text-align: center;
-      font-size: 10.5px;
-      color: var(--text-dim);
-      padding-top: 2px;
-      letter-spacing: 0.02em;
-    }
-
-    /* Custom Leaflet Markers */
-    .gps-marker-wrap {
+    /* Map Markers */
+    .mk-wrap {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
     }
 
-    .marker-tag {
+    .mk-label {
       margin-top: 2px;
       padding: 2px 7px;
-      border-radius: 999px;
-      background: rgba(6, 8, 13, 0.88);
-      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: var(--pill);
+      background: rgba(7, 9, 14, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       color: #f8fafc;
       font-family: var(--font-mono);
       font-size: 9.5px;
@@ -728,289 +681,220 @@
       white-space: nowrap;
     }
 
-    .radar-pulse {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(0, 245, 212, 0.22);
-      border: 2px solid #00f5d4;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 20px rgba(0, 245, 212, 0.45);
-      animation: radarBeat 2s infinite ease-out;
+    .footer-note {
+      pointer-events: auto;
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
     }
 
-    @keyframes radarBeat {
-      0% { box-shadow: 0 0 0 0 rgba(0, 245, 212, 0.55); }
-      100% { box-shadow: 0 0 0 22px rgba(0, 245, 212, 0); }
-    }
-
-    @media (max-width: 420px) {
-      .tier-grid {
-        grid-template-columns: repeat(2, 1fr);
+    @media (max-width: 540px) {
+      .telemetry-strip .hide-sm {
+        display: none;
       }
-      .field-grid {
+      .grid-2 {
         grid-template-columns: 1fr;
-      }
-      .hud-title {
-        font-size: 12px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- 1. Stealth Blank API Canvas (Default on bare root visit) -->
-  <div id="stealthVoid" title="GPS Ride Telemetry API">
-    <div id="stealthBeacon" class="stealth-beacon" role="button" tabindex="0" aria-label="Telemetry Endpoint"></div>
-  </div>
+  <!-- Raw JSON API View (?api=...) -->
+  <pre id="apiOutput"></pre>
 
-  <!-- 2. Raw JSON API Output Container (?api=...) -->
-  <pre id="apiJsonView"></pre>
+  <!-- Toast -->
+  <div id="toast"><span id="toastMsg">Ready</span></div>
 
-  <!-- 3. Toast Notification -->
-  <div id="toastBox">
-    <span class="brand-dot"></span>
-    <span id="toastText">Ready</span>
-  </div>
-
-  <!-- 4. Full Ride-Sharing & Live GPS Telemetry Web App -->
-  <div id="appShell">
+  <!-- Main Viewport-Locked App -->
+  <div id="app">
     <div id="map"></div>
 
-    <!-- Top Floating HUD -->
-    <div class="top-hud">
-      <div class="glass-pill">
-        <span class="brand-dot"></span>
-        <div>
-          <div class="hud-title">GPS Ride Telemetry</div>
-          <div class="hud-sub" id="rtdbSyncStatus">RTDB • gps-rt</div>
+    <!-- Top Header Bar -->
+    <div class="top-bar">
+      <div class="hud-pill">
+        <div class="brand-mark">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+          </svg>
+        </div>
+        <span class="brand-title">GPS Ride Telemetry</span>
+        <div class="telemetry-strip">
+          <span class="hide-sm">|</span>
+          <span class="val hide-sm" id="hudCoords">27.7172, 85.3240</span>
+          <span>|</span>
+          <span class="val" id="hudSpeed">0 km/h</span>
+          <span>|</span>
+          <span class="val" id="hudPeers">0 Active</span>
         </div>
       </div>
 
-      <div class="hud-actions">
-        <div class="glass-pill" id="userBadgePill" role="button" tabindex="0" style="cursor:pointer;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          <span id="hudUserLabel" style="font-size:12px;font-weight:700;">Account</span>
-        </div>
-
-        <div class="tool-bubble" id="stealthReturnBtn" role="button" tabindex="0" title="Switch to Stealth API Mode">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path>
-            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path>
-            <line x1="1" y1="1" x2="23" y2="23"></line>
-          </svg>
-        </div>
+      <div class="btn-cap sm" id="btnAccount" role="button" tabindex="0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span id="hudUserText">Sign In</span>
       </div>
     </div>
 
-    <!-- Live GPS Telemetry Readout Pill -->
-    <div class="telemetry-bar">
-      <span>GPS</span>
-      <span class="val" id="hudCoords">27.7172, 85.3240</span>
-      <span>•</span>
-      <span class="val" id="hudSpeed">0 km/h</span>
-      <span>•</span>
-      <span class="val" id="hudNearbyCount">0 Online</span>
-    </div>
-
-    <!-- Map Floating Tools (Right Edge) -->
-    <div class="map-side-tools">
-      <div class="tool-bubble" id="btnLocateMe" role="button" tabindex="0" title="Center on Live GPS">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+    <!-- Map Tools -->
+    <div class="map-tools">
+      <div class="map-tool-btn" id="toolLocate" role="button" tabindex="0" title="Center GPS">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path>
         </svg>
       </div>
-      <div class="tool-bubble" id="btnSimulateGps" role="button" tabindex="0" title="Toggle Live GPS Movement Simulator">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <polygon points="10 8 16 12 10 16 10 8"></polygon>
+      <div class="map-tool-btn" id="toolSim" role="button" tabindex="0" title="GPS Route Simulator">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
         </svg>
       </div>
-      <div class="tool-bubble" id="btnMapPinMode" role="button" tabindex="0" title="Tap Map Mode (Dropoff / Pickup / My GPS)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="map-tool-btn" id="toolPinMode" role="button" tabindex="0" title="Map Tap Target">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
         </svg>
       </div>
     </div>
 
-    <!-- Bottom Interactive Dock (Dynamic Passenger / Driver Console) -->
-    <div class="bottom-dock">
-      <div class="dock-panel" id="mainDockPanel">
-        <!-- Populated dynamically based on role & active ride state -->
-      </div>
-      <div class="app-footer">© 2026 Sanchar Koirala | All rights reserved</div>
+    <!-- Console Panel -->
+    <div class="console-wrap">
+      <div class="console-panel" id="consolePanel"></div>
+      <div class="footer-note">© 2026 Sanchar Koirala | All rights reserved</div>
     </div>
   </div>
 
-  <!-- 5. Account Creation / Sign-In Modal -->
-  <div class="modal-backdrop" id="authModal">
-    <div class="modal-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div>
-          <div style="font-size:18px;font-weight:800;letter-spacing:-0.02em;">GPS Ride Telemetry</div>
-          <div style="font-size:12px;color:var(--text-muted);">Cloud Studio RTDB • <span style="color:var(--accent-primary);font-family:var(--font-mono);">gps-rt/users</span></div>
-        </div>
-        <div class="badge-pill">Nepal Live GPS</div>
+  <!-- Auth Modal (Sign In / Create Account) -->
+  <div class="overlay-mask" id="authOverlay">
+    <div class="dialog-card">
+      <div class="row-between">
+        <div style="font-size:17px;font-weight:800;letter-spacing:-0.02em;">GPS Ride Telemetry</div>
+        <div class="tag" style="font-family:var(--font-mono);">gps-rt</div>
       </div>
 
-      <div class="segmented-tabs">
-        <div class="seg-tab active" id="tabLogin" role="button" tabindex="0">Sign In</div>
-        <div class="seg-tab" id="tabRegister" role="button" tabindex="0">Create Account</div>
+      <div class="seg-bar">
+        <div class="seg-btn active" id="tabSignIn" role="button" tabindex="0">Sign In</div>
+        <div class="seg-btn" id="tabCreate" role="button" tabindex="0">Create Account</div>
       </div>
 
-      <!-- Login Form -->
-      <div id="loginFormBox" style="display:flex;flex-direction:column;gap:12px;">
+      <!-- Sign In View -->
+      <div id="viewSignIn" style="display:flex;flex-direction:column;gap:10px;">
         <div>
           <div class="field-label">Username</div>
-          <div class="neu-input-wrap">
-            <input class="neu-input" id="loginUsername" type="text" placeholder="Enter your username" autocomplete="username" />
+          <div class="field-wrap">
+            <input class="field-input" id="inUser" type="text" placeholder="Username" autocomplete="username" />
           </div>
         </div>
         <div>
           <div class="field-label">Password</div>
-          <div class="neu-input-wrap">
-            <input class="neu-input" id="loginPassword" type="password" placeholder="Enter password" autocomplete="current-password" />
+          <div class="field-wrap">
+            <input class="field-input" id="inPass" type="password" placeholder="Password" autocomplete="current-password" />
           </div>
         </div>
-        <div class="cap-btn primary" id="btnSubmitLogin" role="button" tabindex="0" style="width:100%;margin-top:4px;">
-          Sign In &amp; Connect GPS
-        </div>
+        <div class="btn-cap primary full" id="btnDoLogin" role="button" tabindex="0" style="margin-top:4px;">Sign In</div>
       </div>
 
-      <!-- Register Form -->
-      <div id="registerFormBox" style="display:none;flex-direction:column;gap:12px;">
-        <div class="field-label" style="margin-bottom:0;">Select Account Type</div>
-        <div class="role-selector">
-          <div class="role-card active" id="selectRolePassenger" role="button" tabindex="0">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Create Account View -->
+      <div id="viewCreate" style="display:none;flex-direction:column;gap:10px;">
+        <div class="role-grid">
+          <div class="role-box active" id="rolePassenger" role="button" tabindex="0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
-            <div style="font-size:13px;font-weight:800;">Passenger</div>
-            <div style="font-size:10.5px;color:var(--text-muted);">Book rides &amp; bid fares</div>
+            <div style="font-size:12.5px;font-weight:800;">Passenger</div>
           </div>
-          <div class="role-card" id="selectRoleDriver" role="button" tabindex="0">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <div class="role-box" id="roleDriver" role="button" tabindex="0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="5.5" cy="17.5" r="3.5"></circle>
               <circle cx="18.5" cy="17.5" r="3.5"></circle>
               <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"></path>
             </svg>
-            <div style="font-size:13px;font-weight:800;">Driver / Rider</div>
-            <div style="font-size:10.5px;color:var(--text-muted);">Accept &amp; bid passengers</div>
+            <div style="font-size:12.5px;font-weight:800;">Driver / Rider</div>
           </div>
         </div>
 
-        <div class="field-grid">
+        <div class="grid-2">
           <div>
             <div class="field-label">Full Name</div>
-            <div class="neu-input-wrap">
-              <input class="neu-input" id="regFullName" type="text" placeholder="Sanchar Koirala" />
-            </div>
+            <div class="field-wrap"><input class="field-input" id="regName" type="text" placeholder="Full Name" /></div>
           </div>
           <div>
             <div class="field-label">Username</div>
-            <div class="neu-input-wrap">
-              <input class="neu-input" id="regUsername" type="text" placeholder="sanchar_ktm" />
-            </div>
+            <div class="field-wrap"><input class="field-input" id="regUser" type="text" placeholder="Username" /></div>
           </div>
         </div>
 
-        <div class="field-grid">
+        <div class="grid-2">
           <div>
-            <div class="field-label">Phone (+977)</div>
-            <div class="neu-input-wrap">
-              <input class="neu-input" id="regPhone" type="tel" placeholder="98XXXXXXXX" />
-            </div>
+            <div class="field-label">Phone</div>
+            <div class="field-wrap"><input class="field-input" id="regPhone" type="tel" placeholder="98XXXXXXXX" /></div>
           </div>
           <div>
             <div class="field-label">Password</div>
-            <div class="neu-input-wrap">
-              <input class="neu-input" id="regPassword" type="password" placeholder="Create password" />
-            </div>
+            <div class="field-wrap"><input class="field-input" id="regPass" type="password" placeholder="Password" /></div>
           </div>
         </div>
 
-        <!-- Driver / Rider Extra Fields -->
-        <div id="driverExtraFields" style="display:none;flex-direction:column;gap:10px;padding-top:4px;border-top:1px solid var(--border-glass);">
-          <div style="font-size:11.5px;font-weight:800;color:var(--accent-secondary);">Rider / Driver Verification &amp; Vehicle Details</div>
-
-          <div class="field-grid">
+        <div id="driverFields" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border-subtle);">
+          <div class="grid-2">
             <div>
               <div class="field-label">Vehicle Type</div>
-              <div class="neu-input-wrap">
-                <select class="neu-input" id="regVehicleType" style="background:transparent;">
-                  <option value="bike" style="background:#0d121d;">Bike / Scooter (Moto)</option>
-                  <option value="car" style="background:#0d121d;">Car / Taxi (Lite)</option>
-                  <option value="ev" style="background:#0d121d;">EV Cab</option>
-                  <option value="xl" style="background:#0d121d;">Prime SUV / XL</option>
+              <div class="field-wrap">
+                <select class="field-input" id="regVehType">
+                  <option value="bike" style="background:#0d111a;">Bike / Moto</option>
+                  <option value="car" style="background:#0d111a;">Car Lite</option>
+                  <option value="ev" style="background:#0d111a;">EV Cab</option>
+                  <option value="xl" style="background:#0d111a;">Prime XL</option>
                 </select>
               </div>
             </div>
             <div>
               <div class="field-label">Vehicle Model</div>
-              <div class="neu-input-wrap">
-                <input class="neu-input" id="regVehicleModel" type="text" placeholder="Pulsar NS200 / Alto" />
-              </div>
+              <div class="field-wrap"><input class="field-input" id="regVehModel" type="text" placeholder="Pulsar NS200" /></div>
             </div>
           </div>
-
-          <div class="field-grid">
+          <div class="grid-2">
             <div>
-              <div class="field-label">Nepal Number Plate</div>
-              <div class="neu-input-wrap">
-                <input class="neu-input" id="regPlate" type="text" placeholder="Ba 98 Pa 4521" />
-              </div>
+              <div class="field-label">Number Plate</div>
+              <div class="field-wrap"><input class="field-input" id="regPlate" type="text" placeholder="BA 98 PA 4521" /></div>
             </div>
             <div>
               <div class="field-label">Vehicle Color</div>
-              <div class="neu-input-wrap">
-                <input class="neu-input" id="regColor" type="text" placeholder="Matte Black" />
-              </div>
+              <div class="field-wrap"><input class="field-input" id="regColor" type="text" placeholder="Black" /></div>
             </div>
           </div>
-
-          <div class="field-grid">
+          <div class="grid-2">
             <div>
-              <div class="field-label">DOTM License No.</div>
-              <div class="neu-input-wrap">
-                <input class="neu-input" id="regLicense" type="text" placeholder="01-06-00482910" />
-              </div>
+              <div class="field-label">License No.</div>
+              <div class="field-wrap"><input class="field-input" id="regLicense" type="text" placeholder="01-06-00482910" /></div>
             </div>
             <div>
-              <div class="field-label">Bluebook / NID No.</div>
-              <div class="neu-input-wrap">
-                <input class="neu-input" id="regBluebook" type="text" placeholder="27-01-76-04129" />
-              </div>
+              <div class="field-label">Bluebook / NID</div>
+              <div class="field-wrap"><input class="field-input" id="regBluebook" type="text" placeholder="27-01-76-04129" /></div>
             </div>
           </div>
         </div>
 
-        <div class="cap-btn primary" id="btnSubmitRegister" role="button" tabindex="0" style="width:100%;margin-top:4px;">
-          Create Account &amp; Start
-        </div>
+        <div class="btn-cap primary full" id="btnDoRegister" role="button" tabindex="0" style="margin-top:4px;">Create Account</div>
       </div>
 
-      <div class="app-footer">© 2026 Sanchar Koirala | All rights reserved</div>
+      <div class="footer-note">© 2026 Sanchar Koirala | All rights reserved</div>
     </div>
   </div>
 
-  <!-- 6. Profile & Telemetry Inspector Modal -->
-  <div class="modal-backdrop" id="profileModal">
-    <div class="modal-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-size:17px;font-weight:800;">Account &amp; Telemetry</div>
-        <div class="cap-btn sm" id="btnCloseProfile" role="button" tabindex="0">Close</div>
+  <!-- Profile Modal -->
+  <div class="overlay-mask" id="profileOverlay">
+    <div class="dialog-card">
+      <div class="row-between">
+        <div style="font-size:16px;font-weight:800;">Account Details</div>
+        <div class="btn-cap sm" id="btnCloseProfile" role="button" tabindex="0">Close</div>
       </div>
-      <div id="profileDetailsBody" style="display:flex;flex-direction:column;gap:10px;"></div>
-      <div style="display:flex;gap:10px;margin-top:4px;">
-        <div class="cap-btn danger" id="btnLogout" role="button" tabindex="0" style="flex:1;">Sign Out</div>
-      </div>
+      <div id="profileBody"></div>
+      <div class="btn-cap danger full" id="btnSignOut" role="button" tabindex="0">Sign Out</div>
     </div>
   </div>
 
@@ -1018,10 +902,13 @@
     (() => {
       'use strict';
 
-      // Disable context menu per system telemetry policy
+      // Prevent browser pinch-zoom & context menu for zero unintended layout/zoom shifts
       document.addEventListener('contextmenu', (e) => e.preventDefault());
+      document.addEventListener('gesturestart', (e) => e.preventDefault());
+      document.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 1) e.preventDefault();
+      }, { passive: false });
 
-      // Keyboard accessibility for custom capsule div buttons
       document.addEventListener('keydown', (e) => {
         if ((e.key === 'Enter' || e.key === ' ') && document.activeElement?.getAttribute('role') === 'button') {
           e.preventDefault();
@@ -1030,119 +917,86 @@
       });
 
       // =========================================================================
-      // 1. FIREBASE RTDB CLOUD STUDIO CONFIGURATION (Strictly inside "gps-rt")
+      // 1. FIREBASE RTDB INITIALIZATION (Strictly under "gps-rt")
       // =========================================================================
-      const RTDB_BASE = 'https://cloud-db-studio-default-rtdb.firebaseio.com';
-      const ROOT_FOLDER = 'gps-rt';
+      const DB_URL = 'https://cloud-db-studio-default-rtdb.firebaseio.com';
+      const ROOT_NODE = 'gps-rt';
 
-      const rtdbUrl = (subPath = '') => {
-        const clean = subPath.replace(/^\/+|\/+$/g, '');
-        return clean ? `${RTDB_BASE}/${ROOT_FOLDER}/${clean}.json` : `${RTDB_BASE}/${ROOT_FOLDER}.json`;
-      };
+      firebase.initializeApp({ databaseURL: DB_URL });
+      const db = firebase.database();
+      const rootRef = db.ref(ROOT_NODE);
 
-      const rtdb = {
-        async get(path = '') {
-          const res = await fetch(rtdbUrl(path));
-          if (!res.ok) throw new Error(`RTDB GET ${res.status}`);
-          return res.json();
+      const dbApi = {
+        ref: (sub = '') => sub ? rootRef.child(sub) : rootRef,
+        async get(sub = '') {
+          const snap = await dbApi.ref(sub).once('value');
+          return snap.val();
         },
-        async set(path, data) {
-          const res = await fetch(rtdbUrl(path), {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-          });
-          if (!res.ok) throw new Error(`RTDB PUT ${res.status}`);
-          return res.json();
+        async set(sub, data) {
+          await dbApi.ref(sub).set(data);
+          return data;
         },
-        async update(path, data) {
-          const res = await fetch(rtdbUrl(path), {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-          });
-          if (!res.ok) throw new Error(`RTDB PATCH ${res.status}`);
-          return res.json();
-        },
-        async push(path, data) {
-          const res = await fetch(rtdbUrl(path), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-          });
-          if (!res.ok) throw new Error(`RTDB POST ${res.status}`);
-          return res.json();
-        },
-        async remove(path) {
-          const res = await fetch(rtdbUrl(path), { method: 'DELETE' });
-          if (!res.ok) throw new Error(`RTDB DELETE ${res.status}`);
-          return true;
+        async update(sub, data) {
+          await dbApi.ref(sub).update(data);
+          return data;
         }
       };
 
       // =========================================================================
-      // 2. APPLICATION STATE & NEPALI RIDE TIERS / LANDMARKS
+      // 2. STATE & CONSTANTS
       // =========================================================================
-      const KATHMANDU_CENTER = { lat: 27.7172, lng: 85.3240 };
+      const KTM = { lat: 27.7172, lng: 85.3240 };
 
-      const RIDE_TIERS = {
-        bike: { id: 'bike', name: 'Bike', base: 40, perKm: 18, speedKmh: 32, etaBonus: 1 },
-        car:  { id: 'car',  name: 'Car Lite', base: 120, perKm: 42, speedKmh: 25, etaBonus: 3 },
-        ev:   { id: 'ev',   name: 'EV Cab', base: 130, perKm: 45, speedKmh: 26, etaBonus: 3 },
-        xl:   { id: 'xl',   name: 'Prime XL', base: 180, perKm: 58, speedKmh: 23, etaBonus: 4 }
+      const TIERS = {
+        bike: { id: 'bike', name: 'Bike', base: 40, perKm: 18, etaAdd: 1 },
+        car:  { id: 'car',  name: 'Car Lite', base: 120, perKm: 42, etaAdd: 3 },
+        ev:   { id: 'ev',   name: 'EV Cab', base: 130, perKm: 45, etaAdd: 3 },
+        xl:   { id: 'xl',   name: 'Prime XL', base: 180, perKm: 58, etaAdd: 4 }
       };
 
-      const KTM_HUBS = [
-        { name: 'Thamel Chowk', lat: 27.7154, lng: 85.3123 },
-        { name: 'New Baneshwor', lat: 27.6882, lng: 85.3356 },
-        { name: 'Tribhuvan Airport', lat: 27.6981, lng: 85.3592 },
-        { name: 'Patan Durbar Sq', lat: 27.6727, lng: 85.3253 },
-        { name: 'Kalanki Chowk', lat: 27.6939, lng: 85.2816 },
+      const HUBS = [
+        { name: 'Thamel', lat: 27.7154, lng: 85.3123 },
+        { name: 'Baneshwor', lat: 27.6882, lng: 85.3356 },
+        { name: 'Airport (TIA)', lat: 27.6981, lng: 85.3592 },
+        { name: 'Patan', lat: 27.6727, lng: 85.3253 },
+        { name: 'Kalanki', lat: 27.6939, lng: 85.2816 },
         { name: 'Koteshwor', lat: 27.6756, lng: 85.3459 },
-        { name: 'Jhamsikhel', lat: 27.6789, lng: 85.3114 },
-        { name: 'Boudhanath', lat: 27.7215, lng: 85.3620 }
+        { name: 'Boudha', lat: 27.7215, lng: 85.3620 }
       ];
 
       const state = {
-        uiLaunched: false,
         user: null,
-        dbSnapshot: { users: {}, live_locations: {}, rides: {} },
-        myGps: {
-          lat: KATHMANDU_CENTER.lat,
-          lng: KATHMANDU_CENTER.lng,
-          speed: 0,
-          heading: 0,
-          accuracy: 12
-        },
+        locations: {},
+        rides: {},
+        myGps: { lat: KTM.lat, lng: KTM.lng, speed: 0, heading: 0 },
         driverOnline: true,
-        simulatingGps: false,
-        mapTapTarget: 'dropoff', // 'dropoff' | 'pickup' | 'mygps'
-        pickup: { lat: KATHMANDU_CENTER.lat, lng: KATHMANDU_CENTER.lng, label: 'Current GPS Location (Kathmandu)' },
+        simulating: false,
+        pinMode: 'dropoff', // 'dropoff' | 'pickup' | 'gps'
+        pickup: { lat: KTM.lat, lng: KTM.lng, label: 'Current GPS (Kathmandu)', manual: false },
         dropoff: null,
-        selectedTier: 'bike',
-        offeredFare: 110,
-        paymentMethod: 'Cash',
-        routeInfo: null, // { distanceKm, durationMin, coords: [[lat,lng],...] }
+        route: null,
+        tier: 'bike',
+        fare: 100,
+        payMode: 'Cash',
         activeRideId: null,
-        selectedRegRole: 'passenger',
-        counterBidDrafts: {},
-        otpDraft: ''
+        regRole: 'passenger',
+        otpInput: '',
+        renderedViewKey: ''
       };
 
       // =========================================================================
-      // 3. TOAST & GEO MATH HELPERS
+      // 3. HELPERS
       // =========================================================================
       let toastTimer = null;
-      function showToast(msg) {
-        const box = document.getElementById('toastBox');
-        const txt = document.getElementById('toastText');
-        txt.textContent = msg;
-        box.classList.add('show');
+      function toast(text) {
+        const el = document.getElementById('toast');
+        document.getElementById('toastMsg').textContent = text;
+        el.classList.add('show');
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => box.classList.remove('show'), 2800);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
       }
 
-      function haversineKm(lat1, lon1, lat2, lon2) {
+      function distKm(lat1, lon1, lat2, lon2) {
         const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -1152,43 +1006,26 @@
         return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
       }
 
-      function computeBearing(lat1, lon1, lat2, lon2) {
+      function bearingDeg(lat1, lon1, lat2, lon2) {
         const y = Math.sin((lon2 - lon1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
         const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
           Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lon2 - lon1) * Math.PI / 180);
         return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
       }
 
-      function computeRecommendedFare(distanceKm, tierId) {
-        const t = RIDE_TIERS[tierId] || RIDE_TIERS.bike;
-        const raw = t.base + distanceKm * t.perKm;
-        return Math.max(t.base, Math.round(raw / 5) * 5);
+      function calcFare(km, tierId) {
+        const t = TIERS[tierId] || TIERS.bike;
+        return Math.max(t.base, Math.round((t.base + km * t.perKm) / 5) * 5);
       }
 
       // =========================================================================
-      // 4. HEADLESS GPS TELEMETRY API ENGINE (Runs Even When UI is Hidden!)
+      // 4. HEADLESS API ENDPOINTS (?api=status | drivers | push | telemetry)
       // =========================================================================
       window.GPSRideAPI = {
-        database: `${RTDB_BASE}/${ROOT_FOLDER}`,
-        async getStatus() {
-          const data = await rtdb.get('');
-          const locations = data?.live_locations || {};
-          const rides = data?.rides || {};
-          const onlineDrivers = Object.values(locations).filter(l => l && l.role === 'driver' && l.online);
-          const activeRides = Object.values(rides).filter(r => r && !['completed', 'cancelled'].includes(r.status));
-          return {
-            service: 'GPS Ride Telemetry API',
-            storage: `${RTDB_BASE}/${ROOT_FOLDER}`,
-            timestamp: Date.now(),
-            onlineDriversCount: onlineDrivers.length,
-            activeRidesCount: activeRides.length,
-            onlineDrivers,
-            activeRides
-          };
-        },
-        async pushLocation(payload) {
-          if (!payload || !payload.username) throw new Error('username required');
-          const entry = {
+        node: `${DB_URL}/${ROOT_NODE}`,
+        async push(payload) {
+          if (!payload?.username) throw new Error('username required');
+          const record = {
             username: payload.username,
             fullName: payload.fullName || payload.username,
             role: payload.role || 'driver',
@@ -1199,57 +1036,46 @@
             lng: Number(payload.lng),
             speed: Number(payload.speed || 0),
             heading: Number(payload.heading || 0),
-            accuracy: Number(payload.accuracy || 10),
             online: payload.online !== false,
             updatedAt: Date.now()
           };
-          await rtdb.set(`live_locations/${payload.username}`, entry);
-          return { ok: true, node: `${ROOT_FOLDER}/live_locations/${payload.username}`, entry };
-        },
-        async getRide(rideId) {
-          return rtdb.get(`rides/${rideId}`);
+          await dbApi.set(`live_locations/${payload.username}`, record);
+          return record;
         }
       };
 
-      // Cross-window postMessage API listener
-      window.addEventListener('message', async (event) => {
-        const msg = event.data;
-        if (!msg || typeof msg !== 'object') return;
-        if (msg.type === 'GPS_RT_PUSH' && msg.payload) {
-          const res = await window.GPSRideAPI.pushLocation(msg.payload);
-          event.source?.postMessage({ type: 'GPS_RT_PUSH_ACK', result: res }, '*');
-        } else if (msg.type === 'GPS_RT_STATUS') {
-          const res = await window.GPSRideAPI.getStatus();
-          event.source?.postMessage({ type: 'GPS_RT_STATUS_ACK', result: res }, '*');
-        }
-      });
-
-      // Handle Headless Query API (?api=status | drivers | push | telemetry)
-      async function handleQueryApiIfPresent() {
+      async function checkQueryApi() {
         const params = new URLSearchParams(window.location.search);
-        const apiCmd = params.get('api');
-        if (!apiCmd) return false;
+        const cmd = params.get('api');
+        if (!cmd) return false;
 
-        const outEl = document.getElementById('apiJsonView');
-        outEl.style.display = 'block';
-        outEl.textContent = JSON.stringify({ status: 'connecting', node: `${RTDB_BASE}/${ROOT_FOLDER}` }, null, 2);
-
+        const out = document.getElementById('apiOutput');
+        out.style.display = 'block';
         try {
-          if (apiCmd === 'status') {
-            const status = await window.GPSRideAPI.getStatus();
-            outEl.textContent = JSON.stringify(status, null, 2);
-          } else if (apiCmd === 'drivers') {
-            const locs = await rtdb.get('live_locations') || {};
-            const drivers = Object.values(locs).filter(d => d && d.role === 'driver');
-            outEl.textContent = JSON.stringify({ ok: true, count: drivers.length, drivers }, null, 2);
-          } else if (apiCmd === 'push') {
+          if (cmd === 'status') {
+            const [locs, rides] = await Promise.all([dbApi.get('live_locations'), dbApi.get('rides')]);
+            const locList = Object.values(locs || {});
+            const rideList = Object.values(rides || {});
+            out.textContent = JSON.stringify({
+              ok: true,
+              node: `${DB_URL}/${ROOT_NODE}`,
+              onlineDrivers: locList.filter(x => x?.role === 'driver' && x?.online).length,
+              activeRides: rideList.filter(r => r && !['completed', 'cancelled'].includes(r.status)).length,
+              live_locations: locs || {},
+              rides: rides || {}
+            }, null, 2);
+          } else if (cmd === 'drivers') {
+            const locs = await dbApi.get('live_locations') || {};
+            const drivers = Object.values(locs).filter(x => x?.role === 'driver');
+            out.textContent = JSON.stringify({ ok: true, count: drivers.length, drivers }, null, 2);
+          } else if (cmd === 'push') {
             const user = params.get('user');
             const lat = parseFloat(params.get('lat'));
             const lng = parseFloat(params.get('lng'));
             if (!user || Number.isNaN(lat) || Number.isNaN(lng)) {
-              outEl.textContent = JSON.stringify({ ok: false, error: 'Required params: user, lat, lng' }, null, 2);
+              out.textContent = JSON.stringify({ ok: false, error: 'Missing user, lat, or lng' }, null, 2);
             } else {
-              const res = await window.GPSRideAPI.pushLocation({
+              const res = await window.GPSRideAPI.push({
                 username: user,
                 lat,
                 lng,
@@ -1259,122 +1085,45 @@
                 vehicleType: params.get('vehicle') || 'bike',
                 plate: params.get('plate') || ''
               });
-              outEl.textContent = JSON.stringify(res, null, 2);
+              out.textContent = JSON.stringify({ ok: true, pushed: res }, null, 2);
             }
-          } else if (apiCmd === 'telemetry') {
+          } else if (cmd === 'telemetry') {
             const rideId = params.get('ride');
-            const data = rideId ? await rtdb.get(`rides/${rideId}`) : await rtdb.get('rides');
-            outEl.textContent = JSON.stringify({ ok: true, rideId: rideId || 'all', data }, null, 2);
+            const data = rideId ? await dbApi.get(`rides/${rideId}`) : await dbApi.get('rides');
+            out.textContent = JSON.stringify({ ok: true, data }, null, 2);
           } else {
-            outEl.textContent = JSON.stringify({
-              service: 'GPS Ride Telemetry API',
-              endpoints: [
-                '?api=status',
-                '?api=drivers',
-                '?api=push&user=rider1&lat=27.7172&lng=85.3240&speed=24&heading=90&role=driver',
-                '?api=telemetry&ride=RIDE_ID',
-                '?app=1 (Launch Interactive Driver/Passenger Web App)'
-              ]
+            out.textContent = JSON.stringify({
+              endpoints: ['?api=status', '?api=drivers', '?api=push&user=u1&lat=27.71&lng=85.32', '?api=telemetry&ride=ID']
             }, null, 2);
           }
         } catch (err) {
-          outEl.textContent = JSON.stringify({ ok: false, error: err.message }, null, 2);
+          out.textContent = JSON.stringify({ ok: false, error: err.message }, null, 2);
         }
         return true;
       }
 
       // =========================================================================
-      // 5. REAL-TIME FIREBASE RTDB STREAMING (SSE + Fallback Sync)
-      // =========================================================================
-      let sseSource = null;
-      let pollTimer = null;
-
-      function applySnapshot(data) {
-        state.dbSnapshot = {
-          users: data?.users || {},
-          live_locations: data?.live_locations || {},
-          rides: data?.rides || {}
-        };
-        if (state.uiLaunched) {
-          syncActiveRideFromSnapshot();
-          renderMapEntities();
-          renderDock();
-        }
-      }
-
-      function startRealtimeSync() {
-        const badge = document.getElementById('rtdbSyncStatus');
-        try {
-          if (sseSource) sseSource.close();
-          sseSource = new EventSource(rtdbUrl(''));
-          sseSource.addEventListener('put', (e) => {
-            const payload = JSON.parse(e.data);
-            if (payload.path === '/') {
-              applySnapshot(payload.data || {});
-            } else {
-              refreshFullSnapshot();
-            }
-            if (badge) badge.textContent = 'LIVE • gps-rt';
-          });
-          sseSource.addEventListener('patch', () => {
-            refreshFullSnapshot();
-          });
-          sseSource.onerror = () => {
-            if (badge) badge.textContent = 'SYNC • gps-rt';
-          };
-        } catch (_) {
-          // Fallback handled by interval below
-        }
-
-        clearInterval(pollTimer);
-        pollTimer = setInterval(refreshFullSnapshot, 3500);
-        refreshFullSnapshot();
-      }
-
-      async function refreshFullSnapshot() {
-        try {
-          const data = await rtdb.get('');
-          applySnapshot(data || {});
-        } catch (_) {}
-      }
-
-      // =========================================================================
-      // 6. LEAFLET MAP, CUSTOM SVG MARKERS & OSRM REAL ROAD ROUTING
+      // 5. MAP ENGINE & SMOOTH MARKERS
       // =========================================================================
       let map = null;
       let myMarker = null;
       let pickupMarker = null;
       let dropoffMarker = null;
-      let routePolyline = null;
-      let routeGlowline = null;
+      let routeLine = null;
       const peerMarkers = new Map();
 
-      function vehicleSvg(type, color = '#00f5d4', heading = 0) {
-        if (type === 'car' || type === 'ev' || type === 'xl') {
-          return `<div style="transform:rotate(${heading}deg);width:34px;height:34px;border-radius:50%;background:rgba(10,15,25,0.92);border:2px solid ${color};display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px ${color}66;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"></path>
-              <circle cx="6.5" cy="16.5" r="2.5"></circle>
-              <circle cx="16.5" cy="16.5" r="2.5"></circle>
-            </svg>
-          </div>`;
-        }
-        return `<div style="transform:rotate(${heading}deg);width:34px;height:34px;border-radius:50%;background:rgba(10,15,25,0.92);border:2px solid ${color};display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px ${color}66;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="5.5" cy="17.5" r="3.5"></circle>
-            <circle cx="18.5" cy="17.5" r="3.5"></circle>
-            <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"></path>
-          </svg>
-        </div>`;
+      function vehicleIconSvg(type, color, heading = 0) {
+        const isFourWheel = type === 'car' || type === 'ev' || type === 'xl';
+        const svg = isFourWheel
+          ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"></path><circle cx="6.5" cy="16.5" r="2.5"></circle><circle cx="16.5" cy="16.5" r="2.5"></circle></svg>`
+          : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"></circle><circle cx="18.5" cy="17.5" r="3.5"></circle><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"></path></svg>`;
+
+        return `<div style="transform:rotate(${heading}deg);width:32px;height:32px;border-radius:50%;background:#0b0f18;border:2px solid ${color};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.65);">${svg}</div>`;
       }
 
       function initMap() {
-        if (map) {
-          setTimeout(() => map.invalidateSize(), 120);
-          return;
-        }
         map = L.map('map', {
-          center: [state.myGps.lat, state.myGps.lng],
+          center: [KTM.lat, KTM.lng],
           zoom: 15,
           zoomControl: false,
           attributionControl: false
@@ -1387,207 +1136,218 @@
 
         map.on('click', async (e) => {
           const { lat, lng } = e.latlng;
-          if (state.mapTapTarget === 'mygps') {
-            updateMyGps(lat, lng, 0, state.myGps.heading);
-            showToast('Updated your live GPS pin');
+          if (state.pinMode === 'gps') {
+            setMyGps(lat, lng, 0, state.myGps.heading);
+            toast('GPS position updated');
             return;
           }
           if (state.user?.role === 'passenger' && !state.activeRideId) {
-            if (state.mapTapTarget === 'pickup') {
-              const label = await reverseGeocode(lat, lng);
-              state.pickup = { lat, lng, label };
-              showToast(`Pickup: ${label}`);
+            const label = await reverseGeocode(lat, lng);
+            if (state.pinMode === 'pickup') {
+              state.pickup = { lat, lng, label, manual: true };
+              toast(`Pickup: ${label}`);
             } else {
-              const label = await reverseGeocode(lat, lng);
               state.dropoff = { lat, lng, label };
-              showToast(`Drop-off: ${label}`);
+              toast(`Drop-off: ${label}`);
             }
-            await calculateRoadRoute();
-            renderMapEntities();
-            renderDock();
+            await fetchRoadRoute();
+            syncMapGraphics();
+            renderConsole(true);
           }
         });
-
-        renderMapEntities();
       }
 
       async function reverseGeocode(lat, lng) {
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
-          const data = await res.json();
-          if (data?.name) return data.name;
-          if (data?.address) {
-            return data.address.suburb || data.address.neighbourhood || data.address.road || data.address.city || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-          }
-        } catch (_) {}
-        return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+          const d = await res.json();
+          return d?.name || d?.address?.suburb || d?.address?.road || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        } catch (_) {
+          return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        }
       }
 
-      async function calculateRoadRoute() {
+      async function fetchRoadRoute() {
         if (!state.pickup || !state.dropoff) {
-          state.routeInfo = null;
+          state.route = null;
           return;
         }
         const p1 = state.pickup;
         const p2 = state.dropoff;
         try {
-          const url = `https://router.project-osrm.org/route/v1/driving/${p1.lng},${p1.lat};${p2.lng},${p2.lat}?overview=full&geometries=geojson`;
-          const res = await fetch(url);
-          const json = await res.json();
-          if (json.code === 'Ok' && json.routes?.[0]) {
-            const route = json.routes[0];
-            const distanceKm = Math.max(0.4, +(route.distance / 1000).toFixed(2));
-            const durationMin = Math.max(2, Math.round(route.duration / 60));
-            const coords = route.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
-            state.routeInfo = { distanceKm, durationMin, coords };
-            state.offeredFare = computeRecommendedFare(distanceKm, state.selectedTier);
+          const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${p1.lng},${p1.lat};${p2.lng},${p2.lat}?overview=full&geometries=geojson`);
+          const data = await res.json();
+          if (data.code === 'Ok' && data.routes?.[0]) {
+            const r = data.routes[0];
+            const km = Math.max(0.4, +(r.distance / 1000).toFixed(2));
+            const min = Math.max(2, Math.round(r.duration / 60));
+            const coords = r.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+            state.route = { km, min, coords };
+            state.fare = calcFare(km, state.tier);
             return;
           }
         } catch (_) {}
 
-        // Fallback straight-line calculation
-        const dist = Math.max(0.5, +haversineKm(p1.lat, p1.lng, p2.lat, p2.lng).toFixed(2));
-        const dur = Math.max(3, Math.round((dist / 25) * 60));
-        state.routeInfo = {
-          distanceKm: dist,
-          durationMin: dur,
+        const km = Math.max(0.5, +distKm(p1.lat, p1.lng, p2.lat, p2.lng).toFixed(2));
+        state.route = {
+          km,
+          min: Math.max(3, Math.round((km / 25) * 60)),
           coords: [[p1.lat, p1.lng], [p2.lat, p2.lng]]
         };
-        state.offeredFare = computeRecommendedFare(dist, state.selectedTier);
+        state.fare = calcFare(km, state.tier);
       }
 
-      function renderMapEntities() {
+      function syncMapGraphics() {
         if (!map) return;
 
-        // 1. My Own Live GPS Marker
+        // 1. Self Marker
         const isDriver = state.user?.role === 'driver';
-        const myIconHtml = isDriver
-          ? `<div class="gps-marker-wrap">${vehicleSvg(state.user.vehicleType || 'bike', '#00f5d4', state.myGps.heading)}<div class="marker-tag">YOU • ${state.user.plate || 'RIDER'}</div></div>`
-          : `<div class="gps-marker-wrap"><div class="radar-pulse"><div style="width:12px;height:12px;border-radius:50%;background:#00f5d4;"></div></div><div class="marker-tag">YOU</div></div>`;
+        const selfHtml = isDriver
+          ? `<div class="mk-wrap">${vehicleIconSvg(state.user.vehicleType || 'bike', '#22d3ee', state.myGps.heading)}<div class="mk-label">${state.user.plate || 'YOU'}</div></div>`
+          : `<div class="mk-wrap"><div style="width:20px;height:20px;border-radius:50%;background:rgba(34,211,238,0.22);border:2.5px solid #22d3ee;display:flex;align-items:center;justify-content:center;"><div style="width:7px;height:7px;border-radius:50%;background:#22d3ee;"></div></div><div class="mk-label">YOU</div></div>`;
 
-        const myIcon = L.divIcon({ html: myIconHtml, className: '', iconSize: [70, 56], iconAnchor: [35, 28] });
+        const selfIcon = L.divIcon({ html: selfHtml, className: '', iconSize: [70, 50], iconAnchor: [35, 25] });
         if (!myMarker) {
-          myMarker = L.marker([state.myGps.lat, state.myGps.lng], { icon: myIcon, zIndexOffset: 900 }).addTo(map);
+          myMarker = L.marker([state.myGps.lat, state.myGps.lng], { icon: selfIcon, zIndexOffset: 900 }).addTo(map);
         } else {
           myMarker.setLatLng([state.myGps.lat, state.myGps.lng]);
-          myMarker.setIcon(myIcon);
+          myMarker.setIcon(selfIcon);
         }
 
-        // 2. Peer Live Locations from RTDB gps-rt/live_locations
-        const locs = state.dbSnapshot.live_locations || {};
-        const activeUsernames = new Set();
-        let onlinePeersCount = 0;
-
-        Object.entries(locs).forEach(([uname, loc]) => {
+        // 2. Live Peers from Firebase RTDB gps-rt/live_locations
+        const seen = new Set();
+        let activeCount = 0;
+        Object.entries(state.locations).forEach(([uname, loc]) => {
           if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return;
           if (state.user && uname === state.user.username) return;
           if (loc.online === false) return;
-          // Ignore stale nodes older than 2 hours
           if (loc.updatedAt && Date.now() - loc.updatedAt > 7200000) return;
 
-          onlinePeersCount++;
-          activeUsernames.add(uname);
-
-          const peerColor = loc.role === 'driver' ? '#38bdf8' : '#fbbf24';
-          const tagLabel = loc.role === 'driver'
-            ? `${loc.plate || uname} (${loc.vehicleType || 'bike'})`
-            : `${uname} • Passenger`;
-
+          activeCount++;
+          seen.add(uname);
+          const color = loc.role === 'driver' ? '#38bdf8' : '#f59e0b';
+          const tag = loc.role === 'driver' ? `${loc.plate || uname}` : `${uname}`;
           const html = loc.role === 'driver'
-            ? `<div class="gps-marker-wrap">${vehicleSvg(loc.vehicleType || 'bike', peerColor, loc.heading || 0)}<div class="marker-tag">${tagLabel}</div></div>`
-            : `<div class="gps-marker-wrap"><div style="width:26px;height:26px;border-radius:50%;background:rgba(251,191,36,0.22);border:2px solid #fbbf24;display:flex;align-items:center;justify-content:center;"><div style="width:9px;height:9px;border-radius:50%;background:#fbbf24;"></div></div><div class="marker-tag">${tagLabel}</div></div>`;
+            ? `<div class="mk-wrap">${vehicleIconSvg(loc.vehicleType || 'bike', color, loc.heading || 0)}<div class="mk-label">${tag}</div></div>`
+            : `<div class="mk-wrap"><div style="width:18px;height:18px;border-radius:50%;background:rgba(245,158,11,0.25);border:2px solid #f59e0b;"></div><div class="mk-label">${tag}</div></div>`;
 
-          const icon = L.divIcon({ html, className: '', iconSize: [90, 54], iconAnchor: [45, 27] });
-
+          const icon = L.divIcon({ html, className: '', iconSize: [80, 48], iconAnchor: [40, 24] });
           if (peerMarkers.has(uname)) {
             const m = peerMarkers.get(uname);
             m.setLatLng([loc.lat, loc.lng]);
             m.setIcon(icon);
           } else {
-            const m = L.marker([loc.lat, loc.lng], { icon }).addTo(map);
-            peerMarkers.set(uname, m);
+            peerMarkers.set(uname, L.marker([loc.lat, loc.lng], { icon }).addTo(map));
           }
         });
 
-        for (const [uname, marker] of peerMarkers.entries()) {
-          if (!activeUsernames.has(uname)) {
-            map.removeLayer(marker);
+        for (const [uname, m] of peerMarkers.entries()) {
+          if (!seen.has(uname)) {
+            map.removeLayer(m);
             peerMarkers.delete(uname);
           }
         }
+        document.getElementById('hudPeers').textContent = `${activeCount} Active`;
 
-        document.getElementById('hudNearbyCount').textContent = `${onlinePeersCount} Online`;
-
-        // 3. Pickup, Dropoff & Route Polyline
-        const activeRide = state.activeRideId ? state.dbSnapshot.rides?.[state.activeRideId] : null;
+        // 3. Route, Pickup, Drop-off
+        const activeRide = state.activeRideId ? state.rides[state.activeRideId] : null;
         const pPt = activeRide ? activeRide.pickup : state.pickup;
         const dPt = activeRide ? activeRide.dropoff : state.dropoff;
-        const rCoords = activeRide ? activeRide.routeCoords : state.routeInfo?.coords;
+        const coords = activeRide ? activeRide.routeCoords : state.route?.coords;
 
         if (pPt && (dPt || activeRide)) {
-          const pIcon = L.divIcon({
-            html: `<div class="gps-marker-wrap"><div style="width:16px;height:16px;border-radius:50%;background:#10b981;border:3px solid #fff;box-shadow:0 0 12px #10b981;"></div><div class="marker-tag">PICKUP</div></div>`,
-            className: '', iconSize: [70, 38], iconAnchor: [35, 10]
+          const ic = L.divIcon({
+            html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#10b981;border:2.5px solid #fff;"></div><div class="mk-label">PICKUP</div></div>`,
+            className: '', iconSize: [64, 34], iconAnchor: [32, 8]
           });
-          if (!pickupMarker) pickupMarker = L.marker([pPt.lat, pPt.lng], { icon: pIcon }).addTo(map);
-          else { pickupMarker.setLatLng([pPt.lat, pPt.lng]); pickupMarker.setIcon(pIcon); }
+          if (!pickupMarker) pickupMarker = L.marker([pPt.lat, pPt.lng], { icon: ic }).addTo(map);
+          else { pickupMarker.setLatLng([pPt.lat, pPt.lng]); pickupMarker.setIcon(ic); }
         } else if (pickupMarker) {
           map.removeLayer(pickupMarker);
           pickupMarker = null;
         }
 
         if (dPt) {
-          const dIcon = L.divIcon({
-            html: `<div class="gps-marker-wrap"><div style="width:16px;height:16px;border-radius:50%;background:#fb7185;border:3px solid #fff;box-shadow:0 0 12px #fb7185;"></div><div class="marker-tag">DROP-OFF</div></div>`,
-            className: '', iconSize: [74, 38], iconAnchor: [37, 10]
+          const ic = L.divIcon({
+            html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#f43f5e;border:2.5px solid #fff;"></div><div class="mk-label">DROP</div></div>`,
+            className: '', iconSize: [64, 34], iconAnchor: [32, 8]
           });
-          if (!dropoffMarker) dropoffMarker = L.marker([dPt.lat, dPt.lng], { icon: dIcon }).addTo(map);
-          else { dropoffMarker.setLatLng([dPt.lat, dPt.lng]); dropoffMarker.setIcon(dIcon); }
+          if (!dropoffMarker) dropoffMarker = L.marker([dPt.lat, dPt.lng], { icon: ic }).addTo(map);
+          else { dropoffMarker.setLatLng([dPt.lat, dPt.lng]); dropoffMarker.setIcon(ic); }
         } else if (dropoffMarker) {
           map.removeLayer(dropoffMarker);
           dropoffMarker = null;
         }
 
-        if (rCoords && rCoords.length > 1) {
-          if (routeGlowline) map.removeLayer(routeGlowline);
-          if (routePolyline) map.removeLayer(routePolyline);
-          routeGlowline = L.polyline(rCoords, { color: '#00f5d4', weight: 10, opacity: 0.22 }).addTo(map);
-          routePolyline = L.polyline(rCoords, { color: '#00f5d4', weight: 4.5, opacity: 0.95 }).addTo(map);
-        } else {
-          if (routeGlowline) { map.removeLayer(routeGlowline); routeGlowline = null; }
-          if (routePolyline) { map.removeLayer(routePolyline); routePolyline = null; }
+        if (coords && coords.length > 1) {
+          if (routeLine) map.removeLayer(routeLine);
+          routeLine = L.polyline(coords, { color: '#22d3ee', weight: 4, opacity: 0.9 }).addTo(map);
+        } else if (routeLine) {
+          map.removeLayer(routeLine);
+          routeLine = null;
         }
       }
 
       // =========================================================================
-      // 7. LIVE GPS GEOLOCATION WATCHER & SIMULATOR
+      // 6. REAL-TIME FIREBASE LISTENERS (Zero-Lag WebSocket Sync)
       // =========================================================================
-      let geoWatchId = null;
-      let lastBroadcastTime = 0;
+      function bindRealtimeStreams() {
+        dbApi.ref('live_locations').on('value', (snap) => {
+          state.locations = snap.val() || {};
+          syncMapGraphics();
+          updateDynamicListsOnly();
+        });
 
-      function startLiveGpsTracking() {
+        dbApi.ref('rides').on('value', (snap) => {
+          state.rides = snap.val() || {};
+          resolveActiveRide();
+          syncMapGraphics();
+          renderConsole(false);
+        });
+      }
+
+      function resolveActiveRide() {
+        if (!state.user) return;
+        if (state.activeRideId && state.rides[state.activeRideId]) {
+          const r = state.rides[state.activeRideId];
+          if (r.status === 'completed' || r.status === 'cancelled') {
+            state.activeRideId = null;
+          }
+          return;
+        }
+        const match = Object.values(state.rides).find((r) => {
+          if (!r || r.status === 'completed' || r.status === 'cancelled') return false;
+          return state.user.role === 'passenger'
+            ? r.passenger?.username === state.user.username
+            : r.driver?.username === state.user.username;
+        });
+        state.activeRideId = match ? match.rideId : null;
+      }
+
+      // =========================================================================
+      // 7. GPS TRACKER & SIMULATOR
+      // =========================================================================
+      let lastPushTs = 0;
+
+      function startGpsWatcher() {
         if ('geolocation' in navigator) {
-          geoWatchId = navigator.geolocation.watchPosition(
+          navigator.geolocation.watchPosition(
             (pos) => {
-              if (state.simulatingGps) return;
-              const { latitude, longitude, speed, heading, accuracy } = pos.coords;
-              const speedKmh = speed ? Math.round(speed * 3.6) : 0;
-              updateMyGps(latitude, longitude, speedKmh, heading || state.myGps.heading, accuracy || 10);
+              if (state.simulating) return;
+              const { latitude, longitude, speed, heading } = pos.coords;
+              setMyGps(latitude, longitude, speed ? Math.round(speed * 3.6) : 0, heading || state.myGps.heading);
             },
-            () => {
-              // Silent fallback to Kathmandu coordinates when GPS permission unavailable
-              broadcastMyLocation(true);
-            },
-            { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
+            () => pushGpsToRtdb(true),
+            { enableHighAccuracy: true, maximumAge: 1500, timeout: 8000 }
           );
         }
         setInterval(() => {
-          if (state.user) broadcastMyLocation();
-        }, 3000);
+          if (state.user) pushGpsToRtdb();
+        }, 2500);
       }
 
-      function updateMyGps(lat, lng, speed = 0, heading = 0, accuracy = 10) {
-        state.myGps = { lat, lng, speed, heading, accuracy };
+      function setMyGps(lat, lng, speed = 0, heading = 0) {
+        state.myGps = { lat, lng, speed, heading };
         document.getElementById('hudCoords').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
         document.getElementById('hudSpeed').textContent = `${speed} km/h`;
 
@@ -1595,20 +1355,19 @@
           state.pickup.lat = lat;
           state.pickup.lng = lng;
         }
-
-        renderMapEntities();
-        broadcastMyLocation();
+        syncMapGraphics();
+        pushGpsToRtdb();
       }
 
-      async function broadcastMyLocation(force = false) {
+      async function pushGpsToRtdb(force = false) {
         if (!state.user) return;
         const now = Date.now();
-        if (!force && now - lastBroadcastTime < 1500) return;
-        lastBroadcastTime = now;
+        if (!force && now - lastPushTs < 1000) return;
+        lastPushTs = now;
 
-        const isOnline = state.user.role === 'driver' ? state.driverOnline : true;
+        const online = state.user.role === 'driver' ? state.driverOnline : true;
         try {
-          await window.GPSRideAPI.pushLocation({
+          await window.GPSRideAPI.push({
             username: state.user.username,
             fullName: state.user.fullName,
             role: state.user.role,
@@ -1619,223 +1378,165 @@
             lng: state.myGps.lng,
             speed: state.myGps.speed,
             heading: state.myGps.heading,
-            accuracy: state.myGps.accuracy,
-            online: isOnline
+            online
           });
 
-          // If driver is on an active ride, also log GPS breadcrumb telemetry
           if (state.user.role === 'driver' && state.activeRideId) {
-            await rtdb.update(`rides/${state.activeRideId}`, {
-              driverGps: {
-                lat: state.myGps.lat,
-                lng: state.myGps.lng,
-                speed: state.myGps.speed,
-                heading: state.myGps.heading,
-                updatedAt: now
-              }
+            await dbApi.update(`rides/${state.activeRideId}`, {
+              driverGps: { lat: state.myGps.lat, lng: state.myGps.lng, speed: state.myGps.speed, heading: state.myGps.heading, updatedAt: now }
             });
-            await rtdb.set(`telemetry_logs/${state.activeRideId}/${now}`, {
-              lat: state.myGps.lat,
-              lng: state.myGps.lng,
-              speed: state.myGps.speed,
-              heading: state.myGps.heading
+            await dbApi.set(`telemetry_logs/${state.activeRideId}/${now}`, {
+              lat: state.myGps.lat, lng: state.myGps.lng, speed: state.myGps.speed, heading: state.myGps.heading
             });
           }
         } catch (_) {}
       }
 
-      // Live GPS Movement Simulator (moves smoothly along active route or Kathmandu ring)
-      let simInterval = null;
-      let simStepIndex = 0;
-      function toggleGpsSimulation() {
-        state.simulatingGps = !state.simulatingGps;
-        const btn = document.getElementById('btnSimulateGps');
-        btn.classList.toggle('active', state.simulatingGps);
-
-        if (state.simulatingGps) {
-          showToast('Live GPS Movement Simulator ON');
-          simStepIndex = 0;
-          simInterval = setInterval(() => {
-            const activeRide = state.activeRideId ? state.dbSnapshot.rides?.[state.activeRideId] : null;
-            const path = activeRide?.routeCoords || state.routeInfo?.coords;
-
+      let simTimer = null;
+      let simIdx = 0;
+      function toggleSimulator() {
+        state.simulating = !state.simulating;
+        document.getElementById('toolSim').classList.toggle('active', state.simulating);
+        if (state.simulating) {
+          toast('GPS Simulator Active');
+          simIdx = 0;
+          simTimer = setInterval(() => {
+            const activeRide = state.activeRideId ? state.rides[state.activeRideId] : null;
+            const path = activeRide?.routeCoords || state.route?.coords;
             if (path && path.length > 1) {
-              const nextIdx = (simStepIndex + 1) % path.length;
-              const [lat1, lng1] = path[simStepIndex];
-              const [lat2, lng2] = path[nextIdx];
-              const brg = Math.round(computeBearing(lat1, lng1, lat2, lng2));
-              updateMyGps(lat2, lng2, 34, brg, 6);
-              simStepIndex = nextIdx;
+              const next = (simIdx + 1) % path.length;
+              const [aLat, aLng] = path[simIdx];
+              const [bLat, bLng] = path[next];
+              setMyGps(bLat, bLng, 32, Math.round(bearingDeg(aLat, aLng, bLat, bLng)));
+              simIdx = next;
             } else {
-              const angle = (Date.now() / 3500) % (Math.PI * 2);
-              const newLat = state.myGps.lat + Math.cos(angle) * 0.00035;
-              const newLng = state.myGps.lng + Math.sin(angle) * 0.00035;
-              const brg = Math.round((angle * 180) / Math.PI);
-              updateMyGps(newLat, newLng, 28, brg, 6);
+              const a = (Date.now() / 3000) % (Math.PI * 2);
+              setMyGps(state.myGps.lat + Math.cos(a) * 0.0003, state.myGps.lng + Math.sin(a) * 0.0003, 26, Math.round((a * 180) / Math.PI));
             }
-          }, 1200);
+          }, 1100);
         } else {
-          clearInterval(simInterval);
-          updateMyGps(state.myGps.lat, state.myGps.lng, 0, state.myGps.heading, 10);
-          showToast('GPS Simulator OFF');
+          clearInterval(simTimer);
+          setMyGps(state.myGps.lat, state.myGps.lng, 0, state.myGps.heading);
+          toast('GPS Simulator Stopped');
         }
       }
 
       // =========================================================================
-      // 8. AUTHENTICATION & ACCOUNT CREATION (gps-rt/users)
+      // 8. ACCOUNT SYSTEM (gps-rt/users)
       // =========================================================================
-      function loadSavedUser() {
+      function restoreSession() {
         try {
-          const raw = localStorage.getItem('gps_rt_user');
+          const raw = localStorage.getItem('gps_rt_account');
           if (raw) {
             state.user = JSON.parse(raw);
-            document.getElementById('hudUserLabel').textContent = `${state.user.username} (${state.user.role === 'driver' ? 'Rider' : 'Passenger'})`;
+            document.getElementById('hudUserText').textContent = state.user.username;
           }
         } catch (_) {}
       }
 
-      function saveCurrentUser(userObj) {
+      function setSession(userObj) {
         state.user = userObj;
-        localStorage.setItem('gps_rt_user', JSON.stringify(userObj));
-        document.getElementById('hudUserLabel').textContent = `${userObj.username} (${userObj.role === 'driver' ? 'Rider' : 'Passenger'})`;
+        localStorage.setItem('gps_rt_account', JSON.stringify(userObj));
+        document.getElementById('hudUserText').textContent = userObj.username;
       }
 
-      async function handleLogin() {
-        const username = document.getElementById('loginUsername').value.trim().toLowerCase();
-        const password = document.getElementById('loginPassword').value;
-        if (!username || !password) {
-          showToast('Enter username and password');
-          return;
-        }
+      async function signIn() {
+        const username = document.getElementById('inUser').value.trim().toLowerCase();
+        const password = document.getElementById('inPass').value;
+        if (!username || !password) return toast('Enter username and password');
+
         try {
-          const record = await rtdb.get(`users/${username}`);
-          if (!record) {
-            showToast('Account not found in gps-rt');
-            return;
-          }
-          if (record.password !== password) {
-            showToast('Incorrect password');
-            return;
-          }
-          saveCurrentUser(record);
-          document.getElementById('authModal').classList.remove('open');
-          showToast(`Welcome back, ${record.fullName}`);
-          broadcastMyLocation(true);
-          renderMapEntities();
-          renderDock();
-        } catch (err) {
-          showToast('RTDB connection error');
+          const user = await dbApi.get(`users/${username}`);
+          if (!user) return toast('Account not found');
+          if (user.password !== password) return toast('Invalid password');
+
+          setSession(user);
+          document.getElementById('authOverlay').classList.remove('open');
+          toast(`Signed in as ${user.fullName}`);
+          pushGpsToRtdb(true);
+          syncMapGraphics();
+          renderConsole(true);
+        } catch (_) {
+          toast('Database connection error');
         }
       }
 
-      async function handleRegister() {
-        const role = state.selectedRegRole;
-        const fullName = document.getElementById('regFullName').value.trim();
-        const username = document.getElementById('regUsername').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+      async function createAccount() {
+        const role = state.regRole;
+        const fullName = document.getElementById('regName').value.trim();
+        const username = document.getElementById('regUser').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
         const phone = document.getElementById('regPhone').value.trim();
-        const password = document.getElementById('regPassword').value;
+        const password = document.getElementById('regPass').value;
 
         if (!fullName || !username || !phone || !password) {
-          showToast('Please fill all required basic fields');
-          return;
+          return toast('Complete all required fields');
         }
 
-        const userPayload = {
+        const payload = {
           role,
           fullName,
           username,
           phone,
           password,
           rating: 5.0,
-          tripsCount: 0,
           createdAt: Date.now()
         };
 
         if (role === 'driver') {
-          const vehicleType = document.getElementById('regVehicleType').value;
-          const vehicleModel = document.getElementById('regVehicleModel').value.trim();
+          const vehicleType = document.getElementById('regVehType').value;
+          const vehicleModel = document.getElementById('regVehModel').value.trim();
           const plate = document.getElementById('regPlate').value.trim().toUpperCase();
           const color = document.getElementById('regColor').value.trim();
           const license = document.getElementById('regLicense').value.trim();
           const bluebook = document.getElementById('regBluebook').value.trim();
 
           if (!vehicleModel || !plate || !license) {
-            showToast('Vehicle model, plate & license required for Riders');
-            return;
+            return toast('Vehicle model, plate, and license required');
           }
-          Object.assign(userPayload, {
+          Object.assign(payload, {
             vehicleType,
             vehicleModel,
             plate,
             color: color || 'Standard',
             license,
-            bluebook: bluebook || 'Verified',
-            verified: true
+            bluebook: bluebook || 'Verified'
           });
         }
 
         try {
-          const existing = await rtdb.get(`users/${username}`);
-          if (existing) {
-            showToast('Username already exists, choose another');
-            return;
-          }
-          await rtdb.set(`users/${username}`, userPayload);
-          saveCurrentUser(userPayload);
-          document.getElementById('authModal').classList.remove('open');
-          showToast(`${role === 'driver' ? 'Driver/Rider' : 'Passenger'} account created!`);
-          broadcastMyLocation(true);
-          renderMapEntities();
-          renderDock();
-        } catch (err) {
-          showToast('Failed to save account to RTDB');
+          const exists = await dbApi.get(`users/${username}`);
+          if (exists) return toast('Username already taken');
+
+          await dbApi.set(`users/${username}`, payload);
+          setSession(payload);
+          document.getElementById('authOverlay').classList.remove('open');
+          toast('Account created');
+          pushGpsToRtdb(true);
+          syncMapGraphics();
+          renderConsole(true);
+        } catch (_) {
+          toast('Failed to create account');
         }
       }
 
       // =========================================================================
-      // 9. RIDE MATCHING, INDRIVE BIDDING & LIVE TRIP STATE MACHINE
+      // 9. RIDE LIFECYCLE & FARE NEGOTIATION
       // =========================================================================
-      function syncActiveRideFromSnapshot() {
-        if (!state.user) return;
-        const rides = state.dbSnapshot.rides || {};
-
-        // If we already track an activeRideId, check if it's still active
-        if (state.activeRideId && rides[state.activeRideId]) {
-          const r = rides[state.activeRideId];
-          if (r.status === 'completed' || r.status === 'cancelled') {
-            state.activeRideId = null;
-          }
-          return;
-        }
-
-        // Otherwise discover any ongoing ride belonging to this passenger or driver
-        const found = Object.values(rides).find((r) => {
-          if (!r || r.status === 'completed' || r.status === 'cancelled') return false;
-          if (state.user.role === 'passenger') return r.passenger?.username === state.user.username;
-          return r.driver?.username === state.user.username;
-        });
-
-        state.activeRideId = found ? found.rideId : null;
-      }
-
-      async function createRideRequest() {
+      async function requestRide() {
         if (!state.user || state.user.role !== 'passenger') return;
-        if (!state.dropoff || !state.routeInfo) {
-          showToast('Select a destination on the map or search bar first');
-          return;
-        }
+        if (!state.dropoff || !state.route) return toast('Select a destination first');
 
-        const rideId = `RIDE_${Date.now().toString(36).toUpperCase()}`;
+        const rideId = `R_${Date.now().toString(36).toUpperCase()}`;
         const otp = String(Math.floor(1000 + Math.random() * 9000));
-        const rideDoc = {
+        const rideData = {
           rideId,
-          status: 'searching', // searching -> accepted -> arrived -> in_progress -> completed
-          tier: state.selectedTier,
-          fareNPR: Number(state.offeredFare) || 100,
-          paymentMethod: state.paymentMethod,
-          distanceKm: state.routeInfo.distanceKm,
-          durationMin: state.routeInfo.durationMin,
-          routeCoords: state.routeInfo.coords,
+          status: 'searching',
+          tier: state.tier,
+          fareNPR: Number(state.fare) || 100,
+          paymentMethod: state.payMode,
+          distanceKm: state.route.km,
+          durationMin: state.route.min,
+          routeCoords: state.route.coords,
           pickup: state.pickup,
           dropoff: state.dropoff,
           otp,
@@ -1849,31 +1550,29 @@
           createdAt: Date.now()
         };
 
-        await rtdb.set(`rides/${rideId}`, rideDoc);
+        await dbApi.set(`rides/${rideId}`, rideData);
         state.activeRideId = rideId;
-        showToast('Ride broadcasted to nearby riders!');
-        renderMapEntities();
-        renderDock();
+        toast('Request sent to nearby riders');
+        renderConsole(true);
       }
 
-      async function cancelRideRequest(rideId) {
-        await rtdb.update(`rides/${rideId}`, { status: 'cancelled', cancelledAt: Date.now() });
+      async function cancelRide(rideId) {
+        await dbApi.update(`rides/${rideId}`, { status: 'cancelled', cancelledAt: Date.now() });
         state.activeRideId = null;
-        showToast('Ride request cancelled');
-        renderMapEntities();
-        renderDock();
+        toast('Ride cancelled');
+        syncMapGraphics();
+        renderConsole(true);
       }
 
-      // Driver sends an inDrive-style counter-offer OR accepts passenger fare directly
-      async function driverSubmitBid(rideId, offerFare, instantAccept = false) {
+      async function driverOffer(rideId, fare, instantAccept) {
         if (!state.user || state.user.role !== 'driver') return;
-        const ride = state.dbSnapshot.rides?.[rideId];
+        const ride = state.rides[rideId];
         if (!ride) return;
 
-        const distToPickup = +haversineKm(state.myGps.lat, state.myGps.lng, ride.pickup.lat, ride.pickup.lng).toFixed(1);
-        const etaMin = Math.max(1, Math.round((distToPickup / 28) * 60));
+        const dKm = +distKm(state.myGps.lat, state.myGps.lng, ride.pickup.lat, ride.pickup.lng).toFixed(1);
+        const eta = Math.max(1, Math.round((dKm / 28) * 60));
 
-        const driverSummary = {
+        const info = {
           username: state.user.username,
           fullName: state.user.fullName,
           phone: state.user.phone,
@@ -1882,621 +1581,553 @@
           plate: state.user.plate,
           color: state.user.color,
           rating: state.user.rating || 5.0,
-          distToPickupKm: distToPickup,
-          etaMin
+          distKm: dKm,
+          etaMin: eta
         };
 
         if (instantAccept) {
-          await rtdb.update(`rides/${rideId}`, {
+          await dbApi.update(`rides/${rideId}`, {
             status: 'accepted',
-            fareNPR: Number(offerFare),
-            driver: driverSummary,
-            driverGps: { lat: state.myGps.lat, lng: state.myGps.lng, heading: state.myGps.heading, updatedAt: Date.now() },
+            fareNPR: Number(fare),
+            driver: info,
             acceptedAt: Date.now()
           });
           state.activeRideId = rideId;
-          showToast(`Ride accepted! Navigate to ${ride.pickup.label}`);
+          toast('Ride accepted');
         } else {
-          await rtdb.set(`rides/${rideId}/bids/${state.user.username}`, {
-            ...driverSummary,
-            offeredFare: Number(offerFare),
+          await dbApi.set(`rides/${rideId}/bids/${state.user.username}`, {
+            ...info,
+            offeredFare: Number(fare),
             bidAt: Date.now()
           });
-          showToast(`Counter-offer Rs. ${offerFare} sent to passenger`);
+          toast(`Offer NPR ${fare} sent`);
         }
-        renderDock();
+        renderConsole(true);
       }
 
-      // Passenger accepts a driver's bid
-      async function passengerAcceptBid(rideId, driverUsername) {
-        const ride = state.dbSnapshot.rides?.[rideId];
-        const bid = ride?.bids?.[driverUsername];
+      async function acceptBid(rideId, driverUsername) {
+        const bid = state.rides[rideId]?.bids?.[driverUsername];
         if (!bid) return;
-
-        await rtdb.update(`rides/${rideId}`, {
+        await dbApi.update(`rides/${rideId}`, {
           status: 'accepted',
           fareNPR: Number(bid.offeredFare),
           driver: bid,
           acceptedAt: Date.now()
         });
-        showToast(`Matched with ${bid.fullName} (${bid.plate})`);
-        renderDock();
+        toast(`Matched with ${bid.fullName}`);
+        renderConsole(true);
       }
 
-      // Driver advances active trip stage
-      async function driverAdvanceTrip(rideId, nextStatus) {
-        const ride = state.dbSnapshot.rides?.[rideId];
+      async function advanceTrip(rideId, nextStatus) {
+        const ride = state.rides[rideId];
         if (!ride) return;
-
-        if (nextStatus === 'in_progress') {
-          if (state.otpDraft && state.otpDraft !== ride.otp) {
-            showToast(`Invalid PIN! Ask passenger for 4-digit OTP (${ride.otp})`);
-            return;
-          }
+        if (nextStatus === 'in_progress' && state.otpInput && state.otpInput !== ride.otp) {
+          return toast(`Invalid OTP (${ride.otp})`);
         }
-
-        const updates = { status: nextStatus, [`${nextStatus}At`]: Date.now() };
-        await rtdb.update(`rides/${rideId}`, updates);
-
+        await dbApi.update(`rides/${rideId}`, { status: nextStatus, [`${nextStatus}At`]: Date.now() });
         if (nextStatus === 'completed') {
           state.activeRideId = null;
-          state.otpDraft = '';
-          showToast(`Trip completed! Collected Rs. ${ride.fareNPR}`);
-        } else if (nextStatus === 'arrived') {
-          showToast('Passenger notified of your arrival');
-        } else if (nextStatus === 'in_progress') {
-          showToast('Trip started • Live GPS telemetry active');
-        }
-        renderMapEntities();
-        renderDock();
-      }
-
-      // =========================================================================
-      // 10. DYNAMIC BOTTOM DOCK UI RENDERER (Passenger & Driver Views)
-      // =========================================================================
-      function renderDock() {
-        const dock = document.getElementById('mainDockPanel');
-        if (!state.user) {
-          dock.innerHTML = `
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-              <div>
-                <div style="font-size:15px;font-weight:800;">Ready to Ride or Drive?</div>
-                <div style="font-size:12px;color:var(--text-muted);">Create a Passenger or Rider/Driver account on <span style="color:var(--accent-primary);font-family:var(--font-mono);">gps-rt</span></div>
-              </div>
-              <div class="cap-btn primary" id="dockOpenAuth" role="button" tabindex="0">Get Started</div>
-            </div>
-          `;
-          document.getElementById('dockOpenAuth')?.addEventListener('click', () => {
-            document.getElementById('authModal').classList.add('open');
-          });
-          return;
-        }
-
-        if (state.user.role === 'passenger') {
-          renderPassengerDock(dock);
+          state.otpInput = '';
+          toast(`Completed • NPR ${ride.fareNPR}`);
         } else {
-          renderDriverDock(dock);
+          toast(`Status: ${nextStatus.replace('_', ' ')}`);
+        }
+        syncMapGraphics();
+        renderConsole(true);
+      }
+
+      // =========================================================================
+      // 10. NON-FLICKERING CONSOLE RENDERER
+      // =========================================================================
+      function getViewKey() {
+        if (!state.user) return 'guest';
+        const r = state.activeRideId ? state.rides[state.activeRideId] : null;
+        if (state.user.role === 'passenger') {
+          if (!r) return 'p_book';
+          return r.status === 'searching' ? `p_search_${r.rideId}` : `p_active_${r.rideId}_${r.status}`;
+        } else {
+          if (!r) return `d_radar_${state.driverOnline}`;
+          return `d_active_${r.rideId}_${r.status}`;
         }
       }
 
-      function renderPassengerDock(dock) {
-        const activeRide = state.activeRideId ? state.dbSnapshot.rides?.[state.activeRideId] : null;
-
-        // A. Active Ride or Live Bidding View
-        if (activeRide) {
-          if (activeRide.status === 'searching') {
-            const bids = Object.values(activeRide.bids || {});
-            const bidsHtml = bids.length === 0
-              ? `<div style="padding:14px;border-radius:18px;background:rgba(255,255,255,0.03);text-align:center;font-size:12px;color:var(--text-muted);">
-                  Scanning nearby Pathao / inDrive / Yango riders around pickup...
-                 </div>`
-              : bids.map(b => `
-                <div class="feed-card">
-                  <div class="feed-header">
-                    <div>
-                      <div style="font-size:14px;font-weight:800;">${b.fullName} <span style="color:var(--accent-amber);font-size:12px;">★ ${b.rating}</span></div>
-                      <div style="font-size:11.5px;color:var(--text-muted);">${b.vehicleModel} • <span style="color:var(--accent-primary);font-family:var(--font-mono);">${b.plate}</span></div>
-                    </div>
-                    <div style="text-align:right;">
-                      <div style="font-family:var(--font-mono);font-size:16px;font-weight:800;color:var(--accent-primary);">Rs. ${b.offeredFare}</div>
-                      <div style="font-size:11px;color:var(--text-muted);">${b.distToPickupKm} km • ${b.etaMin} min</div>
-                    </div>
-                  </div>
-                  <div style="display:flex;gap:8px;">
-                    <div class="cap-btn emerald sm" data-accept-bid="${b.username}" role="button" tabindex="0" style="flex:1;">Accept Rs. ${b.offeredFare}</div>
-                  </div>
-                </div>
-              `).join('');
-
-            dock.innerHTML = `
-              <div class="feed-header">
-                <div class="badge-pill"><span class="brand-dot"></span> Broadcasting Request • Rs. ${activeRide.fareNPR}</div>
-                <div class="cap-btn danger sm" id="btnCancelRide" role="button" tabindex="0">Cancel</div>
-              </div>
-              <div style="font-size:12px;color:var(--text-muted);">
-                <strong style="color:var(--text-main);">${activeRide.pickup.label}</strong> → <strong style="color:var(--accent-primary);">${activeRide.dropoff.label}</strong> (${activeRide.distanceKm} km)
-              </div>
-              <div style="display:flex;flex-direction:column;gap:8px;">${bidsHtml}</div>
-            `;
-
-            document.getElementById('btnCancelRide')?.addEventListener('click', () => cancelRideRequest(activeRide.rideId));
-            dock.querySelectorAll('[data-accept-bid]').forEach(el => {
-              el.addEventListener('click', () => passengerAcceptBid(activeRide.rideId, el.getAttribute('data-accept-bid')));
+      function updateDynamicListsOnly() {
+        const key = getViewKey();
+        if (key === 'p_book') {
+          const rail = document.getElementById('nearbyRidersRail');
+          const countEl = document.getElementById('nearbyRidersCount');
+          if (!rail || !countEl) return;
+          const drivers = getNearbyDrivers();
+          countEl.textContent = `NEARBY RIDERS (${drivers.length})`;
+          rail.innerHTML = drivers.length === 0
+            ? `<div class="chip">No active riders nearby</div>`
+            : drivers.map(d => `<div class="chip active" data-pan-user="${d.username}">${d.vehicleType.toUpperCase()} • ${d.plate || d.username} (${d.dist} km)</div>`).join('');
+          rail.querySelectorAll('[data-pan-user]').forEach(el => {
+            el.addEventListener('click', () => {
+              const loc = state.locations[el.getAttribute('data-pan-user')];
+              if (loc && map) map.flyTo([loc.lat, loc.lng], 16);
             });
-            return;
-          }
+          });
+        } else if (key.startsWith('d_radar_')) {
+          const feed = document.getElementById('driverRequestsFeed');
+          const countEl = document.getElementById('openReqCount');
+          if (!feed || !countEl) return;
+          const reqs = getOpenRequests();
+          countEl.textContent = `REQUESTS (${reqs.length})`;
+          feed.innerHTML = renderOpenRequestsHtml(reqs);
+          bindDriverFeedActions(feed);
+        }
+      }
 
-          // Matched / Arrived / In-Progress Ride Telemetry View
-          const d = activeRide.driver || {};
-          const statusMap = {
-            accepted: { label: 'Rider En Route to Pickup', cls: '' },
-            arrived: { label: 'Rider Arrived at Pickup', cls: 'amber' },
-            in_progress: { label: 'On Trip • Live GPS Telemetry', cls: 'emerald' }
-          };
-          const st = statusMap[activeRide.status] || { label: activeRide.status, cls: '' };
+      function getNearbyDrivers() {
+        return Object.values(state.locations)
+          .filter(l => l && l.role === 'driver' && l.online && l.username !== state.user?.username)
+          .map(d => ({ ...d, dist: +distKm(state.pickup.lat, state.pickup.lng, d.lat, d.lng).toFixed(2) }))
+          .sort((a, b) => a.dist - b.dist);
+      }
 
-          dock.innerHTML = `
-            <div class="feed-header">
-              <div class="badge-pill ${st.cls}">${st.label}</div>
-              <div class="badge-pill amber" style="font-family:var(--font-mono);">OTP: ${activeRide.otp}</div>
-            </div>
-            <div class="feed-card">
-              <div class="feed-header">
+      function getOpenRequests() {
+        return Object.values(state.rides)
+          .filter(r => r && r.status === 'searching' && r.pickup)
+          .map(r => ({ ...r, dist: +distKm(state.myGps.lat, state.myGps.lng, r.pickup.lat, r.pickup.lng).toFixed(2) }))
+          .sort((a, b) => a.dist - b.dist);
+      }
+
+      function renderOpenRequestsHtml(reqs) {
+        if (!state.driverOnline) {
+          return `<div class="data-card" style="text-align:center;color:var(--text-secondary);font-size:12px;">Offline — Switch Online to receive passenger requests</div>`;
+        }
+        if (reqs.length === 0) {
+          return `<div class="data-card" style="text-align:center;color:var(--text-secondary);font-size:12px;">Scanning nearby GPS for ride requests</div>`;
+        }
+        return reqs.map(r => {
+          const counter = Number(r.fareNPR) + 20;
+          const hasBid = Boolean(r.bids?.[state.user.username]);
+          return `
+            <div class="data-card">
+              <div class="row-between">
                 <div>
-                  <div style="font-size:15px;font-weight:800;">${d.fullName || 'Assigned Rider'}</div>
-                  <div style="font-size:12px;color:var(--text-muted);">${d.vehicleModel || ''} • ${d.color || ''}</div>
-                  <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent-primary);margin-top:2px;">${d.plate || ''} • ${d.phone || ''}</div>
+                  <div style="font-size:13.5px;font-weight:800;">${r.passenger?.fullName} <span class="tag" style="margin-left:4px;">${r.tier.toUpperCase()}</span></div>
+                  <div style="font-size:11px;color:var(--text-secondary);">${r.dist} km away • Trip ${r.distanceKm} km</div>
                 </div>
                 <div style="text-align:right;">
-                  <div style="font-family:var(--font-mono);font-size:18px;font-weight:800;color:var(--accent-primary);">Rs. ${activeRide.fareNPR}</div>
-                  <div style="font-size:11px;color:var(--text-muted);">${activeRide.paymentMethod} • ${activeRide.distanceKm} km</div>
+                  <div style="font-family:var(--font-mono);font-size:15px;font-weight:800;color:var(--accent);">NPR ${r.fareNPR}</div>
+                  <div style="font-size:10.5px;color:var(--text-secondary);">${r.paymentMethod}</div>
                 </div>
               </div>
+              <div style="font-size:11.5px;color:var(--text-secondary);">
+                ${r.pickup.label} → <strong style="color:var(--text-primary);">${r.dropoff.label}</strong>
+              </div>
               <div style="display:flex;gap:8px;">
-                <div class="cap-btn sm" id="btnShareRideApi" role="button" tabindex="0" style="flex:1;">Copy Live Telemetry Link</div>
-                ${activeRide.status === 'accepted' ? `<div class="cap-btn danger sm" id="btnCancelActive" role="button" tabindex="0">Cancel</div>` : ''}
+                <div class="btn-cap emerald sm" data-accept="${r.rideId}" data-fare="${r.fareNPR}" role="button" tabindex="0" style="flex:1;">Accept NPR ${r.fareNPR}</div>
+                <div class="btn-cap amber sm" data-bid="${r.rideId}" data-fare="${counter}" role="button" tabindex="0">${hasBid ? `Offered ${r.bids[state.user.username].offeredFare}` : `Offer ${counter}`}</div>
               </div>
-            </div>
-          `;
-
-          document.getElementById('btnShareRideApi')?.addEventListener('click', () => {
-            const url = `${window.location.origin}${window.location.pathname}?ride=${activeRide.rideId}`;
-            navigator.clipboard?.writeText(url);
-            showToast(`Copied live ride telemetry URL (${activeRide.rideId})`);
-          });
-          document.getElementById('btnCancelActive')?.addEventListener('click', () => cancelRideRequest(activeRide.rideId));
-          return;
-        }
-
-        // B. Passenger Booking & Nearby Rider Radar View
-        const locs = Object.values(state.dbSnapshot.live_locations || {});
-        const nearbyDrivers = locs
-          .filter(l => l && l.role === 'driver' && l.online && l.username !== state.user.username)
-          .map(d => ({
-            ...d,
-            distKm: +haversineKm(state.pickup.lat, state.pickup.lng, d.lat, d.lng).toFixed(2)
-          }))
-          .sort((a, b) => a.distKm - b.distKm);
-
-        const nearbyChipsHtml = nearbyDrivers.length === 0
-          ? `<div class="mini-chip">No online riders nearby yet — tap Simulate GPS or open Rider tab</div>`
-          : nearbyDrivers.map(d => `
-              <div class="mini-chip active" data-focus-driver="${d.username}">
-                ${d.vehicleType.toUpperCase()} • ${d.plate || d.username} (${d.distKm} km)
-              </div>
-            `).join('');
-
-        const hubsHtml = KTM_HUBS.map(h => `
-          <div class="mini-chip" data-hub-name="${h.name}" data-hub-lat="${h.lat}" data-hub-lng="${h.lng}">${h.name}</div>
-        `).join('');
-
-        const distKm = state.routeInfo?.distanceKm || 2.5;
-        const tiersHtml = Object.values(RIDE_TIERS).map(t => {
-          const estFare = computeRecommendedFare(distKm, t.id);
-          const sel = state.selectedTier === t.id ? 'selected' : '';
-          return `
-            <div class="tier-card ${sel}" data-tier="${t.id}" role="button" tabindex="0">
-              <div class="tier-name">${t.name}</div>
-              <div class="tier-price">Rs.${estFare}</div>
-              <div class="tier-eta">${t.etaBonus + Math.round(distKm * 2)} min</div>
             </div>
           `;
         }).join('');
-
-        dock.innerHTML = `
-          <div style="display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-size:12px;font-weight:800;color:var(--accent-primary);">NEARBY RIDERS RADAR (${nearbyDrivers.length})</div>
-            <div style="font-size:11px;color:var(--text-muted);">${state.routeInfo ? `${state.routeInfo.distanceKm} km • ${state.routeInfo.durationMin} min` : 'Tap map or pick destination'}</div>
-          </div>
-          <div class="chip-row">${nearbyChipsHtml}</div>
-
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <div class="neu-input-wrap">
-              <span style="width:9px;height:9px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
-              <input class="neu-input" id="inputPickup" type="text" value="${state.pickup.label}" placeholder="Pickup location" />
-            </div>
-            <div class="neu-input-wrap">
-              <span style="width:9px;height:9px;border-radius:50%;background:#fb7185;flex-shrink:0;"></span>
-              <input class="neu-input" id="inputDropoff" type="text" value="${state.dropoff ? state.dropoff.label : ''}" placeholder="Where to? (e.g. Thamel, Baneshwor, TIA)" />
-              <div class="cap-btn sm" id="btnSearchDest" role="button" tabindex="0">Go</div>
-            </div>
-          </div>
-
-          <div class="chip-row">${hubsHtml}</div>
-
-          <div class="tier-grid">${tiersHtml}</div>
-
-          <div class="fare-bar">
-            <div class="cap-btn sm" id="btnFareMinus" role="button" tabindex="0">-10</div>
-            <div class="fare-input-box">
-              <span>NPR</span>
-              <input id="inputOfferFare" type="number" value="${state.offeredFare}" min="30" step="5" />
-            </div>
-            <div class="cap-btn sm" id="btnFarePlus" role="button" tabindex="0">+10</div>
-            <div class="mini-chip active" id="btnPayMode" role="button" tabindex="0">${state.paymentMethod}</div>
-          </div>
-
-          <div class="cap-btn primary" id="btnRequestRide" role="button" tabindex="0" style="width:100%;">
-            Find Rider • Offer Rs. ${state.offeredFare}
-          </div>
-        `;
-
-        // Bind Passenger Dock Events
-        dock.querySelectorAll('[data-focus-driver]').forEach(chip => {
-          chip.addEventListener('click', () => {
-            const u = chip.getAttribute('data-focus-driver');
-            const loc = state.dbSnapshot.live_locations?.[u];
-            if (loc && map) map.flyTo([loc.lat, loc.lng], 16);
-          });
-        });
-
-        dock.querySelectorAll('[data-hub-name]').forEach(chip => {
-          chip.addEventListener('click', async () => {
-            const name = chip.getAttribute('data-hub-name');
-            const lat = parseFloat(chip.getAttribute('data-hub-lat'));
-            const lng = parseFloat(chip.getAttribute('data-hub-lng'));
-            state.dropoff = { lat, lng, label: name };
-            await calculateRoadRoute();
-            renderMapEntities();
-            renderDock();
-            if (map && state.routeInfo?.coords) {
-              map.fitBounds(L.latLngBounds(state.routeInfo.coords), { padding: [55, 55] });
-            }
-          });
-        });
-
-        document.getElementById('btnSearchDest')?.addEventListener('click', async () => {
-          const q = document.getElementById('inputDropoff').value.trim();
-          if (!q) return;
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q + ', Nepal')}`);
-            const list = await res.json();
-            if (list?.[0]) {
-              state.dropoff = { lat: parseFloat(list[0].lat), lng: parseFloat(list[0].lon), label: list[0].display_name.split(',')[0] };
-              await calculateRoadRoute();
-              renderMapEntities();
-              renderDock();
-              if (map && state.routeInfo?.coords) {
-                map.fitBounds(L.latLngBounds(state.routeInfo.coords), { padding: [55, 55] });
-              }
-            } else {
-              showToast('Location not found — tap directly on map');
-            }
-          } catch (_) {
-            showToast('Search unavailable — tap directly on map');
-          }
-        });
-
-        dock.querySelectorAll('[data-tier]').forEach(card => {
-          card.addEventListener('click', () => {
-            state.selectedTier = card.getAttribute('data-tier');
-            const d = state.routeInfo?.distanceKm || 2.5;
-            state.offeredFare = computeRecommendedFare(d, state.selectedTier);
-            renderDock();
-          });
-        });
-
-        document.getElementById('btnFareMinus')?.addEventListener('click', () => {
-          state.offeredFare = Math.max(30, Number(state.offeredFare) - 10);
-          renderDock();
-        });
-        document.getElementById('btnFarePlus')?.addEventListener('click', () => {
-          state.offeredFare = Number(state.offeredFare) + 10;
-          renderDock();
-        });
-        document.getElementById('inputOfferFare')?.addEventListener('change', (e) => {
-          state.offeredFare = Math.max(30, parseInt(e.target.value, 10) || 50);
-          renderDock();
-        });
-        document.getElementById('btnPayMode')?.addEventListener('click', () => {
-          const modes = ['Cash', 'eSewa', 'RBB QR'];
-          const idx = (modes.indexOf(state.paymentMethod) + 1) % modes.length;
-          state.paymentMethod = modes[idx];
-          renderDock();
-        });
-        document.getElementById('btnRequestRide')?.addEventListener('click', createRideRequest);
       }
 
-      function renderDriverDock(dock) {
-        const activeRide = state.activeRideId ? state.dbSnapshot.rides?.[state.activeRideId] : null;
+      function bindDriverFeedActions(container) {
+        container.querySelectorAll('[data-accept]').forEach(el => {
+          el.addEventListener('click', () => driverOffer(el.getAttribute('data-accept'), el.getAttribute('data-fare'), true));
+        });
+        container.querySelectorAll('[data-bid]').forEach(el => {
+          el.addEventListener('click', () => driverOffer(el.getAttribute('data-bid'), el.getAttribute('data-fare'), false));
+        });
+      }
 
-        // A. Active Trip Navigation & Telemetry Console for Driver
-        if (activeRide) {
-          const p = activeRide.pickup;
-          const d = activeRide.dropoff;
-          const targetPt = activeRide.status === 'in_progress' ? d : p;
-          const distRemaining = +haversineKm(state.myGps.lat, state.myGps.lng, targetPt.lat, targetPt.lng).toFixed(2);
+      function renderConsole(force = false) {
+        const key = getViewKey();
+        const panel = document.getElementById('consolePanel');
 
-          let actionHtml = '';
-          if (activeRide.status === 'accepted') {
-            actionHtml = `<div class="cap-btn amber" id="btnDriverArrived" role="button" tabindex="0" style="width:100%;">Arrived at Pickup (${distRemaining} km)</div>`;
-          } else if (activeRide.status === 'arrived') {
-            actionHtml = `
-              <div style="display:flex;gap:8px;align-items:center;">
-                <div class="neu-input-wrap" style="flex:1;">
-                  <input class="neu-input" id="inputTripOtp" type="text" maxlength="4" value="${state.otpDraft}" placeholder="Passenger OTP (${activeRide.otp})" style="font-family:var(--font-mono);text-align:center;" />
-                </div>
-                <div class="cap-btn emerald" id="btnDriverStart" role="button" tabindex="0">Start Trip</div>
+        // For searching state, refresh bids list cleanly without flickering outer frame
+        if (!force && key === state.renderedViewKey) {
+          if (key.startsWith('p_search_')) {
+            const bidsContainer = document.getElementById('passengerBidsList');
+            const ride = state.rides[state.activeRideId];
+            if (bidsContainer && ride) {
+              const bids = Object.values(ride.bids || {});
+              bidsContainer.innerHTML = bids.length === 0
+                ? `<div class="data-card" style="text-align:center;color:var(--text-secondary);font-size:12px;">Waiting for nearby rider offers</div>`
+                : bids.map(b => `
+                  <div class="data-card">
+                    <div class="row-between">
+                      <div>
+                        <div style="font-size:13.5px;font-weight:800;">${b.fullName}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">${b.vehicleModel} • <span style="font-family:var(--font-mono);color:var(--accent);">${b.plate}</span></div>
+                      </div>
+                      <div style="text-align:right;">
+                        <div style="font-family:var(--font-mono);font-size:15px;font-weight:800;color:var(--accent);">NPR ${b.offeredFare}</div>
+                        <div style="font-size:10.5px;color:var(--text-secondary);">${b.distKm} km • ${b.etaMin} min</div>
+                      </div>
+                    </div>
+                    <div class="btn-cap emerald sm full" data-pick-bid="${b.username}" role="button" tabindex="0">Accept NPR ${b.offeredFare}</div>
+                  </div>
+                `).join('');
+              bidsContainer.querySelectorAll('[data-pick-bid]').forEach(el => {
+                el.addEventListener('click', () => acceptBid(ride.rideId, el.getAttribute('data-pick-bid')));
+              });
+            }
+          }
+          updateDynamicListsOnly();
+          return;
+        }
+
+        state.renderedViewKey = key;
+
+        // 1. Unauthenticated Prompt
+        if (!state.user) {
+          panel.innerHTML = `
+            <div class="row-between">
+              <div>
+                <div style="font-size:14px;font-weight:800;">Account Required</div>
+                <div style="font-size:11.5px;color:var(--text-secondary);">Sign in or register as Passenger or Driver</div>
               </div>
+              <div class="btn-cap primary sm" id="btnOpenAuth" role="button" tabindex="0">Continue</div>
+            </div>
+          `;
+          document.getElementById('btnOpenAuth')?.addEventListener('click', () => {
+            document.getElementById('authOverlay').classList.add('open');
+          });
+          return;
+        }
+
+        // 2. Passenger Views
+        if (state.user.role === 'passenger') {
+          const ride = state.activeRideId ? state.rides[state.activeRideId] : null;
+
+          if (ride && ride.status === 'searching') {
+            panel.innerHTML = `
+              <div class="row-between">
+                <div class="tag">Searching Riders • NPR ${ride.fareNPR}</div>
+                <div class="btn-cap danger sm" id="btnCancelSearch" role="button" tabindex="0">Cancel</div>
+              </div>
+              <div style="font-size:12px;color:var(--text-secondary);">
+                ${ride.pickup.label} → <strong style="color:var(--text-primary);">${ride.dropoff.label}</strong> (${ride.distanceKm} km)
+              </div>
+              <div id="passengerBidsList" style="display:flex;flex-direction:column;gap:8px;"></div>
             `;
-          } else if (activeRide.status === 'in_progress') {
-            actionHtml = `<div class="cap-btn primary" id="btnDriverComplete" role="button" tabindex="0" style="width:100%;">Complete Trip • Collect Rs. ${activeRide.fareNPR}</div>`;
+            document.getElementById('btnCancelSearch')?.addEventListener('click', () => cancelRide(ride.rideId));
+            renderConsole(false);
+            return;
           }
 
-          dock.innerHTML = `
-            <div class="feed-header">
-              <div class="badge-pill emerald"><span class="brand-dot"></span> Active Trip • ${activeRide.status.toUpperCase()}</div>
-              <div style="font-family:var(--font-mono);font-size:14px;font-weight:800;color:var(--accent-primary);">Rs. ${activeRide.fareNPR}</div>
-            </div>
-            <div class="feed-card">
-              <div style="font-size:14px;font-weight:800;">Passenger: ${activeRide.passenger?.fullName} (${activeRide.passenger?.phone})</div>
-              <div style="font-size:12px;color:var(--text-muted);">
-                Pickup: <strong style="color:var(--text-main);">${p.label}</strong><br/>
-                Drop-off: <strong style="color:var(--accent-primary);">${d.label}</strong> (${activeRide.distanceKm} km)
+          if (ride) {
+            const d = ride.driver || {};
+            const labels = {
+              accepted: 'Rider En Route',
+              arrived: 'Rider Arrived',
+              in_progress: 'Trip In Progress'
+            };
+            panel.innerHTML = `
+              <div class="row-between">
+                <div class="tag emerald">${labels[ride.status] || ride.status}</div>
+                <div class="tag amber" style="font-family:var(--font-mono);">OTP ${ride.otp}</div>
               </div>
-              ${actionHtml}
+              <div class="data-card">
+                <div class="row-between">
+                  <div>
+                    <div style="font-size:14px;font-weight:800;">${d.fullName || 'Assigned Rider'}</div>
+                    <div style="font-size:11.5px;color:var(--text-secondary);">${d.vehicleModel || ''} • ${d.color || ''}</div>
+                    <div style="font-family:var(--font-mono);font-size:11.5px;color:var(--accent);margin-top:2px;">${d.plate || ''} • ${d.phone || ''}</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div style="font-family:var(--font-mono);font-size:16px;font-weight:800;color:var(--accent);">NPR ${ride.fareNPR}</div>
+                    <div style="font-size:11px;color:var(--text-secondary);">${ride.paymentMethod}</div>
+                  </div>
+                </div>
+                ${ride.status === 'accepted' ? `<div class="btn-cap danger sm full" id="btnCancelMatched" role="button" tabindex="0">Cancel Ride</div>` : ''}
+              </div>
+            `;
+            document.getElementById('btnCancelMatched')?.addEventListener('click', () => cancelRide(ride.rideId));
+            return;
+          }
+
+          // Booking View
+          const km = state.route?.km || 2.5;
+          panel.innerHTML = `
+            <div class="row-between">
+              <div id="nearbyRidersCount" style="font-size:11px;font-weight:800;color:var(--accent);letter-spacing:0.03em;">NEARBY RIDERS (0)</div>
+              <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);">${state.route ? `${state.route.km} km • ${state.route.min} min` : 'Select destination'}</div>
+            </div>
+            <div class="chip-rail" id="nearbyRidersRail"></div>
+
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <div class="field-wrap">
+                <span style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
+                <input class="field-input" id="inPickup" type="text" value="${state.pickup.label}" readonly />
+              </div>
+              <div class="field-wrap">
+                <span style="width:8px;height:8px;border-radius:50%;background:#f43f5e;flex-shrink:0;"></span>
+                <input class="field-input" id="inDropoff" type="text" value="${state.dropoff ? state.dropoff.label : ''}" placeholder="Destination or tap map" />
+                <div class="btn-cap sm" id="btnFindDest" role="button" tabindex="0" style="height:28px;padding:0 10px;">Set</div>
+              </div>
+            </div>
+
+            <div class="chip-rail">
+              ${HUBS.map(h => `<div class="chip" data-hub="${h.name}" data-lat="${h.lat}" data-lng="${h.lng}">${h.name}</div>`).join('')}
+            </div>
+
+            <div class="tier-grid">
+              ${Object.values(TIERS).map(t => `
+                <div class="tier-item ${state.tier === t.id ? 'selected' : ''}" data-tier="${t.id}" role="button" tabindex="0">
+                  <div class="tier-title">${t.name}</div>
+                  <div class="tier-fare">Rs.${calcFare(km, t.id)}</div>
+                  <div class="tier-eta">${t.etaAdd + Math.round(km * 2)}m</div>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="fare-row">
+              <div class="btn-cap sm" id="btnFareDown" role="button" tabindex="0">-10</div>
+              <div class="fare-center">
+                <span>NPR</span>
+                <input id="inFare" type="number" value="${state.fare}" min="30" step="5" />
+              </div>
+              <div class="btn-cap sm" id="btnFareUp" role="button" tabindex="0">+10</div>
+              <div class="chip active" id="btnPaySwitch" role="button" tabindex="0">${state.payMode}</div>
+            </div>
+
+            <div class="btn-cap primary full" id="btnBookNow" role="button" tabindex="0">Request Ride • NPR ${state.fare}</div>
+          `;
+
+          updateDynamicListsOnly();
+
+          panel.querySelectorAll('[data-hub]').forEach(el => {
+            el.addEventListener('click', async () => {
+              state.dropoff = {
+                lat: parseFloat(el.getAttribute('data-lat')),
+                lng: parseFloat(el.getAttribute('data-lng')),
+                label: el.getAttribute('data-hub')
+              };
+              await fetchRoadRoute();
+              syncMapGraphics();
+              renderConsole(true);
+              if (map && state.route?.coords) map.fitBounds(L.latLngBounds(state.route.coords), { padding: [50, 50] });
+            });
+          });
+
+          document.getElementById('btnFindDest')?.addEventListener('click', async () => {
+            const q = document.getElementById('inDropoff').value.trim();
+            if (!q) return;
+            try {
+              const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q + ', Nepal')}`);
+              const arr = await res.json();
+              if (arr?.[0]) {
+                state.dropoff = { lat: parseFloat(arr[0].lat), lng: parseFloat(arr[0].lon), label: arr[0].display_name.split(',')[0] };
+                await fetchRoadRoute();
+                syncMapGraphics();
+                renderConsole(true);
+                if (map && state.route?.coords) map.fitBounds(L.latLngBounds(state.route.coords), { padding: [50, 50] });
+              } else {
+                toast('Location not found');
+              }
+            } catch (_) {
+              toast('Search offline — tap map');
+            }
+          });
+
+          panel.querySelectorAll('[data-tier]').forEach(el => {
+            el.addEventListener('click', () => {
+              state.tier = el.getAttribute('data-tier');
+              state.fare = calcFare(state.route?.km || 2.5, state.tier);
+              renderConsole(true);
+            });
+          });
+
+          document.getElementById('btnFareDown')?.addEventListener('click', () => {
+            state.fare = Math.max(30, Number(state.fare) - 10);
+            renderConsole(true);
+          });
+          document.getElementById('btnFareUp')?.addEventListener('click', () => {
+            state.fare = Number(state.fare) + 10;
+            renderConsole(true);
+          });
+          document.getElementById('inFare')?.addEventListener('change', (e) => {
+            state.fare = Math.max(30, parseInt(e.target.value, 10) || 50);
+            renderConsole(true);
+          });
+          document.getElementById('btnPaySwitch')?.addEventListener('click', () => {
+            const list = ['Cash', 'eSewa', 'RBB QR'];
+            state.payMode = list[(list.indexOf(state.payMode) + 1) % list.length];
+            renderConsole(true);
+          });
+          document.getElementById('btnBookNow')?.addEventListener('click', requestRide);
+          return;
+        }
+
+        // 3. Driver / Rider Views
+        const ride = state.activeRideId ? state.rides[state.activeRideId] : null;
+        if (ride) {
+          const target = ride.status === 'in_progress' ? ride.dropoff : ride.pickup;
+          const remKm = +distKm(state.myGps.lat, state.myGps.lng, target.lat, target.lng).toFixed(2);
+
+          let ctrl = '';
+          if (ride.status === 'accepted') {
+            ctrl = `<div class="btn-cap amber full" id="btnActArrived" role="button" tabindex="0">Arrived at Pickup (${remKm} km)</div>`;
+          } else if (ride.status === 'arrived') {
+            ctrl = `
+              <div style="display:flex;gap:8px;">
+                <div class="field-wrap" style="flex:1;">
+                  <input class="field-input" id="inOtp" type="text" maxlength="4" value="${state.otpInput}" placeholder="OTP (${ride.otp})" style="font-family:var(--font-mono);text-align:center;" />
+                </div>
+                <div class="btn-cap emerald" id="btnActStart" role="button" tabindex="0">Start Trip</div>
+              </div>
+            `;
+          } else if (ride.status === 'in_progress') {
+            ctrl = `<div class="btn-cap primary full" id="btnActDone" role="button" tabindex="0">Complete Trip • NPR ${ride.fareNPR}</div>`;
+          }
+
+          panel.innerHTML = `
+            <div class="row-between">
+              <div class="tag emerald">${ride.status.replace('_', ' ').toUpperCase()}</div>
+              <div style="font-family:var(--font-mono);font-size:14px;font-weight:800;color:var(--accent);">NPR ${ride.fareNPR}</div>
+            </div>
+            <div class="data-card">
+              <div style="font-size:13.5px;font-weight:800;">${ride.passenger?.fullName} • ${ride.passenger?.phone}</div>
+              <div style="font-size:11.5px;color:var(--text-secondary);">
+                Pickup: <strong style="color:var(--text-primary);">${ride.pickup.label}</strong><br/>
+                Drop: <strong style="color:var(--accent);">${ride.dropoff.label}</strong> (${ride.distanceKm} km)
+              </div>
+              ${ctrl}
             </div>
           `;
 
-          document.getElementById('btnDriverArrived')?.addEventListener('click', () => driverAdvanceTrip(activeRide.rideId, 'arrived'));
-          document.getElementById('inputTripOtp')?.addEventListener('input', (e) => { state.otpDraft = e.target.value.trim(); });
-          document.getElementById('btnDriverStart')?.addEventListener('click', () => driverAdvanceTrip(activeRide.rideId, 'in_progress'));
-          document.getElementById('btnDriverComplete')?.addEventListener('click', () => driverAdvanceTrip(activeRide.rideId, 'completed'));
+          document.getElementById('btnActArrived')?.addEventListener('click', () => advanceTrip(ride.rideId, 'arrived'));
+          document.getElementById('inOtp')?.addEventListener('input', (e) => { state.otpInput = e.target.value.trim(); });
+          document.getElementById('btnActStart')?.addEventListener('click', () => advanceTrip(ride.rideId, 'in_progress'));
+          document.getElementById('btnActDone')?.addEventListener('click', () => advanceTrip(ride.rideId, 'completed'));
           return;
         }
 
-        // B. Driver Duty Radar & Nearby Passenger Requests Feed
-        const allRides = Object.values(state.dbSnapshot.rides || {});
-        const openRequests = allRides
-          .filter(r => r && r.status === 'searching' && r.pickup)
-          .map(r => ({
-            ...r,
-            distToPickup: +haversineKm(state.myGps.lat, state.myGps.lng, r.pickup.lat, r.pickup.lng).toFixed(2)
-          }))
-          .sort((a, b) => a.distToPickup - b.distToPickup);
-
-        const requestsHtml = !state.driverOnline
-          ? `<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:12.5px;">You are currently Offline. Go Online to broadcast GPS &amp; receive passenger requests.</div>`
-          : openRequests.length === 0
-            ? `<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:12.5px;">Scanning Kathmandu &amp; nearby GPS for passenger ride requests...</div>`
-            : openRequests.map(r => {
-                const draftBid = state.counterBidDrafts[r.rideId] || (Number(r.fareNPR) + 20);
-                const alreadyBid = Boolean(r.bids?.[state.user.username]);
-                return `
-                  <div class="feed-card">
-                    <div class="feed-header">
-                      <div>
-                        <div style="font-size:14px;font-weight:800;">${r.passenger?.fullName || 'Passenger'} <span class="badge-pill" style="margin-left:4px;">${r.tier.toUpperCase()}</span></div>
-                        <div style="font-size:11px;color:var(--text-muted);">${r.distToPickup} km away • Trip ${r.distanceKm} km (${r.durationMin} min)</div>
-                      </div>
-                      <div style="text-align:right;">
-                        <div style="font-family:var(--font-mono);font-size:16px;font-weight:800;color:var(--accent-primary);">Rs. ${r.fareNPR}</div>
-                        <div style="font-size:10.5px;color:var(--text-muted);">${r.paymentMethod}</div>
-                      </div>
-                    </div>
-                    <div style="font-size:12px;color:var(--text-muted);">
-                      <span style="color:#10b981;">●</span> ${r.pickup.label} → <span style="color:#fb7185;">●</span> ${r.dropoff.label}
-                    </div>
-                    <div style="display:flex;gap:8px;align-items:center;">
-                      <div class="cap-btn emerald sm" data-accept-ride="${r.rideId}" data-fare="${r.fareNPR}" role="button" tabindex="0" style="flex:1;">
-                        Accept Rs. ${r.fareNPR}
-                      </div>
-                      <div class="cap-btn amber sm" data-counter-ride="${r.rideId}" data-counter-fare="${draftBid}" role="button" tabindex="0">
-                        ${alreadyBid ? `Bid Sent (Rs.${r.bids[state.user.username].offeredFare})` : `Bid Rs. ${draftBid}`}
-                      </div>
-                    </div>
-                  </div>
-                `;
-              }).join('');
-
-        dock.innerHTML = `
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        // Driver Radar View
+        panel.innerHTML = `
+          <div class="row-between">
             <div>
-              <div style="font-size:13px;font-weight:800;">${state.user.vehicleModel} • <span style="color:var(--accent-primary);font-family:var(--font-mono);">${state.user.plate}</span></div>
-              <div style="font-size:11px;color:var(--text-muted);">Nearby Passenger Requests (${openRequests.length})</div>
+              <div style="font-size:13px;font-weight:800;">${state.user.vehicleModel} • <span style="font-family:var(--font-mono);color:var(--accent);">${state.user.plate}</span></div>
+              <div id="openReqCount" style="font-size:11px;color:var(--text-secondary);">REQUESTS (0)</div>
             </div>
-            <div class="cap-btn sm ${state.driverOnline ? 'emerald' : 'danger'}" id="btnToggleDuty" role="button" tabindex="0">
-              ${state.driverOnline ? '● ONLINE' : '○ OFFLINE'}
+            <div class="btn-cap sm ${state.driverOnline ? 'emerald' : 'danger'}" id="btnDuty" role="button" tabindex="0">
+              ${state.driverOnline ? 'Online' : 'Offline'}
             </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:9px;">${requestsHtml}</div>
+          <div id="driverRequestsFeed" style="display:flex;flex-direction:column;gap:8px;"></div>
         `;
 
-        document.getElementById('btnToggleDuty')?.addEventListener('click', () => {
+        document.getElementById('btnDuty')?.addEventListener('click', () => {
           state.driverOnline = !state.driverOnline;
-          broadcastMyLocation(true);
-          showToast(state.driverOnline ? 'You are ONLINE & broadcasting GPS' : 'You are now OFFLINE');
-          renderDock();
+          pushGpsToRtdb(true);
+          toast(state.driverOnline ? 'Duty Online' : 'Duty Offline');
+          renderConsole(true);
         });
 
-        dock.querySelectorAll('[data-accept-ride]').forEach(el => {
-          el.addEventListener('click', () => {
-            driverSubmitBid(el.getAttribute('data-accept-ride'), el.getAttribute('data-fare'), true);
-          });
-        });
-
-        dock.querySelectorAll('[data-counter-ride]').forEach(el => {
-          el.addEventListener('click', () => {
-            driverSubmitBid(el.getAttribute('data-counter-ride'), el.getAttribute('data-counter-fare'), false);
-          });
-        });
+        updateDynamicListsOnly();
       }
 
       // =========================================================================
-      // 11. STEALTH API <-> FULL APP UI LAUNCHER & EVENT WIRING
+      // 11. EVENT BINDINGS & BOOTSTRAP
       // =========================================================================
-      function launchFullApp() {
-        if (state.uiLaunched) return;
-        state.uiLaunched = true;
-        document.getElementById('stealthVoid').classList.add('hidden');
-        document.getElementById('appShell').classList.add('active');
+      function bindUIEvents() {
+        document.getElementById('toolLocate').addEventListener('click', () => {
+          if (map) map.flyTo([state.myGps.lat, state.myGps.lng], 16);
+          toast('Centered on GPS');
+        });
+
+        document.getElementById('toolSim').addEventListener('click', toggleSimulator);
+
+        document.getElementById('toolPinMode').addEventListener('click', () => {
+          const modes = ['dropoff', 'pickup', 'gps'];
+          const names = { dropoff: 'Map Tap: Drop-off', pickup: 'Map Tap: Pickup', gps: 'Map Tap: Move GPS' };
+          state.pinMode = modes[(modes.indexOf(state.pinMode) + 1) % modes.length];
+          toast(names[state.pinMode]);
+        });
+
+        document.getElementById('btnAccount').addEventListener('click', () => {
+          if (!state.user) {
+            document.getElementById('authOverlay').classList.add('open');
+            return;
+          }
+          const u = state.user;
+          document.getElementById('profileBody').innerHTML = `
+            <div class="data-card">
+              <div style="font-size:15px;font-weight:800;">${u.fullName}</div>
+              <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent);">@${u.username} • ${u.role.toUpperCase()}</div>
+              <div style="font-size:12px;color:var(--text-secondary);">Phone: ${u.phone}</div>
+              ${u.role === 'driver' ? `
+                <div style="font-size:12px;color:var(--text-secondary);padding-top:6px;border-top:1px solid var(--border-subtle);">
+                  Vehicle: <strong style="color:var(--text-primary);">${u.vehicleModel} (${u.vehicleType.toUpperCase()})</strong><br/>
+                  Plate: <strong style="font-family:var(--font-mono);color:var(--accent);">${u.plate}</strong><br/>
+                  License: <strong style="font-family:var(--font-mono);color:var(--text-primary);">${u.license}</strong>
+                </div>
+              ` : ''}
+            </div>
+          `;
+          document.getElementById('profileOverlay').classList.add('open');
+        });
+
+        document.getElementById('btnCloseProfile').addEventListener('click', () => {
+          document.getElementById('profileOverlay').classList.remove('open');
+        });
+
+        document.getElementById('btnSignOut').addEventListener('click', async () => {
+          if (state.user) {
+            await dbApi.update(`live_locations/${state.user.username}`, { online: false, updatedAt: Date.now() }).catch(() => {});
+          }
+          localStorage.removeItem('gps_rt_account');
+          state.user = null;
+          state.activeRideId = null;
+          document.getElementById('hudUserText').textContent = 'Sign In';
+          document.getElementById('profileOverlay').classList.remove('open');
+          document.getElementById('authOverlay').classList.add('open');
+          renderConsole(true);
+        });
+
+        document.getElementById('tabSignIn').addEventListener('click', () => {
+          document.getElementById('tabSignIn').classList.add('active');
+          document.getElementById('tabCreate').classList.remove('active');
+          document.getElementById('viewSignIn').style.display = 'flex';
+          document.getElementById('viewCreate').style.display = 'none';
+        });
+
+        document.getElementById('tabCreate').addEventListener('click', () => {
+          document.getElementById('tabCreate').classList.add('active');
+          document.getElementById('tabSignIn').classList.remove('active');
+          document.getElementById('viewCreate').style.display = 'flex';
+          document.getElementById('viewSignIn').style.display = 'none';
+        });
+
+        document.getElementById('rolePassenger').addEventListener('click', () => {
+          state.regRole = 'passenger';
+          document.getElementById('rolePassenger').classList.add('active');
+          document.getElementById('roleDriver').classList.remove('active');
+          document.getElementById('driverFields').style.display = 'none';
+        });
+
+        document.getElementById('roleDriver').addEventListener('click', () => {
+          state.regRole = 'driver';
+          document.getElementById('roleDriver').classList.add('active');
+          document.getElementById('rolePassenger').classList.remove('active');
+          document.getElementById('driverFields').style.display = 'flex';
+        });
+
+        document.getElementById('btnDoLogin').addEventListener('click', signIn);
+        document.getElementById('btnDoRegister').addEventListener('click', createAccount);
+      }
+
+      (async function init() {
+        if (await checkQueryApi()) return;
+
+        restoreSession();
         initMap();
-        renderDock();
+        bindUIEvents();
+        bindRealtimeStreams();
+        startGpsWatcher();
+        renderConsole(true);
+
         if (!state.user) {
-          document.getElementById('authModal').classList.add('open');
+          document.getElementById('authOverlay').classList.add('open');
         } else {
-          broadcastMyLocation(true);
-        }
-      }
-
-      function returnToStealthMode() {
-        state.uiLaunched = false;
-        document.getElementById('appShell').classList.remove('active');
-        document.getElementById('stealthVoid').classList.remove('hidden');
-      }
-
-      // Stealth screen triggers: double-tap/click, beacon click, or Enter/G key
-      const stealthEl = document.getElementById('stealthVoid');
-      stealthEl.addEventListener('dblclick', launchFullApp);
-      let lastTap = 0;
-      stealthEl.addEventListener('touchend', () => {
-        const now = Date.now();
-        if (now - lastTap < 350) launchFullApp();
-        lastTap = now;
-      });
-      document.getElementById('stealthBeacon').addEventListener('click', launchFullApp);
-      document.addEventListener('keydown', (e) => {
-        if (!state.uiLaunched && (e.key === 'Enter' || e.key.toLowerCase() === 'g')) {
-          launchFullApp();
-        }
-      });
-
-      // HUD & Map tool buttons
-      document.getElementById('stealthReturnBtn').addEventListener('click', returnToStealthMode);
-      document.getElementById('btnLocateMe').addEventListener('click', () => {
-        if (map) map.flyTo([state.myGps.lat, state.myGps.lng], 16);
-        showToast('Centered on your live GPS');
-      });
-      document.getElementById('btnSimulateGps').addEventListener('click', toggleGpsSimulation);
-      document.getElementById('btnMapPinMode').addEventListener('click', () => {
-        const modes = ['dropoff', 'pickup', 'mygps'];
-        const labels = { dropoff: 'Tap Map: Set Drop-off', pickup: 'Tap Map: Set Pickup', mygps: 'Tap Map: Move My GPS' };
-        state.mapTapTarget = modes[(modes.indexOf(state.mapTapTarget) + 1) % modes.length];
-        showToast(labels[state.mapTapTarget]);
-      });
-
-      // User Badge / Profile Modal
-      document.getElementById('userBadgePill').addEventListener('click', () => {
-        if (!state.user) {
-          document.getElementById('authModal').classList.add('open');
-          return;
-        }
-        const u = state.user;
-        const body = document.getElementById('profileDetailsBody');
-        body.innerHTML = `
-          <div class="feed-card">
-            <div style="font-size:16px;font-weight:800;">${u.fullName}</div>
-            <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent-primary);">@${u.username} • ${u.role.toUpperCase()}</div>
-            <div style="font-size:12.5px;color:var(--text-muted);">Phone: ${u.phone}</div>
-            ${u.role === 'driver' ? `
-              <div style="margin-top:6px;padding-top:8px;border-top:1px solid var(--border-glass);font-size:12px;color:var(--text-muted);">
-                <div>Vehicle: <strong style="color:var(--text-main);">${u.vehicleModel} (${u.vehicleType.toUpperCase()})</strong></div>
-                <div>Plate: <strong style="color:var(--accent-primary);font-family:var(--font-mono);">${u.plate}</strong></div>
-                <div>License: <strong style="color:var(--text-main);font-family:var(--font-mono);">${u.license}</strong></div>
-                <div>Bluebook/NID: <strong style="color:var(--text-main);font-family:var(--font-mono);">${u.bluebook}</strong></div>
-              </div>
-            ` : ''}
-          </div>
-        `;
-        document.getElementById('profileModal').classList.add('open');
-      });
-
-      document.getElementById('btnCloseProfile').addEventListener('click', () => {
-        document.getElementById('profileModal').classList.remove('open');
-      });
-
-      document.getElementById('btnLogout').addEventListener('click', async () => {
-        if (state.user) {
-          await rtdb.update(`live_locations/${state.user.username}`, { online: false, updatedAt: Date.now() }).catch(() => {});
-        }
-        localStorage.removeItem('gps_rt_user');
-        state.user = null;
-        state.activeRideId = null;
-        document.getElementById('hudUserLabel').textContent = 'Account';
-        document.getElementById('profileModal').classList.remove('open');
-        document.getElementById('authModal').classList.add('open');
-        renderDock();
-      });
-
-      // Auth Modal Tab & Role Toggles
-      document.getElementById('tabLogin').addEventListener('click', () => {
-        document.getElementById('tabLogin').classList.add('active');
-        document.getElementById('tabRegister').classList.remove('active');
-        document.getElementById('loginFormBox').style.display = 'flex';
-        document.getElementById('registerFormBox').style.display = 'none';
-      });
-
-      document.getElementById('tabRegister').addEventListener('click', () => {
-        document.getElementById('tabRegister').classList.add('active');
-        document.getElementById('tabLogin').classList.remove('active');
-        document.getElementById('registerFormBox').style.display = 'flex';
-        document.getElementById('loginFormBox').style.display = 'none';
-      });
-
-      document.getElementById('selectRolePassenger').addEventListener('click', () => {
-        state.selectedRegRole = 'passenger';
-        document.getElementById('selectRolePassenger').classList.add('active');
-        document.getElementById('selectRoleDriver').classList.remove('active');
-        document.getElementById('driverExtraFields').style.display = 'none';
-      });
-
-      document.getElementById('selectRoleDriver').addEventListener('click', () => {
-        state.selectedRegRole = 'driver';
-        document.getElementById('selectRoleDriver').classList.add('active');
-        document.getElementById('selectRolePassenger').classList.remove('active');
-        document.getElementById('driverExtraFields').style.display = 'flex';
-      });
-
-      document.getElementById('btnSubmitLogin').addEventListener('click', handleLogin);
-      document.getElementById('btnSubmitRegister').addEventListener('click', handleRegister);
-
-      // =========================================================================
-      // 12. BOOTSTRAP INITIALIZATION
-      // =========================================================================
-      (async function boot() {
-        loadSavedUser();
-        const isApiQuery = await handleQueryApiIfPresent();
-        if (isApiQuery) return;
-
-        startRealtimeSync();
-        startLiveGpsTracking();
-
-        const params = new URLSearchParams(window.location.search);
-        const shouldOpenUi =
-          params.has('app') ||
-          params.has('ui') ||
-          params.has('portal') ||
-          params.has('mode') ||
-          params.has('ride') ||
-          params.has('track') ||
-          window.location.hash === '#app';
-
-        if (params.get('ride')) {
-          state.activeRideId = params.get('ride');
-        }
-
-        if (shouldOpenUi) {
-          launchFullApp();
+          pushGpsToRtdb(true);
         }
       })();
     })();
