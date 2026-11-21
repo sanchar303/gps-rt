@@ -681,6 +681,64 @@
       gap: 8px;
     }
 
+    /* Account Financial Summary & History */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-box {
+      padding: 11px 12px;
+      border-radius: var(--radius-md);
+      background: var(--bg-inset);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-inset);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+
+    .stat-value {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .stat-value.emerald {
+      color: var(--accent-emerald);
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 150px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .history-item {
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11.5px;
+    }
+
     /* Prominent Pathao-Style Live Status Banner & Toast */
     #toast {
       position: fixed;
@@ -1040,11 +1098,13 @@
         lastOpenRequestsCount: 0,
         regRole: 'passenger',
         otpInput: '',
-        renderedViewKey: ''
+        renderedViewKey: '',
+        searchResults: [],
+        searchTarget: 'dropoff'
       };
 
       // =========================================================================
-      // 3. AUDIO CHIME (Subtle Web Audio Tone for Real-Time Ride Events) & HELPERS
+      // 3. AUDIO CHIME & HELPERS
       // =========================================================================
       let audioCtx = null;
       function playNotificationTone(type = 'info') {
@@ -1060,10 +1120,10 @@
           osc.type = 'sine';
 
           if (type === 'accepted') {
-            osc.frequency.setValueAtTime(587.33, now);       // D5
-            osc.frequency.setValueAtTime(880.00, now + 0.12); // A5
+            osc.frequency.setValueAtTime(587.33, now);
+            osc.frequency.setValueAtTime(880.00, now + 0.12);
           } else {
-            osc.frequency.setValueAtTime(659.25, now);       // E5
+            osc.frequency.setValueAtTime(659.25, now);
           }
 
           gain.gain.setValueAtTime(0.08, now);
@@ -1146,14 +1206,18 @@
           if (cmd === 'status') {
             const [locs, rides] = await Promise.all([dbApi.get('live_locations'), dbApi.get('rides')]);
             const locList = Object.values(locs || {});
-            const rideList = Object.values(rides || {});
+            const sanitizedRides = {};
+            Object.entries(rides || {}).forEach(([id, r]) => {
+              if (r) sanitizedRides[id] = { ...r, otp: r.otp ? '****' : null };
+            });
+            const rideList = Object.values(sanitizedRides);
             out.textContent = JSON.stringify({
               ok: true,
               node: `${DB_URL}/${ROOT_NODE}`,
               onlineDrivers: locList.filter(x => x?.role === 'driver' && x?.online).length,
               activeRides: rideList.filter(r => r && !['completed', 'cancelled'].includes(r.status)).length,
               live_locations: locs || {},
-              rides: rides || {}
+              rides: sanitizedRides
             }, null, 2);
           } else if (cmd === 'drivers') {
             const locs = await dbApi.get('live_locations') || {};
@@ -1180,7 +1244,16 @@
             }
           } else if (cmd === 'telemetry') {
             const rideId = params.get('ride');
-            const data = rideId ? await dbApi.get(`rides/${rideId}`) : await dbApi.get('rides');
+            const raw = rideId ? await dbApi.get(`rides/${rideId}`) : await dbApi.get('rides');
+            let data = raw;
+            if (rideId && raw) {
+              data = { ...raw, otp: raw.otp ? '****' : null };
+            } else if (raw && typeof raw === 'object') {
+              data = {};
+              Object.entries(raw).forEach(([id, r]) => {
+                if (r) data[id] = { ...r, otp: r.otp ? '****' : null };
+              });
+            }
             out.textContent = JSON.stringify({ ok: true, data }, null, 2);
           } else {
             out.textContent = JSON.stringify({
@@ -1194,13 +1267,14 @@
       }
 
       // =========================================================================
-      // 5. MAP ENGINE (Keyless Dark Tiles + Draggable Pickup & Drop-off Pins)
+      // 5. MAP ENGINE, DRAGGABLE PINS & OSRM ROUTING
       // =========================================================================
       let map = null;
       let myMarker = null;
       let pickupMarker = null;
       let dropoffMarker = null;
       let routeLine = null;
+      let hasCenteredInitialGps = false;
       const peerMarkers = new Map();
 
       function vehicleIconSvg(type, color, heading = 0) {
@@ -1212,70 +1286,52 @@
         return `<div style="transform:rotate(${heading}deg);width:32px;height:32px;border-radius:50%;background:#0b0f18;border:2px solid ${color};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.65);">${svg}</div>`;
       }
 
-      async function setManualPickup(lat, lng, customLabel = null) {
-        const label = customLabel || await reverseGeocode(lat, lng);
-        state.pickup = { lat, lng, label, manual: true };
-        // Also align current GPS if user had default fallback location
-        if (state.myGps.source === 'default') {
-          applyMyGps(lat, lng, 0, 0, null, 'manual');
-        }
-        await fetchRoadRoute();
-        syncMapGraphics();
-        renderConsole(true);
-      }
-
-      async function setManualDropoff(lat, lng, customLabel = null) {
-        const label = customLabel || await reverseGeocode(lat, lng);
-        state.dropoff = { lat, lng, label };
-        await fetchRoadRoute();
-        syncMapGraphics();
-        renderConsole(true);
-      }
-
       function initMap() {
         map = L.map('map', {
           center: [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng],
-          zoom: 16,
+          zoom: 15,
           zoomControl: false,
           attributionControl: false
         });
 
-        const primaryTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19
         }).addTo(map);
 
-        let fallbackLoaded = false;
-        primaryTiles.on('tileerror', () => {
-          if (fallbackLoaded) return;
-          fallbackLoaded = true;
+        osmLayer.on('tileerror', () => {
           L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 19
           }).addTo(map);
         });
 
-        // Map click sets either Destination, Pickup, or My GPS manually
         map.on('click', async (e) => {
           const { lat, lng } = e.latlng;
           if (state.pinMode === 'mygps') {
-            applyMyGps(lat, lng, 0, state.myGps.heading, null, 'manual');
+            updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
             if (state.user?.role === 'passenger' && !state.activeRideId) {
-              await setManualPickup(lat, lng);
+              const label = await reverseGeocode(lat, lng);
+              state.pickup = { lat, lng, label, manual: true };
+              await fetchRoadRoute();
             }
-            toast('Pinned your GPS location on map');
+            syncMapGraphics();
+            renderConsole(true);
+            toast('Location pinned manually');
             return;
           }
 
           if (state.user?.role === 'passenger' && !state.activeRideId) {
+            const label = await reverseGeocode(lat, lng);
             if (state.pinMode === 'pickup') {
-              await setManualPickup(lat, lng);
-              toast(`Pickup pinned: ${state.pickup.label}`);
+              state.pickup = { lat, lng, label, manual: true };
+              updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
+              toast(`Pickup set: ${label}`);
             } else {
-              await setManualDropoff(lat, lng);
-              toast(`Destination pinned: ${state.dropoff.label}`);
+              state.dropoff = { lat, lng, label };
+              toast(`Destination set: ${label}`);
             }
-          } else if (state.user?.role === 'driver') {
-            applyMyGps(lat, lng, 0, state.myGps.heading, null, 'manual');
-            toast('Rider GPS pin updated');
+            await fetchRoadRoute();
+            syncMapGraphics();
+            renderConsole(true);
           }
         });
       }
@@ -1284,13 +1340,81 @@
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
           const d = await res.json();
-          const addr = d?.address || {};
-          const parts = [d?.name, addr.road, addr.suburb || addr.neighbourhood || addr.city_district].filter(Boolean);
-          const unique = [...new Set(parts)];
-          return unique.length ? unique.slice(0, 2).join(', ') : `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+          return d?.name || d?.address?.suburb || d?.address?.neighbourhood || d?.address?.road || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
         } catch (_) {
-          return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+          return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
         }
+      }
+
+      let searchTimer = null;
+      function schedulePlaceSearch(query, target) {
+        state.searchTarget = target;
+        clearTimeout(searchTimer);
+        const q = (query || '').trim();
+        if (q.length < 2) {
+          state.searchResults = [];
+          renderSearchResultsBox();
+          return;
+        }
+        searchTimer = setTimeout(async () => {
+          try {
+            const viewbox = '80.0,30.5,88.3,26.3';
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&viewbox=${viewbox}&q=${encodeURIComponent(q + ', Nepal')}`);
+            const list = await res.json();
+            state.searchResults = Array.isArray(list) ? list : [];
+            renderSearchResultsBox();
+          } catch (_) {
+            state.searchResults = [];
+            renderSearchResultsBox();
+          }
+        }, 320);
+      }
+
+      function renderSearchResultsBox() {
+        const box = document.getElementById('liveSearchResults');
+        if (!box) return;
+        if (!state.searchResults.length) {
+          box.style.display = 'none';
+          box.innerHTML = '';
+          return;
+        }
+        box.style.display = 'flex';
+        box.innerHTML = state.searchResults.map((item, idx) => {
+          const title = (item.display_name || '').split(',')[0] || 'Location';
+          return `
+            <div class="search-item" data-sr-idx="${idx}" role="button" tabindex="0">
+              <strong>${title}</strong>
+              <span class="sub">${item.display_name || ''}</span>
+            </div>
+          `;
+        }).join('');
+
+        box.querySelectorAll('[data-sr-idx]').forEach((el) => {
+          el.addEventListener('click', async () => {
+            const item = state.searchResults[Number(el.getAttribute('data-sr-idx'))];
+            if (!item) return;
+            const lat = parseFloat(item.lat);
+            const lng = parseFloat(item.lon);
+            const label = (item.display_name || '').split(',')[0] || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            state.searchResults = [];
+            box.style.display = 'none';
+
+            if (state.searchTarget === 'pickup') {
+              state.pickup = { lat, lng, label, manual: true };
+              updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
+            } else {
+              state.dropoff = { lat, lng, label };
+            }
+            await fetchRoadRoute();
+            syncMapGraphics();
+            renderConsole(true);
+            if (map && state.route?.coords) {
+              map.fitBounds(L.latLngBounds(state.route.coords), { padding: [55, 55] });
+            } else if (map) {
+              map.flyTo([lat, lng], 16);
+            }
+          });
+        });
       }
 
       async function fetchRoadRoute() {
@@ -1326,7 +1450,7 @@
       function syncMapGraphics() {
         if (!map) return;
 
-        // 1. Self Marker (Draggable when user wants to adjust own pin manually)
+        // 1. Self Marker (Draggable so user can correct location anytime)
         const isDriver = state.user?.role === 'driver';
         const selfHtml = isDriver
           ? `<div class="mk-wrap">${vehicleIconSvg(state.user.vehicleType || 'bike', '#22d3ee', state.myGps.heading)}<div class="mk-label">${state.user.plate || 'YOU'}</div></div>`
@@ -1339,20 +1463,24 @@
             draggable: true,
             zIndexOffset: 900
           }).addTo(map);
+
           myMarker.on('dragend', async (ev) => {
             const { lat, lng } = ev.target.getLatLng();
-            applyMyGps(lat, lng, 0, state.myGps.heading, null, 'manual');
+            updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
             if (state.user?.role === 'passenger' && !state.activeRideId) {
-              await setManualPickup(lat, lng);
+              const label = await reverseGeocode(lat, lng);
+              state.pickup = { lat, lng, label, manual: true };
+              await fetchRoadRoute();
+              renderConsole(true);
             }
-            toast('Adjusted your GPS pin');
+            toast('Your location updated');
           });
         } else {
           myMarker.setLatLng([state.myGps.lat, state.myGps.lng]);
           myMarker.setIcon(selfIcon);
         }
 
-        // 2. Live Peers from Firebase RTDB gps-rt/live_locations (Real-Time 1s Updates)
+        // 2. Live Peers from Firebase RTDB gps-rt/live_locations
         const seen = new Set();
         let activeCount = 0;
         Object.entries(state.locations).forEach(([uname, loc]) => {
@@ -1387,7 +1515,7 @@
         }
         document.getElementById('hudPeers').textContent = `${activeCount} Active`;
 
-        // 3. Pickup Marker (Draggable before ride starts)
+        // 3. Pickup, Drop-off & Route Line (Draggable pins when booking)
         const activeRide = state.activeRideId ? state.rides[state.activeRideId] : null;
         const pPt = activeRide ? activeRide.pickup : state.pickup;
         const dPt = activeRide ? activeRide.dropoff : state.dropoff;
@@ -1396,15 +1524,19 @@
 
         if (pPt && (dPt || activeRide || pPt.manual)) {
           const ic = L.divIcon({
-            html: `<div class="mk-wrap"><div style="width:15px;height:15px;border-radius:50%;background:#10b981;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.6);"></div><div class="marker-tag mk-label">PICKUP</div></div>`,
-            className: '', iconSize: [68, 36], iconAnchor: [34, 8]
+            html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#10b981;border:2.5px solid #fff;"></div><div class="mk-label">PICKUP</div></div>`,
+            className: '', iconSize: [64, 34], iconAnchor: [32, 8]
           });
           if (!pickupMarker) {
-            pickupMarker = L.marker([pPt.lat, pPt.lng], { icon: ic, draggable: canDragPins, zIndexOffset: 850 }).addTo(map);
+            pickupMarker = L.marker([pPt.lat, pPt.lng], { icon: ic, draggable: canDragPins }).addTo(map);
             pickupMarker.on('dragend', async (ev) => {
               const { lat, lng } = ev.target.getLatLng();
-              await setManualPickup(lat, lng);
-              toast(`Pickup moved: ${state.pickup.label}`);
+              const label = await reverseGeocode(lat, lng);
+              state.pickup = { lat, lng, label, manual: true };
+              updateMyGps(lat, lng, 0, state.myGps.heading, 5, 'manual');
+              await fetchRoadRoute();
+              syncMapGraphics();
+              renderConsole(true);
             });
           } else {
             pickupMarker.setLatLng([pPt.lat, pPt.lng]);
@@ -1418,18 +1550,20 @@
           pickupMarker = null;
         }
 
-        // 4. Drop-off Marker (Draggable before ride starts)
         if (dPt) {
           const ic = L.divIcon({
-            html: `<div class="mk-wrap"><div style="width:15px;height:15px;border-radius:50%;background:#f43f5e;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.6);"></div><div class="mk-label">DROP</div></div>`,
-            className: '', iconSize: [68, 36], iconAnchor: [34, 8]
+            html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#f43f5e;border:2.5px solid #fff;"></div><div class="mk-label">DROP</div></div>`,
+            className: '', iconSize: [64, 34], iconAnchor: [32, 8]
           });
           if (!dropoffMarker) {
-            dropoffMarker = L.marker([dPt.lat, dPt.lng], { icon: ic, draggable: canDragPins, zIndexOffset: 860 }).addTo(map);
+            dropoffMarker = L.marker([dPt.lat, dPt.lng], { icon: ic, draggable: canDragPins }).addTo(map);
             dropoffMarker.on('dragend', async (ev) => {
               const { lat, lng } = ev.target.getLatLng();
-              await setManualDropoff(lat, lng);
-              toast(`Destination moved: ${state.dropoff.label}`);
+              const label = await reverseGeocode(lat, lng);
+              state.dropoff = { lat, lng, label };
+              await fetchRoadRoute();
+              syncMapGraphics();
+              renderConsole(true);
             });
           } else {
             dropoffMarker.setLatLng([dPt.lat, dPt.lng]);
@@ -1443,10 +1577,9 @@
           dropoffMarker = null;
         }
 
-        // 5. Route Polyline
         if (coords && coords.length > 1) {
           if (routeLine) map.removeLayer(routeLine);
-          routeLine = L.polyline(coords, { color: '#22d3ee', weight: 4.5, opacity: 0.92 }).addTo(map);
+          routeLine = L.polyline(coords, { color: '#22d3ee', weight: 4, opacity: 0.92 }).addTo(map);
         } else if (routeLine) {
           map.removeLayer(routeLine);
           routeLine = null;
@@ -1454,38 +1587,30 @@
       }
 
       // =========================================================================
-      // 6. REAL-TIME FIREBASE LISTENERS & PATHAO RIDE STATUS NOTIFICATIONS
+      // 6. REAL-TIME FIREBASE LISTENERS & PATHAO RIDE ALERTS
       // =========================================================================
       function bindRealtimeStreams() {
         dbApi.ref('live_locations').on('value', (snap) => {
           state.locations = snap.val() || {};
           syncMapGraphics();
           updateDynamicListsOnly();
+          if (state.activeRideId) {
+            renderConsole(false);
+          }
         });
 
         dbApi.ref('rides').on('value', (snap) => {
           state.rides = snap.val() || {};
-          resolveActiveRideAndNotify();
+          resolveActiveRide();
           syncMapGraphics();
           renderConsole(false);
         });
       }
 
-      function resolveActiveRideAndNotify() {
+      function resolveActiveRide() {
         if (!state.user) return;
 
-        // Notify Driver when a new passenger ride request appears
-        if (state.user.role === 'driver' && state.driverOnline && !state.activeRideId) {
-          const openReqs = getOpenRequests();
-          if (openReqs.length > state.lastOpenRequestsCount) {
-            playNotificationTone('info');
-            const newest = openReqs[0];
-            toast(`New Ride Request • ${newest.pickup.label} (रु.${newest.fareNPR})`, 'emerald');
-          }
-          state.lastOpenRequestsCount = openReqs.length;
-        }
-
-        // Check tracked ride transitions
+        // Track ride transitions for instant Pathao-like user notifications
         let tracked = state.activeRideId ? state.rides[state.activeRideId] : null;
         if (!tracked) {
           tracked = Object.values(state.rides).find((r) => {
@@ -1497,169 +1622,146 @@
         }
 
         if (tracked) {
-          state.activeRideId = tracked.rideId;
-
-          // Passenger real-time notifications (just like Pathao)
-          if (state.user.role === 'passenger') {
-            if (tracked.status === 'searching') {
-              const bidsCount = Object.keys(tracked.bids || {}).length;
-              if (bidsCount > state.lastKnownBidsCount) {
-                playNotificationTone('info');
-                toast(`New Rider Offer Received (${bidsCount})`, 'emerald');
-              }
-              state.lastKnownBidsCount = bidsCount;
-            }
-
-            if (state.lastKnownRideStatus !== tracked.status) {
+          const prevStatus = state.lastKnownRideStatus;
+          if (prevStatus && prevStatus !== tracked.status) {
+            if (state.user.role === 'passenger') {
               if (tracked.status === 'accepted') {
                 playNotificationTone('accepted');
-                toast(`Rider Accepted • ${tracked.driver?.fullName} (${tracked.driver?.plate})`, 'emerald');
-                frameActiveRideOnMap(tracked);
+                toast(`Rider Accepted: ${tracked.driver?.fullName || 'Rider'} (${tracked.driver?.plate || ''})`, 'emerald');
               } else if (tracked.status === 'arrived') {
                 playNotificationTone('accepted');
-                toast(`Rider Arrived at Pickup • Share OTP ${tracked.otp}`, 'emerald');
+                toast(`Rider Arrived at Pickup • Provide PIN ${tracked.otp}`, 'emerald');
               } else if (tracked.status === 'in_progress') {
                 playNotificationTone('info');
-                toast(`Trip Started • En route to ${tracked.dropoff.label}`, 'emerald');
+                toast('Trip Started • Live GPS Tracking Active', 'emerald');
               } else if (tracked.status === 'completed') {
                 playNotificationTone('accepted');
-                toast(`Trip Completed • Paid रु.${tracked.fareNPR}`, 'emerald');
-                state.activeRideId = null;
-                state.lastKnownRideStatus = null;
-                state.lastKnownBidsCount = 0;
-                return;
+                toast(`Trip Completed • Total रु.${tracked.fareNPR}`, 'emerald');
               } else if (tracked.status === 'cancelled') {
-                toast('Ride Cancelled');
-                state.activeRideId = null;
-                state.lastKnownRideStatus = null;
-                state.lastKnownBidsCount = 0;
-                return;
+                toast('Ride was cancelled');
               }
-            }
-          } else {
-            // Driver ride status cleanup
-            if (tracked.status === 'completed' || tracked.status === 'cancelled') {
-              state.activeRideId = null;
-              state.lastKnownRideStatus = null;
-              return;
             }
           }
 
-          state.lastKnownRideStatus = tracked.status;
+          // Notify passenger when a new driver bid arrives
+          if (state.user.role === 'passenger' && tracked.status === 'searching') {
+            const bidsCount = Object.keys(tracked.bids || {}).length;
+            if (bidsCount > state.lastKnownBidsCount) {
+              playNotificationTone('info');
+              toast(`New Rider Offer Received (${bidsCount})`, 'emerald');
+            }
+            state.lastKnownBidsCount = bidsCount;
+          } else {
+            state.lastKnownBidsCount = 0;
+          }
+
+          if (tracked.status === 'completed' || tracked.status === 'cancelled') {
+            state.activeRideId = null;
+            state.lastKnownRideStatus = null;
+          } else {
+            state.activeRideId = tracked.rideId;
+            state.lastKnownRideStatus = tracked.status;
+          }
         } else {
           state.activeRideId = null;
           state.lastKnownRideStatus = null;
           state.lastKnownBidsCount = 0;
         }
-      }
 
-      function frameActiveRideOnMap(ride) {
-        if (!map || !ride) return;
-        const pts = [];
-        if (ride.pickup) pts.push([ride.pickup.lat, ride.pickup.lng]);
-        if (ride.dropoff) pts.push([ride.dropoff.lat, ride.dropoff.lng]);
-        const dLoc = ride.driver?.username ? state.locations[ride.driver.username] : ride.driverGps;
-        if (dLoc?.lat && dLoc?.lng) pts.push([dLoc.lat, dLoc.lng]);
-        if (pts.length >= 2) {
-          map.fitBounds(L.latLngBounds(pts), { padding: [55, 55] });
+        // Notify online driver when a new passenger request appears
+        if (state.user.role === 'driver' && state.driverOnline && !state.activeRideId) {
+          const openCount = getOpenRequests().length;
+          if (openCount > state.lastOpenRequestsCount) {
+            playNotificationTone('info');
+            toast(`New Passenger Request Nearby (${openCount})`, 'emerald');
+          }
+          state.lastOpenRequestsCount = openCount;
         }
       }
 
       // =========================================================================
-      // 7. HIGH-ACCURACY HARDWARE GPS & 1-SECOND LIVE RTDB PINGING
+      // 7. HIGH-ACCURACY HARDWARE GPS & 1-SECOND LIVE PING ENGINE
       // =========================================================================
       let lastPushTs = 0;
-      let centeredHardwareOnce = false;
-      let bestHardwareAccuracy = Infinity;
+      let lastReverseGeocodeTs = 0;
 
       function startLiveGpsEngine() {
         if ('geolocation' in navigator) {
-          // 1. Immediate high-accuracy fix request on startup
-          navigator.geolocation.getCurrentPosition(
-            (pos) => handleHardwarePosition(pos, true),
-            () => {
-              document.getElementById('hudCoords').textContent = `${state.myGps.lat.toFixed(4)}, ${state.myGps.lng.toFixed(4)}`;
-              document.getElementById('hudAcc').textContent = 'Manual Pin';
-              if (!state.pickup.manual) {
-                state.pickup.label = 'Tap map or search pickup';
-                renderConsole(true);
+          navigator.geolocation.watchPosition(
+            async (pos) => {
+              // Do not overwrite if user manually pinned their location on map
+              if (state.myGps.source === 'manual') return;
+
+              const { latitude, longitude, speed, heading, accuracy } = pos.coords;
+              const speedKmh = speed ? Math.round(speed * 3.6) : 0;
+              updateMyGps(
+                latitude,
+                longitude,
+                speedKmh,
+                heading || state.myGps.heading,
+                accuracy ? Math.round(accuracy) : null,
+                'hardware'
+              );
+
+              if (!hasCenteredInitialGps && map) {
+                hasCenteredInitialGps = true;
+                map.setView([latitude, longitude], 16);
+              }
+
+              if (state.user?.role === 'passenger' && !state.activeRideId && !state.pickup.manual) {
+                state.pickup.lat = latitude;
+                state.pickup.lng = longitude;
+                const now = Date.now();
+                if (now - lastReverseGeocodeTs > 15000) {
+                  lastReverseGeocodeTs = now;
+                  state.pickup.label = await reverseGeocode(latitude, longitude);
+                  const inP = document.getElementById('inPickup');
+                  if (inP && document.activeElement !== inP) inP.value = state.pickup.label;
+                }
               }
             },
-            { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 }
-          );
-
-          // 2. Continuous live hardware GPS stream
-          navigator.geolocation.watchPosition(
-            (pos) => handleHardwarePosition(pos, false),
-            () => {},
-            { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+            () => {
+              document.getElementById('hudAcc').textContent = 'PIN GPS';
+              if (state.pickup.label === 'Locating GPS...') {
+                state.pickup.label = 'Pin Pickup on Map';
+                const inP = document.getElementById('inPickup');
+                if (inP) inP.value = state.pickup.label;
+              }
+              pushGpsToRtdb(true);
+            },
+            {
+              enableHighAccuracy: true,
+              maximumAge: 0,
+              timeout: 10000
+            }
           );
         }
 
-        // 3. Dedicated 1-second (1000ms) real-time telemetry ping loop
+        // Ping live GPS every 1 second (1000ms)
         setInterval(() => {
-          if (state.user) {
-            pushGpsToRtdb(true);
-          }
+          if (state.user) pushGpsToRtdb(true);
         }, 1000);
       }
 
-      async function handleHardwarePosition(pos, isInitial) {
-        // Respect manual GPS override if user explicitly pinned their location on map
-        if (state.myGps.source === 'manual' && !isInitial) return;
-
-        const { latitude, longitude, speed, heading, accuracy } = pos.coords;
-        const acc = accuracy ? Math.round(accuracy) : null;
-
-        // Filter out coarse cell-tower/IP jumps (> 1500m) if we already locked onto accurate GPS (< 120m)
-        if (acc && acc > 1500 && bestHardwareAccuracy < 120) return;
-        if (acc && acc < bestHardwareAccuracy) bestHardwareAccuracy = acc;
-
-        const speedKmh = speed && speed > 0 ? Math.round(speed * 3.6) : 0;
-        applyMyGps(latitude, longitude, speedKmh, heading || state.myGps.heading, acc, 'hardware');
-
-        if (!centeredHardwareOnce && map) {
-          centeredHardwareOnce = true;
-          map.setView([latitude, longitude], 16);
-        }
-
-        if (state.user?.role === 'passenger' && !state.activeRideId && !state.pickup.manual) {
-          state.pickup.lat = latitude;
-          state.pickup.lng = longitude;
-          if (state.pickup.label === 'Locating GPS...' || state.pickup.label === 'Tap map or search pickup') {
-            state.pickup.label = await reverseGeocode(latitude, longitude);
-            renderConsole(true);
-          }
-          if (state.dropoff) {
-            await fetchRoadRoute();
-            syncMapGraphics();
-            renderConsole(true);
-          }
-        }
-      }
-
-      function applyMyGps(lat, lng, speed = 0, heading = 0, accuracy = null, source = 'hardware') {
+      function updateMyGps(lat, lng, speed = 0, heading = 0, accuracy = null, source = 'hardware') {
         state.myGps = { lat, lng, speed, heading, accuracy, source };
         document.getElementById('hudCoords').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
         document.getElementById('hudAcc').textContent = source === 'manual'
-          ? 'Pinned'
-          : (accuracy ? `±${accuracy}m` : 'GPS');
+          ? 'Manual Pin'
+          : (accuracy ? `±${accuracy}m` : 'Live GPS');
 
         syncMapGraphics();
-        pushGpsToRtdb(false);
+        pushGpsToRtdb(true);
       }
 
       async function pushGpsToRtdb(force = false) {
         if (!state.user) return;
         const now = Date.now();
-        if (!force && now - lastPushTs < 850) return;
+        if (!force && now - lastPushTs < 900) return;
         lastPushTs = now;
 
         const online = state.user.role === 'driver' ? state.driverOnline : true;
         try {
-          const locRef = dbApi.ref(`live_locations/${state.user.username}`);
-          locRef.onDisconnect().update({ online: false, updatedAt: firebase.database.ServerValue.TIMESTAMP });
-
           await window.GPSRideAPI.push({
             username: state.user.username,
             fullName: state.user.fullName,
@@ -1676,7 +1778,6 @@
             online
           });
 
-          // If driver is on an active trip, update live ride telemetry every second
           if (state.user.role === 'driver' && state.activeRideId) {
             await dbApi.update(`rides/${state.activeRideId}`, {
               driverGps: {
@@ -1687,25 +1788,44 @@
                 updatedAt: now
               }
             });
-            await dbApi.set(`telemetry_logs/${state.activeRideId}/${now}`, {
-              lat: state.myGps.lat,
-              lng: state.myGps.lng,
-              speed: state.myGps.speed,
-              heading: state.myGps.heading
-            });
           }
         } catch (_) {}
       }
 
       // =========================================================================
-      // 8. ACCOUNT SYSTEM (gps-rt/users)
+      // 8. ACCOUNT SYSTEM & REAL-TIME FINANCIAL LEDGER (gps-rt/users)
       // =========================================================================
+      let userStreamRef = null;
+
+      function bindUserStream(username) {
+        if (userStreamRef) {
+          userStreamRef.off();
+          userStreamRef = null;
+        }
+        if (!username) return;
+        userStreamRef = dbApi.ref(`users/${username}`);
+        userStreamRef.on('value', (snap) => {
+          const fresh = snap.val();
+          if (!fresh || !state.user || state.user.username !== username) return;
+          state.user = { ...state.user, ...fresh };
+          localStorage.setItem('gps_rt_account', JSON.stringify(state.user));
+          if (document.getElementById('profileOverlay')?.classList.contains('open')) {
+            renderProfileModal();
+          }
+          if (state.user.role === 'driver' && !state.activeRideId) {
+            renderConsole(true);
+          }
+        });
+      }
+
       function restoreSession() {
         try {
           const raw = localStorage.getItem('gps_rt_account');
           if (raw) {
             state.user = JSON.parse(raw);
             document.getElementById('hudUserText').textContent = state.user.username;
+            bindUserStream(state.user.username);
+            dbApi.ref(`live_locations/${state.user.username}/online`).onDisconnect().set(false);
           }
         } catch (_) {}
       }
@@ -1714,6 +1834,29 @@
         state.user = userObj;
         localStorage.setItem('gps_rt_account', JSON.stringify(userObj));
         document.getElementById('hudUserText').textContent = userObj.username;
+        bindUserStream(userObj.username);
+        dbApi.ref(`live_locations/${userObj.username}/online`).onDisconnect().set(false);
+      }
+
+      function getUserFinancialSummary(u) {
+        if (!u) return { amount: 0, trips: 0, history: [] };
+        const completed = Object.values(state.rides || {})
+          .filter(r => r && r.status === 'completed' && (
+            u.role === 'driver'
+              ? r.driver?.username === u.username
+              : r.passenger?.username === u.username
+          ))
+          .sort((a, b) => (b.completedAt || b.createdAt || 0) - (a.completedAt || a.createdAt || 0));
+
+        const ridesTotal = completed.reduce((sum, r) => sum + (Number(r.fareNPR) || 0), 0);
+        const storedAmount = u.role === 'driver' ? (Number(u.totalIncome) || 0) : (Number(u.totalSpent) || 0);
+        const storedTrips = Number(u.completedTrips) || 0;
+
+        return {
+          amount: Math.max(storedAmount, ridesTotal),
+          trips: Math.max(storedTrips, completed.length),
+          history: completed.slice(0, 6)
+        };
       }
 
       async function signIn() {
@@ -1728,7 +1871,7 @@
 
           setSession(user);
           document.getElementById('authOverlay').classList.remove('open');
-          toast(`Signed in as ${user.fullName}`);
+          toast(`Signed in as ${user.fullName}`, 'emerald');
           pushGpsToRtdb(true);
           syncMapGraphics();
           renderConsole(true);
@@ -1755,6 +1898,9 @@
           phone,
           password,
           rating: 5.0,
+          totalIncome: 0,
+          totalSpent: 0,
+          completedTrips: 0,
           createdAt: Date.now()
         };
 
@@ -1786,7 +1932,7 @@
           await dbApi.set(`users/${username}`, payload);
           setSession(payload);
           document.getElementById('authOverlay').classList.remove('open');
-          toast('Account created');
+          toast('Account created', 'emerald');
           pushGpsToRtdb(true);
           syncMapGraphics();
           renderConsole(true);
@@ -1796,31 +1942,11 @@
       }
 
       // =========================================================================
-      // 9. LIVE GEOCODING AUTOCOMPLETE (Pickup & Destination)
-      // =========================================================================
-      async function searchPlaces(query) {
-        if (!query || query.length < 2) return [];
-        try {
-          const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=np&q=${encodeURIComponent(query)}`;
-          const res = await fetch(url);
-          const list = await res.json();
-          return (list || []).map(item => ({
-            title: item.name || item.display_name.split(',')[0],
-            subtitle: item.display_name,
-            lat: parseFloat(item.lat),
-            lng: parseFloat(item.lon)
-          }));
-        } catch (_) {
-          return [];
-        }
-      }
-
-      // =========================================================================
-      // 10. RIDE LIFECYCLE & FARE FLOOR ENFORCEMENT (Cannot Bargain Below Min)
+      // 9. RIDE LIFECYCLE, MINIMUM RECOMMENDED FARE & PATHAO TRIP STATES
       // =========================================================================
       async function requestRide() {
         if (!state.user || state.user.role !== 'passenger') return;
-        if (!state.dropoff || !state.route) return toast('Select or pin a destination on map first');
+        if (!state.dropoff || !state.route) return toast('Set your destination first');
 
         const minFare = getCurrentMinFare();
         const finalFare = Math.max(minFare, Number(state.fare) || minFare);
@@ -1832,8 +1958,8 @@
           rideId,
           status: 'searching',
           tier: state.tier,
-          recommendedFare: minFare,
           fareNPR: finalFare,
+          minFareNPR: minFare,
           paymentMethod: state.payMode,
           distanceKm: state.route.km,
           durationMin: state.route.min,
@@ -1854,8 +1980,7 @@
         await dbApi.set(`rides/${rideId}`, rideData);
         state.activeRideId = rideId;
         state.lastKnownRideStatus = 'searching';
-        playNotificationTone('info');
-        toast(`Broadcasting request • रु.${finalFare}`);
+        toast('Searching for nearby riders...');
         renderConsole(true);
       }
 
@@ -1872,9 +1997,6 @@
         if (!state.user || state.user.role !== 'driver') return;
         const ride = state.rides[rideId];
         if (!ride) return;
-
-        const floor = Number(ride.recommendedFare || ride.fareNPR || 40);
-        const safeFare = Math.max(floor, Number(fare));
 
         const dKm = +distKm(state.myGps.lat, state.myGps.lng, ride.pickup.lat, ride.pickup.lng).toFixed(1);
         const eta = Math.max(1, Math.round((dKm / 28) * 60));
@@ -1895,21 +2017,22 @@
         if (instantAccept) {
           await dbApi.update(`rides/${rideId}`, {
             status: 'accepted',
-            fareNPR: safeFare,
+            fareNPR: Number(fare),
             driver: info,
-            driverGps: { lat: state.myGps.lat, lng: state.myGps.lng, speed: state.myGps.speed, heading: state.myGps.heading, updatedAt: Date.now() },
+            driverGps: { lat: state.myGps.lat, lng: state.myGps.lng, heading: state.myGps.heading, updatedAt: Date.now() },
             acceptedAt: Date.now()
           });
           state.activeRideId = rideId;
+          state.lastKnownRideStatus = 'accepted';
           playNotificationTone('accepted');
-          toast(`Ride Accepted • Navigate to Pickup`, 'emerald');
+          toast('Ride accepted — head to pickup', 'emerald');
         } else {
           await dbApi.set(`rides/${rideId}/bids/${state.user.username}`, {
             ...info,
-            offeredFare: safeFare,
+            offeredFare: Number(fare),
             bidAt: Date.now()
           });
-          toast(`Offer रु.${safeFare} sent`);
+          toast(`Offer रु.${fare} sent`);
         }
         renderConsole(true);
       }
@@ -1924,31 +2047,95 @@
           acceptedAt: Date.now()
         });
         playNotificationTone('accepted');
-        toast(`Matched with ${bid.fullName} (${bid.plate})`, 'emerald');
+        toast(`Matched with ${bid.fullName}`, 'emerald');
         renderConsole(true);
+      }
+
+      async function settleRideFinances(ride) {
+        if (!ride || !ride.rideId) return;
+        const fare = Number(ride.fareNPR) || 0;
+        const driverUser = ride.driver?.username;
+        const passengerUser = ride.passenger?.username;
+        const now = Date.now();
+
+        if (driverUser && fare > 0) {
+          await dbApi.ref(`users/${driverUser}`).transaction((curr) => {
+            if (!curr) return curr;
+            return {
+              ...curr,
+              totalIncome: (Number(curr.totalIncome) || 0) + fare,
+              completedTrips: (Number(curr.completedTrips) || 0) + 1,
+              lastEarningAt: now
+            };
+          });
+        }
+
+        if (passengerUser && fare > 0) {
+          await dbApi.ref(`users/${passengerUser}`).transaction((curr) => {
+            if (!curr) return curr;
+            return {
+              ...curr,
+              totalSpent: (Number(curr.totalSpent) || 0) + fare,
+              completedTrips: (Number(curr.completedTrips) || 0) + 1,
+              lastTripAt: now
+            };
+          });
+        }
       }
 
       async function advanceTrip(rideId, nextStatus) {
         const ride = state.rides[rideId];
         if (!ride) return;
-        if (nextStatus === 'in_progress' && state.otpInput && state.otpInput !== ride.otp) {
-          return toast(`Invalid OTP (${ride.otp})`);
+
+        if (nextStatus === 'in_progress') {
+          const enteredPin = (state.otpInput || '').trim();
+          if (!/^\d{4}$/.test(enteredPin)) {
+            return toast('Enter the 4-digit PIN from passenger');
+          }
+          if (enteredPin !== String(ride.otp)) {
+            state.otpInput = '';
+            const otpEl = document.getElementById('inOtp');
+            if (otpEl) otpEl.value = '';
+            return toast('Incorrect 4-digit PIN — ask passenger');
+          }
         }
-        await dbApi.update(`rides/${rideId}`, { status: nextStatus, [`${nextStatus}At`]: Date.now() });
+
         if (nextStatus === 'completed') {
+          let shouldSettle = false;
+          await dbApi.ref(`rides/${rideId}`).transaction((curr) => {
+            if (!curr || curr.status === 'completed') return curr;
+            shouldSettle = !curr.settled;
+            return {
+              ...curr,
+              status: 'completed',
+              settled: true,
+              completedAt: Date.now()
+            };
+          });
+
+          if (shouldSettle) {
+            await settleRideFinances(ride);
+          }
+
           state.activeRideId = null;
+          state.lastKnownRideStatus = null;
           state.otpInput = '';
           playNotificationTone('accepted');
-          toast(`Completed • Collect रु.${ride.fareNPR}`, 'emerald');
+          toast(`Completed • Earned रु.${ride.fareNPR}`, 'emerald');
         } else {
+          await dbApi.update(`rides/${rideId}`, { status: nextStatus, [`${nextStatus}At`]: Date.now() });
+          if (nextStatus === 'in_progress') {
+            state.otpInput = '';
+          }
           toast(`Status: ${nextStatus.replace('_', ' ')}`, 'emerald');
         }
+
         syncMapGraphics();
         renderConsole(true);
       }
 
       // =========================================================================
-      // 11. NON-FLICKERING CONSOLE RENDERER
+      // 10. NON-FLICKERING CONSOLE RENDERER
       // =========================================================================
       function getViewKey() {
         if (!state.user) return 'guest';
@@ -1987,19 +2174,6 @@
           countEl.textContent = `REQUESTS (${reqs.length})`;
           feed.innerHTML = renderOpenRequestsHtml(reqs);
           bindDriverFeedActions(feed);
-        } else if (key.startsWith('p_active_')) {
-          // Live update rider's distance & ETA on passenger screen every second
-          const etaEl = document.getElementById('liveRiderEta');
-          const ride = state.activeRideId ? state.rides[state.activeRideId] : null;
-          if (etaEl && ride && ride.driver?.username) {
-            const dLoc = state.locations[ride.driver.username] || ride.driverGps;
-            if (dLoc?.lat && dLoc?.lng) {
-              const target = ride.status === 'in_progress' ? ride.dropoff : ride.pickup;
-              const dKm = +distKm(dLoc.lat, dLoc.lng, target.lat, target.lng).toFixed(2);
-              const mins = Math.max(1, Math.round((dKm / 28) * 60));
-              etaEl.textContent = `${dKm} km • ~${mins} min away`;
-            }
-          }
         }
       }
 
@@ -2092,6 +2266,21 @@
               });
             }
           }
+
+          if (key.startsWith('p_active_')) {
+            const ride = state.rides[state.activeRideId];
+            const liveRiderInfo = document.getElementById('activeRiderDistance');
+            if (ride && liveRiderInfo && ride.driver?.username) {
+              const dLoc = state.locations[ride.driver.username] || ride.driverGps;
+              if (dLoc && typeof dLoc.lat === 'number') {
+                const target = ride.status === 'in_progress' ? ride.dropoff : ride.pickup;
+                const kmAway = +distKm(dLoc.lat, dLoc.lng, target.lat, target.lng).toFixed(2);
+                const mins = Math.max(1, Math.round((kmAway / 28) * 60));
+                liveRiderInfo.textContent = `${kmAway} km away • ~${mins} min`;
+              }
+            }
+          }
+
           updateDynamicListsOnly();
           return;
         }
@@ -2142,40 +2331,38 @@
               arrived: 'Rider Arrived at Pickup',
               in_progress: 'Trip In Progress'
             };
+            const showPin = ride.status === 'accepted' || ride.status === 'arrived';
             panel.innerHTML = `
               <div class="row-between">
                 <div class="tag emerald">${labels[ride.status] || ride.status}</div>
-                <div class="tag amber" style="font-family:var(--font-mono);">OTP ${ride.otp}</div>
+                ${showPin ? `<div class="tag amber" style="font-family:var(--font-mono);">PIN ${ride.otp}</div>` : `<div class="tag">VERIFIED</div>`}
               </div>
+              ${showPin ? `<div style="font-size:11px;color:var(--accent-amber);">Share this 4-digit PIN with your rider at pickup to start the trip.</div>` : ''}
               <div class="data-card">
                 <div class="row-between">
                   <div>
                     <div style="font-size:14.5px;font-weight:800;">${d.fullName || 'Assigned Rider'}</div>
                     <div style="font-size:11.5px;color:var(--text-secondary);">${d.vehicleModel || ''} • ${d.color || ''}</div>
-                    <div style="font-family:var(--font-mono);font-size:11.5px;color:var(--accent);margin-top:2px;">${d.plate || ''}</div>
-                    <div id="liveRiderEta" style="font-family:var(--font-mono);font-size:11px;color:var(--accent-emerald);margin-top:3px;">Live GPS Tracking Active</div>
+                    <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent);margin-top:2px;">${d.plate || ''}</div>
+                    <div id="activeRiderDistance" style="font-size:11px;color:var(--accent-emerald);margin-top:2px;">Live GPS tracking active</div>
                   </div>
-                  <div style="text-align:right;">
-                    <div style="font-family:var(--font-mono);font-size:17px;font-weight:800;color:var(--accent);">रु.${ride.fareNPR}</div>
-                    <div style="font-size:11px;color:var(--text-secondary);">${ride.paymentMethod}</div>
+                  <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                    <div style="font-family:var(--font-mono);font-size:16px;font-weight:800;color:var(--accent);">रु.${ride.fareNPR}</div>
+                    ${d.phone ? `<a class="btn-cap emerald sm" href="tel:${d.phone}">Call Rider</a>` : ''}
                   </div>
                 </div>
-                <div style="display:flex;gap:8px;">
-                  ${d.phone ? `<a class="btn-cap emerald sm" href="tel:${d.phone}" style="flex:1;">Call Rider</a>` : ''}
-                  ${ride.status === 'accepted' ? `<div class="btn-cap danger sm" id="btnCancelMatched" role="button" tabindex="0" style="flex:1;">Cancel Ride</div>` : ''}
-                </div>
+                ${ride.status === 'accepted' ? `<div class="btn-cap danger sm full" id="btnCancelMatched" role="button" tabindex="0">Cancel Ride</div>` : ''}
               </div>
             `;
             document.getElementById('btnCancelMatched')?.addEventListener('click', () => cancelRide(ride.rideId));
-            updateDynamicListsOnly();
             return;
           }
 
-          // Booking View (Manual Map Pin + Search for Both Pickup & Destination + Min Fare Floor)
+          // Passenger Booking View (Zero Presets + Manual Pickup/Dropoff + Min Fare Floor)
           const km = state.route?.km || 2.5;
-          const minFare = calcRecommendedFare(km, state.tier);
+          const minFare = getCurrentMinFare();
           if (state.fare < minFare) state.fare = minFare;
-          const canDecrease = state.fare > minFare;
+          const canDecrease = Number(state.fare) > minFare;
 
           panel.innerHTML = `
             <div class="row-between">
@@ -2187,17 +2374,14 @@
             <div style="display:flex;flex-direction:column;gap:7px;">
               <div class="field-wrap">
                 <span style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
-                <input class="field-input" id="inPickup" type="text" value="${state.pickup.label}" placeholder="Search pickup or tap map" autocomplete="off" />
-                <div class="btn-cap sm" id="btnUseGpsPickup" role="button" tabindex="0" style="height:26px;padding:0 9px;font-size:10.5px;">GPS</div>
+                <input class="field-input" id="inPickup" type="text" value="${state.pickup.label}" placeholder="Pickup location" />
+                <div class="btn-cap sm" id="btnUseHardwareGps" role="button" tabindex="0" style="height:26px;padding:0 9px;font-size:10.5px;">GPS</div>
               </div>
-              <div id="pickupSuggestions" class="search-results" style="display:none;"></div>
-
               <div class="field-wrap">
                 <span style="width:8px;height:8px;border-radius:50%;background:#f43f5e;flex-shrink:0;"></span>
-                <input class="field-input" id="inDropoff" type="text" value="${state.dropoff ? state.dropoff.label : ''}" placeholder="Search destination or tap map" autocomplete="off" />
-                <div class="btn-cap sm" id="btnPinDropToggle" role="button" tabindex="0" style="height:26px;padding:0 9px;font-size:10.5px;">Pin</div>
+                <input class="field-input" id="inDropoff" type="text" value="${state.dropoff ? state.dropoff.label : ''}" placeholder="Search destination or tap map" />
               </div>
-              <div id="destSuggestions" class="search-results" style="display:none;"></div>
+              <div class="search-results" id="liveSearchResults" style="display:none;"></div>
             </div>
 
             <div class="tier-grid">
@@ -2225,116 +2409,33 @@
 
           updateDynamicListsOnly();
 
-          // Snap Pickup back to Live Hardware GPS
-          document.getElementById('btnUseGpsPickup')?.addEventListener('click', async () => {
+          const inPickup = document.getElementById('inPickup');
+          const inDropoff = document.getElementById('inDropoff');
+
+          inPickup?.addEventListener('focus', () => inPickup.select());
+          inPickup?.addEventListener('input', (e) => schedulePlaceSearch(e.target.value, 'pickup'));
+          inDropoff?.addEventListener('input', (e) => schedulePlaceSearch(e.target.value, 'dropoff'));
+
+          document.getElementById('btnUseHardwareGps')?.addEventListener('click', () => {
             state.pickup.manual = false;
+            state.myGps.source = 'default';
             if ('geolocation' in navigator) {
               navigator.geolocation.getCurrentPosition(
                 async (pos) => {
                   const { latitude, longitude, accuracy } = pos.coords;
-                  applyMyGps(latitude, longitude, 0, 0, accuracy ? Math.round(accuracy) : null, 'hardware');
                   const label = await reverseGeocode(latitude, longitude);
                   state.pickup = { lat: latitude, lng: longitude, label, manual: false };
+                  updateMyGps(latitude, longitude, 0, state.myGps.heading, accuracy ? Math.round(accuracy) : null, 'hardware');
                   await fetchRoadRoute();
                   syncMapGraphics();
                   renderConsole(true);
                   if (map) map.flyTo([latitude, longitude], 16);
-                  toast('Pickup synced to live GPS');
+                  toast('Synced to hardware GPS');
                 },
-                () => toast('GPS unavailable — drag green Pickup pin on map'),
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+                () => toast('Hardware GPS unavailable — drag pin on map'),
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 }
               );
             }
-          });
-
-          document.getElementById('btnPinDropToggle')?.addEventListener('click', () => {
-            state.pinMode = 'dropoff';
-            document.getElementById('pinModeLabel').textContent = 'Pin: Destination';
-            toast('Tap anywhere on map to place Destination pin');
-          });
-
-          // Live Autocomplete for Pickup
-          let pickupDebounce = null;
-          const pickupInput = document.getElementById('inPickup');
-          const pickupSugg = document.getElementById('pickupSuggestions');
-
-          pickupInput?.addEventListener('focus', () => {
-            state.pinMode = 'pickup';
-            document.getElementById('pinModeLabel').textContent = 'Pin: Pickup';
-          });
-
-          pickupInput?.addEventListener('input', (e) => {
-            const q = e.target.value.trim();
-            clearTimeout(pickupDebounce);
-            if (q.length < 2) {
-              pickupSugg.style.display = 'none';
-              return;
-            }
-            pickupDebounce = setTimeout(async () => {
-              const results = await searchPlaces(q);
-              if (!results.length) {
-                pickupSugg.style.display = 'none';
-                return;
-              }
-              pickupSugg.innerHTML = results.map((r, i) => `
-                <div class="search-item" data-pidx="${i}">
-                  <strong>${r.title}</strong>
-                  <span class="sub">${r.subtitle}</span>
-                </div>
-              `).join('');
-              pickupSugg.style.display = 'flex';
-              pickupSugg.querySelectorAll('.search-item').forEach(item => {
-                item.addEventListener('click', async () => {
-                  const chosen = results[Number(item.getAttribute('data-pidx'))];
-                  pickupSugg.style.display = 'none';
-                  await setManualPickup(chosen.lat, chosen.lng, chosen.title);
-                  if (map) map.flyTo([chosen.lat, chosen.lng], 16);
-                });
-              });
-            }, 300);
-          });
-
-          // Live Autocomplete for Destination
-          let destDebounce = null;
-          const destInput = document.getElementById('inDropoff');
-          const destSugg = document.getElementById('destSuggestions');
-
-          destInput?.addEventListener('focus', () => {
-            state.pinMode = 'dropoff';
-            document.getElementById('pinModeLabel').textContent = 'Pin: Destination';
-          });
-
-          destInput?.addEventListener('input', (e) => {
-            const q = e.target.value.trim();
-            clearTimeout(destDebounce);
-            if (q.length < 2) {
-              destSugg.style.display = 'none';
-              return;
-            }
-            destDebounce = setTimeout(async () => {
-              const results = await searchPlaces(q);
-              if (!results.length) {
-                destSugg.style.display = 'none';
-                return;
-              }
-              destSugg.innerHTML = results.map((r, i) => `
-                <div class="search-item" data-didx="${i}">
-                  <strong>${r.title}</strong>
-                  <span class="sub">${r.subtitle}</span>
-                </div>
-              `).join('');
-              destSugg.style.display = 'flex';
-              destSugg.querySelectorAll('.search-item').forEach(item => {
-                item.addEventListener('click', async () => {
-                  const chosen = results[Number(item.getAttribute('data-didx'))];
-                  destSugg.style.display = 'none';
-                  await setManualDropoff(chosen.lat, chosen.lng, chosen.title);
-                  if (map && state.route?.coords) {
-                    map.fitBounds(L.latLngBounds(state.route.coords), { padding: [50, 50] });
-                  }
-                });
-              });
-            }, 300);
           });
 
           panel.querySelectorAll('[data-tier]').forEach(el => {
@@ -2345,11 +2446,10 @@
             });
           });
 
-          // Enforce minimum recommended price (cannot bargain below minFare)
           document.getElementById('btnFareDown')?.addEventListener('click', () => {
             const floor = getCurrentMinFare();
-            if (state.fare <= floor) {
-              toast(`Minimum fare for this distance is रु.${floor}`);
+            if (Number(state.fare) <= floor) {
+              toast(`Minimum recommended fare is रु.${floor}`);
               return;
             }
             state.fare = Math.max(floor, Number(state.fare) - 10);
@@ -2366,8 +2466,10 @@
             const entered = parseInt(e.target.value, 10) || floor;
             if (entered < floor) {
               toast(`Minimum fare for this distance is रु.${floor}`);
+              state.fare = floor;
+            } else {
+              state.fare = entered;
             }
-            state.fare = Math.max(floor, entered);
             renderConsole(true);
           });
 
@@ -2392,11 +2494,14 @@
             ctrl = `<div class="btn-cap amber full" id="btnActArrived" role="button" tabindex="0">Arrived at Pickup (${remKm} km)</div>`;
           } else if (ride.status === 'arrived') {
             ctrl = `
-              <div style="display:flex;gap:8px;">
-                <div class="field-wrap" style="flex:1;">
-                  <input class="field-input" id="inOtp" type="text" maxlength="4" value="${state.otpInput}" placeholder="OTP (${ride.otp})" style="font-family:var(--font-mono);text-align:center;" />
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="font-size:11px;color:var(--text-secondary);">Ask passenger for their 4-digit trip PIN</div>
+                <div style="display:flex;gap:8px;">
+                  <div class="field-wrap" style="flex:1;">
+                    <input class="field-input" id="inOtp" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="${state.otpInput}" placeholder="Enter 4-digit PIN" autocomplete="one-time-code" style="font-family:var(--font-mono);font-size:15px;font-weight:700;letter-spacing:0.22em;text-align:center;" />
+                  </div>
+                  <div class="btn-cap emerald" id="btnActStart" role="button" tabindex="0">Verify &amp; Start</div>
                 </div>
-                <div class="btn-cap emerald" id="btnActStart" role="button" tabindex="0">Start Trip</div>
               </div>
             `;
           } else if (ride.status === 'in_progress') {
@@ -2422,18 +2527,27 @@
           `;
 
           document.getElementById('btnActArrived')?.addEventListener('click', () => advanceTrip(ride.rideId, 'arrived'));
-          document.getElementById('inOtp')?.addEventListener('input', (e) => { state.otpInput = e.target.value.trim(); });
+          document.getElementById('inOtp')?.addEventListener('input', (e) => {
+            const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
+            e.target.value = digits;
+            state.otpInput = digits;
+          });
           document.getElementById('btnActStart')?.addEventListener('click', () => advanceTrip(ride.rideId, 'in_progress'));
           document.getElementById('btnActDone')?.addEventListener('click', () => advanceTrip(ride.rideId, 'completed'));
           return;
         }
 
-        // Driver Radar View
+        // Driver Radar View (Includes Live Income Readout)
+        const driverStats = getUserFinancialSummary(state.user);
         panel.innerHTML = `
           <div class="row-between">
             <div>
               <div style="font-size:13px;font-weight:800;">${state.user.vehicleModel} • <span style="font-family:var(--font-mono);color:var(--accent);">${state.user.plate}</span></div>
-              <div id="openReqCount" style="font-size:11px;color:var(--text-secondary);">REQUESTS (0)</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
+                <span id="openReqCount" style="font-size:11px;color:var(--text-secondary);">REQUESTS (0)</span>
+                <span style="font-size:11px;color:var(--text-muted);">•</span>
+                <span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent-emerald);">Income: रु.${driverStats.amount}</span>
+              </div>
             </div>
             <div class="btn-cap sm ${state.driverOnline ? 'emerald' : 'danger'}" id="btnDuty" role="button" tabindex="0">
               ${state.driverOnline ? 'Online' : 'Offline'}
@@ -2453,25 +2567,27 @@
       }
 
       // =========================================================================
-      // 12. EVENT BINDINGS & BOOTSTRAP
+      // 11. EVENT BINDINGS & BOOTSTRAP
       // =========================================================================
       function bindUIEvents() {
         document.getElementById('toolLocate').addEventListener('click', () => {
-          state.myGps.source = 'hardware';
+          state.myGps.source = 'default';
           if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
               (pos) => {
                 const { latitude, longitude, accuracy } = pos.coords;
-                applyMyGps(latitude, longitude, 0, 0, accuracy ? Math.round(accuracy) : null, 'hardware');
+                updateMyGps(latitude, longitude, 0, state.myGps.heading, accuracy ? Math.round(accuracy) : null, 'hardware');
                 if (map) map.flyTo([latitude, longitude], 16);
-                toast('Synced to hardware GPS');
+                toast('Centered on live GPS');
               },
               () => {
                 if (map) map.flyTo([state.myGps.lat, state.myGps.lng], 16);
-                toast('GPS unavailable — drag YOU pin to set location');
+                toast('Drag your pin on map to adjust');
               },
-              { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+              { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 }
             );
+          } else if (map) {
+            map.flyTo([state.myGps.lat, state.myGps.lng], 16);
           }
         });
 
@@ -2487,26 +2603,72 @@
           toast(`Tap map to set ${labels[state.pinMode].replace('Pin: ', '')}`);
         });
 
+        function renderProfileModal() {
+          const u = state.user;
+          if (!u) return;
+          const summary = getUserFinancialSummary(u);
+          const isDriver = u.role === 'driver';
+          const metricLabel = isDriver ? 'Total Income' : 'Total Spent';
+          const metricClass = isDriver ? 'emerald' : '';
+
+          const historyHtml = summary.history.length === 0
+            ? `<div style="font-size:11.5px;color:var(--text-muted);text-align:center;padding:8px 0;">No completed trips yet</div>`
+            : `<div class="history-list">
+                ${summary.history.map(h => `
+                  <div class="history-item">
+                    <div style="min-width:0;flex:1;">
+                      <div style="font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${h.pickup?.label || 'Pickup'} → ${h.dropoff?.label || 'Drop'}</div>
+                      <div style="font-size:10px;color:var(--text-secondary);">${h.distanceKm || 0} km • ${h.paymentMethod || 'Cash'}</div>
+                    </div>
+                    <div style="font-family:var(--font-mono);font-weight:800;color:${isDriver ? 'var(--accent-emerald)' : 'var(--accent)'};">
+                      ${isDriver ? '+' : ''}रु.${h.fareNPR}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>`;
+
+          document.getElementById('profileBody').innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="data-card">
+                <div class="row-between">
+                  <div style="font-size:15px;font-weight:800;">${u.fullName}</div>
+                  <div class="tag ${isDriver ? 'emerald' : ''}">${isDriver ? 'DRIVER / RIDER' : 'PASSENGER'}</div>
+                </div>
+                <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent);">@${u.username} • ${u.phone}</div>
+                ${isDriver ? `
+                  <div style="font-size:12px;color:var(--text-secondary);padding-top:6px;border-top:1px solid var(--border-subtle);">
+                    Vehicle: <strong style="color:var(--text-primary);">${u.vehicleModel} (${u.vehicleType.toUpperCase()})</strong><br/>
+                    Plate: <strong style="font-family:var(--font-mono);color:var(--accent);">${u.plate}</strong><br/>
+                    License: <strong style="font-family:var(--font-mono);color:var(--text-primary);">${u.license}</strong>
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="stat-grid">
+                <div class="stat-box">
+                  <div class="stat-label">${metricLabel}</div>
+                  <div class="stat-value ${metricClass}">रु.${summary.amount}</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-label">Completed Trips</div>
+                  <div class="stat-value">${summary.trips}</div>
+                </div>
+              </div>
+
+              <div class="data-card">
+                <div class="stat-label">Recent Trip History</div>
+                ${historyHtml}
+              </div>
+            </div>
+          `;
+        }
+
         document.getElementById('btnAccount').addEventListener('click', () => {
           if (!state.user) {
             document.getElementById('authOverlay').classList.add('open');
             return;
           }
-          const u = state.user;
-          document.getElementById('profileBody').innerHTML = `
-            <div class="data-card">
-              <div style="font-size:15px;font-weight:800;">${u.fullName}</div>
-              <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent);">@${u.username} • ${u.role.toUpperCase()}</div>
-              <div style="font-size:12px;color:var(--text-secondary);">Phone: ${u.phone}</div>
-              ${u.role === 'driver' ? `
-                <div style="font-size:12px;color:var(--text-secondary);padding-top:6px;border-top:1px solid var(--border-subtle);">
-                  Vehicle: <strong style="color:var(--text-primary);">${u.vehicleModel} (${u.vehicleType.toUpperCase()})</strong><br/>
-                  Plate: <strong style="font-family:var(--font-mono);color:var(--accent);">${u.plate}</strong><br/>
-                  License: <strong style="font-family:var(--font-mono);color:var(--text-primary);">${u.license}</strong>
-                </div>
-              ` : ''}
-            </div>
-          `;
+          renderProfileModal();
           document.getElementById('profileOverlay').classList.add('open');
         });
 
@@ -2518,6 +2680,7 @@
           if (state.user) {
             await dbApi.update(`live_locations/${state.user.username}`, { online: false, updatedAt: Date.now() }).catch(() => {});
           }
+          bindUserStream(null);
           localStorage.removeItem('gps_rt_account');
           state.user = null;
           state.activeRideId = null;
