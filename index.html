@@ -22,11 +22,11 @@
   <style>
     :root {
       --bg-base: #07090e;
-      --bg-elevated: rgba(13, 17, 26, 0.9);
-      --bg-card: linear-gradient(145deg, rgba(21, 27, 40, 0.94), rgba(11, 15, 23, 0.98));
+      --bg-elevated: rgba(13, 17, 26, 0.92);
+      --bg-card: linear-gradient(145deg, rgba(21, 27, 40, 0.95), rgba(11, 15, 23, 0.98));
       --bg-inset: rgba(6, 9, 15, 0.92);
       --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-active: rgba(34, 211, 238, 0.45);
+      --border-active: rgba(34, 211, 238, 0.48);
       --accent: #22d3ee;
       --accent-blue: #38bdf8;
       --accent-emerald: #10b981;
@@ -35,7 +35,7 @@
       --text-primary: #f8fafc;
       --text-secondary: #94a3b8;
       --text-muted: #64748b;
-      --shadow-outset: 0 12px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+      --shadow-outset: 0 12px 32px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.07);
       --shadow-inset: inset 3px 3px 7px rgba(0, 0, 0, 0.72), inset -2px -2px 5px rgba(255, 255, 255, 0.025);
       --pill: 9999px;
       --radius-lg: 24px;
@@ -118,7 +118,7 @@
       display: none !important;
     }
 
-    /* Custom Capsule Buttons (Zero Native <button> Tags) */
+    /* Custom Capsule Controls */
     .btn-cap {
       display: inline-flex;
       align-items: center;
@@ -136,8 +136,9 @@
       letter-spacing: 0.01em;
       cursor: pointer;
       white-space: nowrap;
-      transition: transform 0.14s ease, border-color 0.18s ease, background 0.18s ease;
+      transition: transform 0.14s ease, border-color 0.18s ease, opacity 0.18s ease;
       flex-shrink: 0;
+      text-decoration: none;
     }
 
     .btn-cap:hover {
@@ -147,6 +148,11 @@
     .btn-cap:active {
       transform: scale(0.97);
       box-shadow: var(--shadow-inset);
+    }
+
+    .btn-cap.disabled {
+      opacity: 0.38;
+      pointer-events: none;
     }
 
     .btn-cap.primary {
@@ -257,26 +263,29 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      align-items: flex-end;
     }
 
-    .map-tool-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
+    .map-tool-pill {
+      height: 36px;
+      padding: 0 13px;
+      border-radius: var(--pill);
       background: var(--bg-elevated);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
       border: 1px solid var(--border-subtle);
       box-shadow: var(--shadow-outset);
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 700;
       color: var(--text-secondary);
       cursor: pointer;
       transition: color 0.15s ease, border-color 0.15s ease;
     }
 
-    .map-tool-btn:hover, .map-tool-btn.active {
+    .map-tool-pill:hover, .map-tool-pill.active {
       color: var(--accent);
       border-color: var(--border-active);
     }
@@ -303,7 +312,7 @@
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-outset);
       padding: 14px;
-      max-height: 55dvh;
+      max-height: 56dvh;
       overflow-y: auto;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
@@ -327,7 +336,7 @@
         top: 64px;
         bottom: 12px;
         margin-top: 0;
-        width: 400px;
+        width: 410px;
         padding: 0;
         justify-content: space-between;
       }
@@ -343,7 +352,7 @@
       align-items: center;
       gap: 8px;
       height: 40px;
-      padding: 0 14px;
+      padding: 0 12px;
       border-radius: var(--pill);
       background: var(--bg-inset);
       border: 1px solid rgba(255, 255, 255, 0.06);
@@ -390,7 +399,7 @@
       border: 1px solid var(--border-active);
       border-radius: 16px;
       padding: 6px;
-      max-height: 145px;
+      max-height: 140px;
       overflow-y: auto;
       overscroll-behavior: contain;
     }
@@ -498,7 +507,7 @@
       color: var(--text-muted);
     }
 
-    /* Fare Negotiator Bar */
+    /* Fare Bar (Minimum Recommended Floor Enforced) */
     .fare-row {
       display: flex;
       align-items: center;
@@ -514,15 +523,15 @@
     .fare-center {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 2px;
       font-family: var(--font-mono);
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--accent);
     }
 
     .fare-center input {
-      width: 64px;
+      width: 62px;
       background: transparent;
       border: none;
       outline: none;
@@ -530,7 +539,7 @@
       font-family: var(--font-mono);
       font-size: 15px;
       font-weight: 700;
-      text-align: center;
+      text-align: left;
     }
 
     /* Data Cards */
@@ -568,15 +577,15 @@
     }
 
     .tag.emerald {
-      background: rgba(16, 185, 129, 0.12);
+      background: rgba(16, 185, 129, 0.14);
       color: var(--accent-emerald);
-      border-color: rgba(16, 185, 129, 0.25);
+      border-color: rgba(16, 185, 129, 0.3);
     }
 
     .tag.amber {
-      background: rgba(245, 158, 11, 0.12);
+      background: rgba(245, 158, 11, 0.14);
       color: var(--accent-amber);
-      border-color: rgba(245, 158, 11, 0.25);
+      border-color: rgba(245, 158, 11, 0.3);
     }
 
     /* Account & Profile Overlays */
@@ -672,28 +681,28 @@
       gap: 8px;
     }
 
-    /* Toast Notification */
+    /* Prominent Pathao-Style Live Status Banner & Toast */
     #toast {
       position: fixed;
-      top: max(14px, env(safe-area-inset-top));
+      top: max(60px, calc(env(safe-area-inset-top) + 48px));
       left: 50%;
-      transform: translateX(-50%) translateY(-130%);
+      transform: translateX(-50%) translateY(-160%);
       z-index: 9990;
-      height: 36px;
-      padding: 0 16px;
+      min-height: 38px;
+      padding: 8px 18px;
       border-radius: var(--pill);
-      background: rgba(12, 16, 26, 0.96);
-      backdrop-filter: blur(16px);
+      background: rgba(10, 15, 25, 0.97);
+      backdrop-filter: blur(18px);
       border: 1px solid var(--border-active);
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.72);
       color: var(--text-primary);
-      font-size: 12px;
+      font-size: 12.5px;
       font-weight: 700;
       display: flex;
       align-items: center;
       gap: 8px;
-      transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-      max-width: 90vw;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      max-width: 92vw;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -704,11 +713,17 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    #toast.emerald {
+      border-color: rgba(16, 185, 129, 0.65);
+      color: #6ee7b7;
+    }
+
     /* Map Markers */
     .mk-wrap {
       display: flex;
       flex-direction: column;
       align-items: center;
+      cursor: grab;
     }
 
     .mk-label {
@@ -716,7 +731,7 @@
       padding: 2px 7px;
       border-radius: var(--pill);
       background: rgba(7, 9, 14, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       color: #f8fafc;
       font-family: var(--font-mono);
       font-size: 9.5px;
@@ -747,7 +762,7 @@
   <!-- Raw JSON API View (?api=...) -->
   <pre id="apiOutput"></pre>
 
-  <!-- Toast -->
+  <!-- Live Status Banner / Toast -->
   <div id="toast"><span id="toastMsg">Ready</span></div>
 
   <!-- Main Viewport-Locked App -->
@@ -765,9 +780,9 @@
         <span class="brand-title">GPS Ride Telemetry</span>
         <div class="telemetry-strip">
           <span class="hide-sm">|</span>
-          <span class="val hide-sm" id="hudCoords">27.7172, 85.3240</span>
+          <span class="val hide-sm" id="hudCoords">Locating...</span>
           <span>|</span>
-          <span class="val" id="hudSpeed">0 km/h</span>
+          <span class="val" id="hudAcc">GPS</span>
           <span>|</span>
           <span class="val" id="hudPeers">0 Active</span>
         </div>
@@ -782,24 +797,21 @@
       </div>
     </div>
 
-    <!-- Map Tools -->
+    <!-- Map Tools (Locate Hardware GPS + Manual Map Pin Mode) -->
     <div class="map-tools">
-      <div class="map-tool-btn" id="toolLocate" role="button" tabindex="0" title="Center GPS">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="map-tool-pill" id="toolLocate" role="button" tabindex="0" title="Snap to Hardware GPS">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path>
         </svg>
+        <span>My GPS</span>
       </div>
-      <div class="map-tool-btn" id="toolSim" role="button" tabindex="0" title="GPS Route Simulator">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-        </svg>
-      </div>
-      <div class="map-tool-btn" id="toolPinMode" role="button" tabindex="0" title="Map Tap Target">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="map-tool-pill active" id="toolPinMode" role="button" tabindex="0" title="Switch Map Tap Target">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
         </svg>
+        <span id="pinModeLabel">Pin: Destination</span>
       </div>
     </div>
 
@@ -945,7 +957,7 @@
     (() => {
       'use strict';
 
-      // Prevent browser pinch-zoom & context menu for zero unintended layout/zoom shifts
+      // Prevent unintended browser pinch-zoom & context menu
       document.addEventListener('contextmenu', (e) => e.preventDefault());
       document.addEventListener('gesturestart', (e) => e.preventDefault());
       document.addEventListener('touchmove', (e) => {
@@ -960,7 +972,7 @@
       });
 
       // =========================================================================
-      // 1. FIREBASE RTDB INITIALIZATION (Strictly under "gps-rt")
+      // 1. FIREBASE RTDB INITIALIZATION (Strictly inside "gps-rt")
       // =========================================================================
       const DB_URL = 'https://cloud-db-studio-default-rtdb.firebaseio.com';
       const ROOT_NODE = 'gps-rt';
@@ -986,7 +998,7 @@
       };
 
       // =========================================================================
-      // 2. STATE & CONSTANTS (Zero Preset Locations)
+      // 2. STATE & PRICING TIERS (No Gimmicks, No Fake Movement, No Presets)
       // =========================================================================
       const DEFAULT_CENTER = { lat: 27.7172, lng: 85.3240 };
 
@@ -1001,32 +1013,77 @@
         user: null,
         locations: {},
         rides: {},
-        myGps: { lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng, speed: 0, heading: 0 },
+        myGps: {
+          lat: DEFAULT_CENTER.lat,
+          lng: DEFAULT_CENTER.lng,
+          speed: 0,
+          heading: 0,
+          accuracy: null,
+          source: 'default' // 'hardware' | 'manual' | 'default'
+        },
         driverOnline: true,
-        simulating: false,
-        pinMode: 'dropoff', // 'dropoff' | 'pickup' | 'gps'
-        pickup: { lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng, label: 'Current Live GPS', manual: false },
+        pinMode: 'dropoff', // 'dropoff' | 'pickup' | 'mygps'
+        pickup: {
+          lat: DEFAULT_CENTER.lat,
+          lng: DEFAULT_CENTER.lng,
+          label: 'Locating GPS...',
+          manual: false
+        },
         dropoff: null,
         route: null,
         tier: 'bike',
-        fare: 100,
+        fare: 85,
         payMode: 'Cash',
         activeRideId: null,
+        lastKnownRideStatus: null,
+        lastKnownBidsCount: 0,
+        lastOpenRequestsCount: 0,
         regRole: 'passenger',
         otpInput: '',
         renderedViewKey: ''
       };
 
       // =========================================================================
-      // 3. HELPERS
+      // 3. AUDIO CHIME (Subtle Web Audio Tone for Real-Time Ride Events) & HELPERS
       // =========================================================================
+      let audioCtx = null;
+      function playNotificationTone(type = 'info') {
+        try {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!Ctx) return;
+          if (!audioCtx) audioCtx = new Ctx();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+
+          const now = audioCtx.currentTime;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+
+          if (type === 'accepted') {
+            osc.frequency.setValueAtTime(587.33, now);       // D5
+            osc.frequency.setValueAtTime(880.00, now + 0.12); // A5
+          } else {
+            osc.frequency.setValueAtTime(659.25, now);       // E5
+          }
+
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.34);
+        } catch (_) {}
+      }
+
       let toastTimer = null;
-      function toast(text) {
+      function toast(text, variant = 'default') {
         const el = document.getElementById('toast');
         document.getElementById('toastMsg').textContent = text;
-        el.classList.add('show');
+        el.className = variant === 'emerald' ? 'show emerald' : 'show';
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+        toastTimer = setTimeout(() => {
+          el.classList.remove('show');
+        }, 3400);
       }
 
       function distKm(lat1, lon1, lat2, lon2) {
@@ -1039,16 +1096,15 @@
         return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
       }
 
-      function bearingDeg(lat1, lon1, lat2, lon2) {
-        const y = Math.sin((lon2 - lon1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
-        const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
-          Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lon2 - lon1) * Math.PI / 180);
-        return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+      // Recommended fare floor for a given distance & tier (cannot bargain below this)
+      function calcRecommendedFare(km, tierId) {
+        const t = TIERS[tierId] || TIERS.bike;
+        const distance = Math.max(0.5, Number(km) || 1.0);
+        return Math.max(t.base, Math.round((t.base + distance * t.perKm) / 5) * 5);
       }
 
-      function calcFare(km, tierId) {
-        const t = TIERS[tierId] || TIERS.bike;
-        return Math.max(t.base, Math.round((t.base + km * t.perKm) / 5) * 5);
+      function getCurrentMinFare() {
+        return calcRecommendedFare(state.route?.km || 2.5, state.tier);
       }
 
       // =========================================================================
@@ -1069,6 +1125,8 @@
             lng: Number(payload.lng),
             speed: Number(payload.speed || 0),
             heading: Number(payload.heading || 0),
+            accuracy: payload.accuracy != null ? Number(payload.accuracy) : null,
+            source: payload.source || 'gps',
             online: payload.online !== false,
             updatedAt: Date.now()
           };
@@ -1136,7 +1194,7 @@
       }
 
       // =========================================================================
-      // 5. MAP ENGINE (Keyless Dark OpenStreetMap + Fallback)
+      // 5. MAP ENGINE (Keyless Dark Tiles + Draggable Pickup & Drop-off Pins)
       // =========================================================================
       let map = null;
       let myMarker = null;
@@ -1154,15 +1212,34 @@
         return `<div style="transform:rotate(${heading}deg);width:32px;height:32px;border-radius:50%;background:#0b0f18;border:2px solid ${color};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.65);">${svg}</div>`;
       }
 
+      async function setManualPickup(lat, lng, customLabel = null) {
+        const label = customLabel || await reverseGeocode(lat, lng);
+        state.pickup = { lat, lng, label, manual: true };
+        // Also align current GPS if user had default fallback location
+        if (state.myGps.source === 'default') {
+          applyMyGps(lat, lng, 0, 0, null, 'manual');
+        }
+        await fetchRoadRoute();
+        syncMapGraphics();
+        renderConsole(true);
+      }
+
+      async function setManualDropoff(lat, lng, customLabel = null) {
+        const label = customLabel || await reverseGeocode(lat, lng);
+        state.dropoff = { lat, lng, label };
+        await fetchRoadRoute();
+        syncMapGraphics();
+        renderConsole(true);
+      }
+
       function initMap() {
         map = L.map('map', {
           center: [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng],
-          zoom: 15,
+          zoom: 16,
           zoomControl: false,
           attributionControl: false
         });
 
-        // Keyless OpenStreetMap tiles styled into dark theme via CSS filter on .leaflet-tile-pane
         const primaryTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19
         }).addTo(map);
@@ -1176,25 +1253,29 @@
           }).addTo(map);
         });
 
+        // Map click sets either Destination, Pickup, or My GPS manually
         map.on('click', async (e) => {
           const { lat, lng } = e.latlng;
-          if (state.pinMode === 'gps') {
-            setMyGps(lat, lng, 0, state.myGps.heading);
-            toast('GPS position updated');
+          if (state.pinMode === 'mygps') {
+            applyMyGps(lat, lng, 0, state.myGps.heading, null, 'manual');
+            if (state.user?.role === 'passenger' && !state.activeRideId) {
+              await setManualPickup(lat, lng);
+            }
+            toast('Pinned your GPS location on map');
             return;
           }
+
           if (state.user?.role === 'passenger' && !state.activeRideId) {
-            const label = await reverseGeocode(lat, lng);
             if (state.pinMode === 'pickup') {
-              state.pickup = { lat, lng, label, manual: true };
-              toast(`Pickup: ${label}`);
+              await setManualPickup(lat, lng);
+              toast(`Pickup pinned: ${state.pickup.label}`);
             } else {
-              state.dropoff = { lat, lng, label };
-              toast(`Destination: ${label}`);
+              await setManualDropoff(lat, lng);
+              toast(`Destination pinned: ${state.dropoff.label}`);
             }
-            await fetchRoadRoute();
-            syncMapGraphics();
-            renderConsole(true);
+          } else if (state.user?.role === 'driver') {
+            applyMyGps(lat, lng, 0, state.myGps.heading, null, 'manual');
+            toast('Rider GPS pin updated');
           }
         });
       }
@@ -1203,9 +1284,12 @@
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
           const d = await res.json();
-          return d?.name || d?.address?.suburb || d?.address?.road || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+          const addr = d?.address || {};
+          const parts = [d?.name, addr.road, addr.suburb || addr.neighbourhood || addr.city_district].filter(Boolean);
+          const unique = [...new Set(parts)];
+          return unique.length ? unique.slice(0, 2).join(', ') : `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
         } catch (_) {
-          return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+          return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
         }
       }
 
@@ -1225,7 +1309,7 @@
             const min = Math.max(2, Math.round(r.duration / 60));
             const coords = r.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
             state.route = { km, min, coords };
-            state.fare = calcFare(km, state.tier);
+            state.fare = calcRecommendedFare(km, state.tier);
             return;
           }
         } catch (_) {}
@@ -1236,13 +1320,13 @@
           min: Math.max(3, Math.round((km / 25) * 60)),
           coords: [[p1.lat, p1.lng], [p2.lat, p2.lng]]
         };
-        state.fare = calcFare(km, state.tier);
+        state.fare = calcRecommendedFare(km, state.tier);
       }
 
       function syncMapGraphics() {
         if (!map) return;
 
-        // 1. Self Marker
+        // 1. Self Marker (Draggable when user wants to adjust own pin manually)
         const isDriver = state.user?.role === 'driver';
         const selfHtml = isDriver
           ? `<div class="mk-wrap">${vehicleIconSvg(state.user.vehicleType || 'bike', '#22d3ee', state.myGps.heading)}<div class="mk-label">${state.user.plate || 'YOU'}</div></div>`
@@ -1250,13 +1334,25 @@
 
         const selfIcon = L.divIcon({ html: selfHtml, className: '', iconSize: [70, 50], iconAnchor: [35, 25] });
         if (!myMarker) {
-          myMarker = L.marker([state.myGps.lat, state.myGps.lng], { icon: selfIcon, zIndexOffset: 900 }).addTo(map);
+          myMarker = L.marker([state.myGps.lat, state.myGps.lng], {
+            icon: selfIcon,
+            draggable: true,
+            zIndexOffset: 900
+          }).addTo(map);
+          myMarker.on('dragend', async (ev) => {
+            const { lat, lng } = ev.target.getLatLng();
+            applyMyGps(lat, lng, 0, state.myGps.heading, null, 'manual');
+            if (state.user?.role === 'passenger' && !state.activeRideId) {
+              await setManualPickup(lat, lng);
+            }
+            toast('Adjusted your GPS pin');
+          });
         } else {
           myMarker.setLatLng([state.myGps.lat, state.myGps.lng]);
           myMarker.setIcon(selfIcon);
         }
 
-        // 2. Live Peers from Firebase RTDB gps-rt/live_locations
+        // 2. Live Peers from Firebase RTDB gps-rt/live_locations (Real-Time 1s Updates)
         const seen = new Set();
         let activeCount = 0;
         Object.entries(state.locations).forEach(([uname, loc]) => {
@@ -1291,36 +1387,63 @@
         }
         document.getElementById('hudPeers').textContent = `${activeCount} Active`;
 
-        // 3. Route, Pickup, Drop-off
+        // 3. Pickup Marker (Draggable before ride starts)
         const activeRide = state.activeRideId ? state.rides[state.activeRideId] : null;
         const pPt = activeRide ? activeRide.pickup : state.pickup;
         const dPt = activeRide ? activeRide.dropoff : state.dropoff;
         const coords = activeRide ? activeRide.routeCoords : state.route?.coords;
+        const canDragPins = !activeRide && state.user?.role === 'passenger';
 
-        if (pPt && (dPt || activeRide)) {
+        if (pPt && (dPt || activeRide || pPt.manual)) {
           const ic = L.divIcon({
-            html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#10b981;border:2.5px solid #fff;"></div><div class="mk-label">PICKUP</div></div>`,
-            className: '', iconSize: [64, 34], iconAnchor: [32, 8]
+            html: `<div class="mk-wrap"><div style="width:15px;height:15px;border-radius:50%;background:#10b981;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.6);"></div><div class="marker-tag mk-label">PICKUP</div></div>`,
+            className: '', iconSize: [68, 36], iconAnchor: [34, 8]
           });
-          if (!pickupMarker) pickupMarker = L.marker([pPt.lat, pPt.lng], { icon: ic }).addTo(map);
-          else { pickupMarker.setLatLng([pPt.lat, pPt.lng]); pickupMarker.setIcon(ic); }
+          if (!pickupMarker) {
+            pickupMarker = L.marker([pPt.lat, pPt.lng], { icon: ic, draggable: canDragPins, zIndexOffset: 850 }).addTo(map);
+            pickupMarker.on('dragend', async (ev) => {
+              const { lat, lng } = ev.target.getLatLng();
+              await setManualPickup(lat, lng);
+              toast(`Pickup moved: ${state.pickup.label}`);
+            });
+          } else {
+            pickupMarker.setLatLng([pPt.lat, pPt.lng]);
+            pickupMarker.setIcon(ic);
+            if (pickupMarker.dragging) {
+              canDragPins ? pickupMarker.dragging.enable() : pickupMarker.dragging.disable();
+            }
+          }
         } else if (pickupMarker) {
           map.removeLayer(pickupMarker);
           pickupMarker = null;
         }
 
+        // 4. Drop-off Marker (Draggable before ride starts)
         if (dPt) {
           const ic = L.divIcon({
-            html: `<div class="mk-wrap"><div style="width:14px;height:14px;border-radius:50%;background:#f43f5e;border:2.5px solid #fff;"></div><div class="mk-label">DROP</div></div>`,
-            className: '', iconSize: [64, 34], iconAnchor: [32, 8]
+            html: `<div class="mk-wrap"><div style="width:15px;height:15px;border-radius:50%;background:#f43f5e;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.6);"></div><div class="mk-label">DROP</div></div>`,
+            className: '', iconSize: [68, 36], iconAnchor: [34, 8]
           });
-          if (!dropoffMarker) dropoffMarker = L.marker([dPt.lat, dPt.lng], { icon: ic }).addTo(map);
-          else { dropoffMarker.setLatLng([dPt.lat, dPt.lng]); dropoffMarker.setIcon(ic); }
+          if (!dropoffMarker) {
+            dropoffMarker = L.marker([dPt.lat, dPt.lng], { icon: ic, draggable: canDragPins, zIndexOffset: 860 }).addTo(map);
+            dropoffMarker.on('dragend', async (ev) => {
+              const { lat, lng } = ev.target.getLatLng();
+              await setManualDropoff(lat, lng);
+              toast(`Destination moved: ${state.dropoff.label}`);
+            });
+          } else {
+            dropoffMarker.setLatLng([dPt.lat, dPt.lng]);
+            dropoffMarker.setIcon(ic);
+            if (dropoffMarker.dragging) {
+              canDragPins ? dropoffMarker.dragging.enable() : dropoffMarker.dragging.disable();
+            }
+          }
         } else if (dropoffMarker) {
           map.removeLayer(dropoffMarker);
           dropoffMarker = null;
         }
 
+        // 5. Route Polyline
         if (coords && coords.length > 1) {
           if (routeLine) map.removeLayer(routeLine);
           routeLine = L.polyline(coords, { color: '#22d3ee', weight: 4.5, opacity: 0.92 }).addTo(map);
@@ -1331,7 +1454,7 @@
       }
 
       // =========================================================================
-      // 6. REAL-TIME FIREBASE LISTENERS (WebSocket Sync + Presence)
+      // 6. REAL-TIME FIREBASE LISTENERS & PATHAO RIDE STATUS NOTIFICATIONS
       // =========================================================================
       function bindRealtimeStreams() {
         dbApi.ref('live_locations').on('value', (snap) => {
@@ -1342,74 +1465,194 @@
 
         dbApi.ref('rides').on('value', (snap) => {
           state.rides = snap.val() || {};
-          resolveActiveRide();
+          resolveActiveRideAndNotify();
           syncMapGraphics();
           renderConsole(false);
         });
       }
 
-      function resolveActiveRide() {
+      function resolveActiveRideAndNotify() {
         if (!state.user) return;
-        if (state.activeRideId && state.rides[state.activeRideId]) {
-          const r = state.rides[state.activeRideId];
-          if (r.status === 'completed' || r.status === 'cancelled') {
-            state.activeRideId = null;
+
+        // Notify Driver when a new passenger ride request appears
+        if (state.user.role === 'driver' && state.driverOnline && !state.activeRideId) {
+          const openReqs = getOpenRequests();
+          if (openReqs.length > state.lastOpenRequestsCount) {
+            playNotificationTone('info');
+            const newest = openReqs[0];
+            toast(`New Ride Request • ${newest.pickup.label} (रु.${newest.fareNPR})`, 'emerald');
           }
-          return;
+          state.lastOpenRequestsCount = openReqs.length;
         }
-        const match = Object.values(state.rides).find((r) => {
-          if (!r || r.status === 'completed' || r.status === 'cancelled') return false;
-          return state.user.role === 'passenger'
-            ? r.passenger?.username === state.user.username
-            : r.driver?.username === state.user.username;
-        });
-        state.activeRideId = match ? match.rideId : null;
+
+        // Check tracked ride transitions
+        let tracked = state.activeRideId ? state.rides[state.activeRideId] : null;
+        if (!tracked) {
+          tracked = Object.values(state.rides).find((r) => {
+            if (!r || r.status === 'completed' || r.status === 'cancelled') return false;
+            return state.user.role === 'passenger'
+              ? r.passenger?.username === state.user.username
+              : r.driver?.username === state.user.username;
+          }) || null;
+        }
+
+        if (tracked) {
+          state.activeRideId = tracked.rideId;
+
+          // Passenger real-time notifications (just like Pathao)
+          if (state.user.role === 'passenger') {
+            if (tracked.status === 'searching') {
+              const bidsCount = Object.keys(tracked.bids || {}).length;
+              if (bidsCount > state.lastKnownBidsCount) {
+                playNotificationTone('info');
+                toast(`New Rider Offer Received (${bidsCount})`, 'emerald');
+              }
+              state.lastKnownBidsCount = bidsCount;
+            }
+
+            if (state.lastKnownRideStatus !== tracked.status) {
+              if (tracked.status === 'accepted') {
+                playNotificationTone('accepted');
+                toast(`Rider Accepted • ${tracked.driver?.fullName} (${tracked.driver?.plate})`, 'emerald');
+                frameActiveRideOnMap(tracked);
+              } else if (tracked.status === 'arrived') {
+                playNotificationTone('accepted');
+                toast(`Rider Arrived at Pickup • Share OTP ${tracked.otp}`, 'emerald');
+              } else if (tracked.status === 'in_progress') {
+                playNotificationTone('info');
+                toast(`Trip Started • En route to ${tracked.dropoff.label}`, 'emerald');
+              } else if (tracked.status === 'completed') {
+                playNotificationTone('accepted');
+                toast(`Trip Completed • Paid रु.${tracked.fareNPR}`, 'emerald');
+                state.activeRideId = null;
+                state.lastKnownRideStatus = null;
+                state.lastKnownBidsCount = 0;
+                return;
+              } else if (tracked.status === 'cancelled') {
+                toast('Ride Cancelled');
+                state.activeRideId = null;
+                state.lastKnownRideStatus = null;
+                state.lastKnownBidsCount = 0;
+                return;
+              }
+            }
+          } else {
+            // Driver ride status cleanup
+            if (tracked.status === 'completed' || tracked.status === 'cancelled') {
+              state.activeRideId = null;
+              state.lastKnownRideStatus = null;
+              return;
+            }
+          }
+
+          state.lastKnownRideStatus = tracked.status;
+        } else {
+          state.activeRideId = null;
+          state.lastKnownRideStatus = null;
+          state.lastKnownBidsCount = 0;
+        }
+      }
+
+      function frameActiveRideOnMap(ride) {
+        if (!map || !ride) return;
+        const pts = [];
+        if (ride.pickup) pts.push([ride.pickup.lat, ride.pickup.lng]);
+        if (ride.dropoff) pts.push([ride.dropoff.lat, ride.dropoff.lng]);
+        const dLoc = ride.driver?.username ? state.locations[ride.driver.username] : ride.driverGps;
+        if (dLoc?.lat && dLoc?.lng) pts.push([dLoc.lat, dLoc.lng]);
+        if (pts.length >= 2) {
+          map.fitBounds(L.latLngBounds(pts), { padding: [55, 55] });
+        }
       }
 
       // =========================================================================
-      // 7. LIVE GPS TRACKER & SIMULATOR
+      // 7. HIGH-ACCURACY HARDWARE GPS & 1-SECOND LIVE RTDB PINGING
       // =========================================================================
       let lastPushTs = 0;
-      let centeredOnce = false;
+      let centeredHardwareOnce = false;
+      let bestHardwareAccuracy = Infinity;
 
-      function startGpsWatcher() {
+      function startLiveGpsEngine() {
         if ('geolocation' in navigator) {
-          navigator.geolocation.watchPosition(
-            (pos) => {
-              if (state.simulating) return;
-              const { latitude, longitude, speed, heading } = pos.coords;
-              setMyGps(latitude, longitude, speed ? Math.round(speed * 3.6) : 0, heading || state.myGps.heading);
-              if (!centeredOnce && map) {
-                centeredOnce = true;
-                map.setView([latitude, longitude], 15);
+          // 1. Immediate high-accuracy fix request on startup
+          navigator.geolocation.getCurrentPosition(
+            (pos) => handleHardwarePosition(pos, true),
+            () => {
+              document.getElementById('hudCoords').textContent = `${state.myGps.lat.toFixed(4)}, ${state.myGps.lng.toFixed(4)}`;
+              document.getElementById('hudAcc').textContent = 'Manual Pin';
+              if (!state.pickup.manual) {
+                state.pickup.label = 'Tap map or search pickup';
+                renderConsole(true);
               }
             },
-            () => pushGpsToRtdb(true),
-            { enableHighAccuracy: true, maximumAge: 1500, timeout: 8000 }
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 }
+          );
+
+          // 2. Continuous live hardware GPS stream
+          navigator.geolocation.watchPosition(
+            (pos) => handleHardwarePosition(pos, false),
+            () => {},
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
           );
         }
+
+        // 3. Dedicated 1-second (1000ms) real-time telemetry ping loop
         setInterval(() => {
-          if (state.user) pushGpsToRtdb();
-        }, 2500);
+          if (state.user) {
+            pushGpsToRtdb(true);
+          }
+        }, 1000);
       }
 
-      function setMyGps(lat, lng, speed = 0, heading = 0) {
-        state.myGps = { lat, lng, speed, heading };
-        document.getElementById('hudCoords').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-        document.getElementById('hudSpeed').textContent = `${speed} km/h`;
+      async function handleHardwarePosition(pos, isInitial) {
+        // Respect manual GPS override if user explicitly pinned their location on map
+        if (state.myGps.source === 'manual' && !isInitial) return;
+
+        const { latitude, longitude, speed, heading, accuracy } = pos.coords;
+        const acc = accuracy ? Math.round(accuracy) : null;
+
+        // Filter out coarse cell-tower/IP jumps (> 1500m) if we already locked onto accurate GPS (< 120m)
+        if (acc && acc > 1500 && bestHardwareAccuracy < 120) return;
+        if (acc && acc < bestHardwareAccuracy) bestHardwareAccuracy = acc;
+
+        const speedKmh = speed && speed > 0 ? Math.round(speed * 3.6) : 0;
+        applyMyGps(latitude, longitude, speedKmh, heading || state.myGps.heading, acc, 'hardware');
+
+        if (!centeredHardwareOnce && map) {
+          centeredHardwareOnce = true;
+          map.setView([latitude, longitude], 16);
+        }
 
         if (state.user?.role === 'passenger' && !state.activeRideId && !state.pickup.manual) {
-          state.pickup.lat = lat;
-          state.pickup.lng = lng;
+          state.pickup.lat = latitude;
+          state.pickup.lng = longitude;
+          if (state.pickup.label === 'Locating GPS...' || state.pickup.label === 'Tap map or search pickup') {
+            state.pickup.label = await reverseGeocode(latitude, longitude);
+            renderConsole(true);
+          }
+          if (state.dropoff) {
+            await fetchRoadRoute();
+            syncMapGraphics();
+            renderConsole(true);
+          }
         }
+      }
+
+      function applyMyGps(lat, lng, speed = 0, heading = 0, accuracy = null, source = 'hardware') {
+        state.myGps = { lat, lng, speed, heading, accuracy, source };
+        document.getElementById('hudCoords').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        document.getElementById('hudAcc').textContent = source === 'manual'
+          ? 'Pinned'
+          : (accuracy ? `±${accuracy}m` : 'GPS');
+
         syncMapGraphics();
-        pushGpsToRtdb();
+        pushGpsToRtdb(false);
       }
 
       async function pushGpsToRtdb(force = false) {
         if (!state.user) return;
         const now = Date.now();
-        if (!force && now - lastPushTs < 1000) return;
+        if (!force && now - lastPushTs < 850) return;
         lastPushTs = now;
 
         const online = state.user.role === 'driver' ? state.driverOnline : true;
@@ -1428,47 +1671,30 @@
             lng: state.myGps.lng,
             speed: state.myGps.speed,
             heading: state.myGps.heading,
+            accuracy: state.myGps.accuracy,
+            source: state.myGps.source,
             online
           });
 
+          // If driver is on an active trip, update live ride telemetry every second
           if (state.user.role === 'driver' && state.activeRideId) {
             await dbApi.update(`rides/${state.activeRideId}`, {
-              driverGps: { lat: state.myGps.lat, lng: state.myGps.lng, speed: state.myGps.speed, heading: state.myGps.heading, updatedAt: now }
+              driverGps: {
+                lat: state.myGps.lat,
+                lng: state.myGps.lng,
+                speed: state.myGps.speed,
+                heading: state.myGps.heading,
+                updatedAt: now
+              }
             });
             await dbApi.set(`telemetry_logs/${state.activeRideId}/${now}`, {
-              lat: state.myGps.lat, lng: state.myGps.lng, speed: state.myGps.speed, heading: state.myGps.heading
+              lat: state.myGps.lat,
+              lng: state.myGps.lng,
+              speed: state.myGps.speed,
+              heading: state.myGps.heading
             });
           }
         } catch (_) {}
-      }
-
-      let simTimer = null;
-      let simIdx = 0;
-      function toggleSimulator() {
-        state.simulating = !state.simulating;
-        document.getElementById('toolSim').classList.toggle('active', state.simulating);
-        if (state.simulating) {
-          toast('GPS Simulator Active');
-          simIdx = 0;
-          simTimer = setInterval(() => {
-            const activeRide = state.activeRideId ? state.rides[state.activeRideId] : null;
-            const path = activeRide?.routeCoords || state.route?.coords;
-            if (path && path.length > 1) {
-              const next = (simIdx + 1) % path.length;
-              const [aLat, aLng] = path[simIdx];
-              const [bLat, bLng] = path[next];
-              setMyGps(bLat, bLng, 32, Math.round(bearingDeg(aLat, aLng, bLat, bLng)));
-              simIdx = next;
-            } else {
-              const a = (Date.now() / 3000) % (Math.PI * 2);
-              setMyGps(state.myGps.lat + Math.cos(a) * 0.0003, state.myGps.lng + Math.sin(a) * 0.0003, 26, Math.round((a * 180) / Math.PI));
-            }
-          }, 1100);
-        } else {
-          clearInterval(simTimer);
-          setMyGps(state.myGps.lat, state.myGps.lng, 0, state.myGps.heading);
-          toast('GPS Simulator Stopped');
-        }
       }
 
       // =========================================================================
@@ -1570,7 +1796,7 @@
       }
 
       // =========================================================================
-      // 9. LIVE GEOCODING AUTOCOMPLETE (Zero Hardcoded Presets)
+      // 9. LIVE GEOCODING AUTOCOMPLETE (Pickup & Destination)
       // =========================================================================
       async function searchPlaces(query) {
         if (!query || query.length < 2) return [];
@@ -1590,11 +1816,15 @@
       }
 
       // =========================================================================
-      // 10. RIDE LIFECYCLE & FARE NEGOTIATION
+      // 10. RIDE LIFECYCLE & FARE FLOOR ENFORCEMENT (Cannot Bargain Below Min)
       // =========================================================================
       async function requestRide() {
         if (!state.user || state.user.role !== 'passenger') return;
-        if (!state.dropoff || !state.route) return toast('Select a destination first');
+        if (!state.dropoff || !state.route) return toast('Select or pin a destination on map first');
+
+        const minFare = getCurrentMinFare();
+        const finalFare = Math.max(minFare, Number(state.fare) || minFare);
+        state.fare = finalFare;
 
         const rideId = `R_${Date.now().toString(36).toUpperCase()}`;
         const otp = String(Math.floor(1000 + Math.random() * 9000));
@@ -1602,7 +1832,8 @@
           rideId,
           status: 'searching',
           tier: state.tier,
-          fareNPR: Number(state.fare) || 100,
+          recommendedFare: minFare,
+          fareNPR: finalFare,
           paymentMethod: state.payMode,
           distanceKm: state.route.km,
           durationMin: state.route.min,
@@ -1622,13 +1853,16 @@
 
         await dbApi.set(`rides/${rideId}`, rideData);
         state.activeRideId = rideId;
-        toast('Request sent to nearby riders');
+        state.lastKnownRideStatus = 'searching';
+        playNotificationTone('info');
+        toast(`Broadcasting request • रु.${finalFare}`);
         renderConsole(true);
       }
 
       async function cancelRide(rideId) {
         await dbApi.update(`rides/${rideId}`, { status: 'cancelled', cancelledAt: Date.now() });
         state.activeRideId = null;
+        state.lastKnownRideStatus = null;
         toast('Ride cancelled');
         syncMapGraphics();
         renderConsole(true);
@@ -1638,6 +1872,9 @@
         if (!state.user || state.user.role !== 'driver') return;
         const ride = state.rides[rideId];
         if (!ride) return;
+
+        const floor = Number(ride.recommendedFare || ride.fareNPR || 40);
+        const safeFare = Math.max(floor, Number(fare));
 
         const dKm = +distKm(state.myGps.lat, state.myGps.lng, ride.pickup.lat, ride.pickup.lng).toFixed(1);
         const eta = Math.max(1, Math.round((dKm / 28) * 60));
@@ -1658,19 +1895,21 @@
         if (instantAccept) {
           await dbApi.update(`rides/${rideId}`, {
             status: 'accepted',
-            fareNPR: Number(fare),
+            fareNPR: safeFare,
             driver: info,
+            driverGps: { lat: state.myGps.lat, lng: state.myGps.lng, speed: state.myGps.speed, heading: state.myGps.heading, updatedAt: Date.now() },
             acceptedAt: Date.now()
           });
           state.activeRideId = rideId;
-          toast('Ride accepted');
+          playNotificationTone('accepted');
+          toast(`Ride Accepted • Navigate to Pickup`, 'emerald');
         } else {
           await dbApi.set(`rides/${rideId}/bids/${state.user.username}`, {
             ...info,
-            offeredFare: Number(fare),
+            offeredFare: safeFare,
             bidAt: Date.now()
           });
-          toast(`Offer NPR ${fare} sent`);
+          toast(`Offer रु.${safeFare} sent`);
         }
         renderConsole(true);
       }
@@ -1684,7 +1923,8 @@
           driver: bid,
           acceptedAt: Date.now()
         });
-        toast(`Matched with ${bid.fullName}`);
+        playNotificationTone('accepted');
+        toast(`Matched with ${bid.fullName} (${bid.plate})`, 'emerald');
         renderConsole(true);
       }
 
@@ -1698,9 +1938,10 @@
         if (nextStatus === 'completed') {
           state.activeRideId = null;
           state.otpInput = '';
-          toast(`Completed • NPR ${ride.fareNPR}`);
+          playNotificationTone('accepted');
+          toast(`Completed • Collect रु.${ride.fareNPR}`, 'emerald');
         } else {
-          toast(`Status: ${nextStatus.replace('_', ' ')}`);
+          toast(`Status: ${nextStatus.replace('_', ' ')}`, 'emerald');
         }
         syncMapGraphics();
         renderConsole(true);
@@ -1746,6 +1987,19 @@
           countEl.textContent = `REQUESTS (${reqs.length})`;
           feed.innerHTML = renderOpenRequestsHtml(reqs);
           bindDriverFeedActions(feed);
+        } else if (key.startsWith('p_active_')) {
+          // Live update rider's distance & ETA on passenger screen every second
+          const etaEl = document.getElementById('liveRiderEta');
+          const ride = state.activeRideId ? state.rides[state.activeRideId] : null;
+          if (etaEl && ride && ride.driver?.username) {
+            const dLoc = state.locations[ride.driver.username] || ride.driverGps;
+            if (dLoc?.lat && dLoc?.lng) {
+              const target = ride.status === 'in_progress' ? ride.dropoff : ride.pickup;
+              const dKm = +distKm(dLoc.lat, dLoc.lng, target.lat, target.lng).toFixed(2);
+              const mins = Math.max(1, Math.round((dKm / 28) * 60));
+              etaEl.textContent = `${dKm} km • ~${mins} min away`;
+            }
+          }
         }
       }
 
@@ -1781,7 +2035,7 @@
                   <div style="font-size:11px;color:var(--text-secondary);">${r.dist} km away • Trip ${r.distanceKm} km</div>
                 </div>
                 <div style="text-align:right;">
-                  <div style="font-family:var(--font-mono);font-size:15px;font-weight:800;color:var(--accent);">NPR ${r.fareNPR}</div>
+                  <div style="font-family:var(--font-mono);font-size:15px;font-weight:800;color:var(--accent);">रु.${r.fareNPR}</div>
                   <div style="font-size:10.5px;color:var(--text-secondary);">${r.paymentMethod}</div>
                 </div>
               </div>
@@ -1789,8 +2043,8 @@
                 ${r.pickup.label} → <strong style="color:var(--text-primary);">${r.dropoff.label}</strong>
               </div>
               <div style="display:flex;gap:8px;">
-                <div class="btn-cap emerald sm" data-accept="${r.rideId}" data-fare="${r.fareNPR}" role="button" tabindex="0" style="flex:1;">Accept NPR ${r.fareNPR}</div>
-                <div class="btn-cap amber sm" data-bid="${r.rideId}" data-fare="${counter}" role="button" tabindex="0">${hasBid ? `Offered ${r.bids[state.user.username].offeredFare}` : `Offer ${counter}`}</div>
+                <div class="btn-cap emerald sm" data-accept="${r.rideId}" data-fare="${r.fareNPR}" role="button" tabindex="0" style="flex:1;">Accept रु.${r.fareNPR}</div>
+                <div class="btn-cap amber sm" data-bid="${r.rideId}" data-fare="${counter}" role="button" tabindex="0">${hasBid ? `Offered रु.${r.bids[state.user.username].offeredFare}` : `Offer रु.${counter}`}</div>
               </div>
             </div>
           `;
@@ -1826,11 +2080,11 @@
                         <div style="font-size:11px;color:var(--text-secondary);">${b.vehicleModel} • <span style="font-family:var(--font-mono);color:var(--accent);">${b.plate}</span></div>
                       </div>
                       <div style="text-align:right;">
-                        <div style="font-family:var(--font-mono);font-size:15px;font-weight:800;color:var(--accent);">NPR ${b.offeredFare}</div>
+                        <div style="font-family:var(--font-mono);font-size:15px;font-weight:800;color:var(--accent);">रु.${b.offeredFare}</div>
                         <div style="font-size:10.5px;color:var(--text-secondary);">${b.distKm} km • ${b.etaMin} min</div>
                       </div>
                     </div>
-                    <div class="btn-cap emerald sm full" data-pick-bid="${b.username}" role="button" tabindex="0">Accept NPR ${b.offeredFare}</div>
+                    <div class="btn-cap emerald sm full" data-pick-bid="${b.username}" role="button" tabindex="0">Accept रु.${b.offeredFare}</div>
                   </div>
                 `).join('');
               bidsContainer.querySelectorAll('[data-pick-bid]').forEach(el => {
@@ -1868,7 +2122,7 @@
           if (ride && ride.status === 'searching') {
             panel.innerHTML = `
               <div class="row-between">
-                <div class="tag">Searching Riders • NPR ${ride.fareNPR}</div>
+                <div class="tag">Searching Riders • रु.${ride.fareNPR}</div>
                 <div class="btn-cap danger sm" id="btnCancelSearch" role="button" tabindex="0">Cancel</div>
               </div>
               <div style="font-size:12px;color:var(--text-secondary);">
@@ -1884,8 +2138,8 @@
           if (ride) {
             const d = ride.driver || {};
             const labels = {
-              accepted: 'Rider En Route',
-              arrived: 'Rider Arrived',
+              accepted: 'Rider Accepted • On the Way',
+              arrived: 'Rider Arrived at Pickup',
               in_progress: 'Trip In Progress'
             };
             panel.innerHTML = `
@@ -1896,24 +2150,33 @@
               <div class="data-card">
                 <div class="row-between">
                   <div>
-                    <div style="font-size:14px;font-weight:800;">${d.fullName || 'Assigned Rider'}</div>
+                    <div style="font-size:14.5px;font-weight:800;">${d.fullName || 'Assigned Rider'}</div>
                     <div style="font-size:11.5px;color:var(--text-secondary);">${d.vehicleModel || ''} • ${d.color || ''}</div>
-                    <div style="font-family:var(--font-mono);font-size:11.5px;color:var(--accent);margin-top:2px;">${d.plate || ''} • ${d.phone || ''}</div>
+                    <div style="font-family:var(--font-mono);font-size:11.5px;color:var(--accent);margin-top:2px;">${d.plate || ''}</div>
+                    <div id="liveRiderEta" style="font-family:var(--font-mono);font-size:11px;color:var(--accent-emerald);margin-top:3px;">Live GPS Tracking Active</div>
                   </div>
                   <div style="text-align:right;">
-                    <div style="font-family:var(--font-mono);font-size:16px;font-weight:800;color:var(--accent);">NPR ${ride.fareNPR}</div>
+                    <div style="font-family:var(--font-mono);font-size:17px;font-weight:800;color:var(--accent);">रु.${ride.fareNPR}</div>
                     <div style="font-size:11px;color:var(--text-secondary);">${ride.paymentMethod}</div>
                   </div>
                 </div>
-                ${ride.status === 'accepted' ? `<div class="btn-cap danger sm full" id="btnCancelMatched" role="button" tabindex="0">Cancel Ride</div>` : ''}
+                <div style="display:flex;gap:8px;">
+                  ${d.phone ? `<a class="btn-cap emerald sm" href="tel:${d.phone}" style="flex:1;">Call Rider</a>` : ''}
+                  ${ride.status === 'accepted' ? `<div class="btn-cap danger sm" id="btnCancelMatched" role="button" tabindex="0" style="flex:1;">Cancel Ride</div>` : ''}
+                </div>
               </div>
             `;
             document.getElementById('btnCancelMatched')?.addEventListener('click', () => cancelRide(ride.rideId));
+            updateDynamicListsOnly();
             return;
           }
 
-          // Booking View (Zero Hardcoded Presets — Live Search + Direct Map Tap)
+          // Booking View (Manual Map Pin + Search for Both Pickup & Destination + Min Fare Floor)
           const km = state.route?.km || 2.5;
+          const minFare = calcRecommendedFare(km, state.tier);
+          if (state.fare < minFare) state.fare = minFare;
+          const canDecrease = state.fare > minFare;
+
           panel.innerHTML = `
             <div class="row-between">
               <div id="nearbyRidersCount" style="font-size:11px;font-weight:800;color:var(--accent);letter-spacing:0.03em;">NEARBY RIDERS (0)</div>
@@ -1924,13 +2187,15 @@
             <div style="display:flex;flex-direction:column;gap:7px;">
               <div class="field-wrap">
                 <span style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
-                <input class="field-input" id="inPickup" type="text" value="${state.pickup.label}" placeholder="Pickup location" />
+                <input class="field-input" id="inPickup" type="text" value="${state.pickup.label}" placeholder="Search pickup or tap map" autocomplete="off" />
                 <div class="btn-cap sm" id="btnUseGpsPickup" role="button" tabindex="0" style="height:26px;padding:0 9px;font-size:10.5px;">GPS</div>
               </div>
+              <div id="pickupSuggestions" class="search-results" style="display:none;"></div>
+
               <div class="field-wrap">
                 <span style="width:8px;height:8px;border-radius:50%;background:#f43f5e;flex-shrink:0;"></span>
                 <input class="field-input" id="inDropoff" type="text" value="${state.dropoff ? state.dropoff.label : ''}" placeholder="Search destination or tap map" autocomplete="off" />
-                <div class="btn-cap sm" id="btnFindDest" role="button" tabindex="0" style="height:26px;padding:0 10px;">Go</div>
+                <div class="btn-cap sm" id="btnPinDropToggle" role="button" tabindex="0" style="height:26px;padding:0 9px;font-size:10.5px;">Pin</div>
               </div>
               <div id="destSuggestions" class="search-results" style="display:none;"></div>
             </div>
@@ -1939,114 +2204,179 @@
               ${Object.values(TIERS).map(t => `
                 <div class="tier-item ${state.tier === t.id ? 'selected' : ''}" data-tier="${t.id}" role="button" tabindex="0">
                   <div class="tier-title">${t.name}</div>
-                  <div class="tier-fare">Rs.${calcFare(km, t.id)}</div>
+                  <div class="tier-fare">रु.${calcRecommendedFare(km, t.id)}</div>
                   <div class="tier-eta">${t.etaAdd + Math.round(km * 2)}m</div>
                 </div>
               `).join('')}
             </div>
 
             <div class="fare-row">
-              <div class="btn-cap sm" id="btnFareDown" role="button" tabindex="0">-10</div>
+              <div class="btn-cap sm ${canDecrease ? '' : 'disabled'}" id="btnFareDown" role="button" tabindex="0">-10</div>
               <div class="fare-center">
-                <span>NPR</span>
-                <input id="inFare" type="number" value="${state.fare}" min="30" step="5" />
+                <span>रु.</span>
+                <input id="inFare" type="number" value="${state.fare}" min="${minFare}" step="5" />
               </div>
               <div class="btn-cap sm" id="btnFareUp" role="button" tabindex="0">+10</div>
               <div class="chip active" id="btnPaySwitch" role="button" tabindex="0">${state.payMode}</div>
             </div>
 
-            <div class="btn-cap primary full" id="btnBookNow" role="button" tabindex="0">Request Ride • NPR ${state.fare}</div>
+            <div class="btn-cap primary full" id="btnBookNow" role="button" tabindex="0">Request Ride • रु.${state.fare}</div>
           `;
 
           updateDynamicListsOnly();
 
-          document.getElementById('btnUseGpsPickup')?.addEventListener('click', () => {
-            state.pickup = { lat: state.myGps.lat, lng: state.myGps.lng, label: 'Current Live GPS', manual: false };
-            fetchRoadRoute().then(() => {
-              syncMapGraphics();
-              renderConsole(true);
-            });
-            toast('Pickup set to live GPS');
+          // Snap Pickup back to Live Hardware GPS
+          document.getElementById('btnUseGpsPickup')?.addEventListener('click', async () => {
+            state.pickup.manual = false;
+            if ('geolocation' in navigator) {
+              navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                  const { latitude, longitude, accuracy } = pos.coords;
+                  applyMyGps(latitude, longitude, 0, 0, accuracy ? Math.round(accuracy) : null, 'hardware');
+                  const label = await reverseGeocode(latitude, longitude);
+                  state.pickup = { lat: latitude, lng: longitude, label, manual: false };
+                  await fetchRoadRoute();
+                  syncMapGraphics();
+                  renderConsole(true);
+                  if (map) map.flyTo([latitude, longitude], 16);
+                  toast('Pickup synced to live GPS');
+                },
+                () => toast('GPS unavailable — drag green Pickup pin on map'),
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+              );
+            }
           });
 
-          // Live Debounced Autocomplete for Destination
-          let searchDebounce = null;
-          const destInput = document.getElementById('inDropoff');
-          const suggBox = document.getElementById('destSuggestions');
+          document.getElementById('btnPinDropToggle')?.addEventListener('click', () => {
+            state.pinMode = 'dropoff';
+            document.getElementById('pinModeLabel').textContent = 'Pin: Destination';
+            toast('Tap anywhere on map to place Destination pin');
+          });
 
-          const selectDestination = async (place) => {
-            state.dropoff = { lat: place.lat, lng: place.lng, label: place.title };
-            suggBox.style.display = 'none';
-            await fetchRoadRoute();
-            syncMapGraphics();
-            renderConsole(true);
-            if (map && state.route?.coords) {
-              map.fitBounds(L.latLngBounds(state.route.coords), { padding: [50, 50] });
-            }
-          };
+          // Live Autocomplete for Pickup
+          let pickupDebounce = null;
+          const pickupInput = document.getElementById('inPickup');
+          const pickupSugg = document.getElementById('pickupSuggestions');
 
-          destInput?.addEventListener('input', (e) => {
+          pickupInput?.addEventListener('focus', () => {
+            state.pinMode = 'pickup';
+            document.getElementById('pinModeLabel').textContent = 'Pin: Pickup';
+          });
+
+          pickupInput?.addEventListener('input', (e) => {
             const q = e.target.value.trim();
-            clearTimeout(searchDebounce);
+            clearTimeout(pickupDebounce);
             if (q.length < 2) {
-              suggBox.style.display = 'none';
+              pickupSugg.style.display = 'none';
               return;
             }
-            searchDebounce = setTimeout(async () => {
+            pickupDebounce = setTimeout(async () => {
               const results = await searchPlaces(q);
               if (!results.length) {
-                suggBox.style.display = 'none';
+                pickupSugg.style.display = 'none';
                 return;
               }
-              suggBox.innerHTML = results.map((r, i) => `
-                <div class="search-item" data-idx="${i}">
+              pickupSugg.innerHTML = results.map((r, i) => `
+                <div class="search-item" data-pidx="${i}">
                   <strong>${r.title}</strong>
                   <span class="sub">${r.subtitle}</span>
                 </div>
               `).join('');
-              suggBox.style.display = 'flex';
-              suggBox.querySelectorAll('.search-item').forEach(item => {
-                item.addEventListener('click', () => selectDestination(results[Number(item.getAttribute('data-idx'))]));
+              pickupSugg.style.display = 'flex';
+              pickupSugg.querySelectorAll('.search-item').forEach(item => {
+                item.addEventListener('click', async () => {
+                  const chosen = results[Number(item.getAttribute('data-pidx'))];
+                  pickupSugg.style.display = 'none';
+                  await setManualPickup(chosen.lat, chosen.lng, chosen.title);
+                  if (map) map.flyTo([chosen.lat, chosen.lng], 16);
+                });
               });
-            }, 320);
+            }, 300);
           });
 
-          document.getElementById('btnFindDest')?.addEventListener('click', async () => {
-            const q = destInput.value.trim();
-            if (!q) return;
-            const results = await searchPlaces(q);
-            if (results[0]) {
-              await selectDestination(results[0]);
-            } else {
-              toast('Location not found — tap map');
+          // Live Autocomplete for Destination
+          let destDebounce = null;
+          const destInput = document.getElementById('inDropoff');
+          const destSugg = document.getElementById('destSuggestions');
+
+          destInput?.addEventListener('focus', () => {
+            state.pinMode = 'dropoff';
+            document.getElementById('pinModeLabel').textContent = 'Pin: Destination';
+          });
+
+          destInput?.addEventListener('input', (e) => {
+            const q = e.target.value.trim();
+            clearTimeout(destDebounce);
+            if (q.length < 2) {
+              destSugg.style.display = 'none';
+              return;
             }
+            destDebounce = setTimeout(async () => {
+              const results = await searchPlaces(q);
+              if (!results.length) {
+                destSugg.style.display = 'none';
+                return;
+              }
+              destSugg.innerHTML = results.map((r, i) => `
+                <div class="search-item" data-didx="${i}">
+                  <strong>${r.title}</strong>
+                  <span class="sub">${r.subtitle}</span>
+                </div>
+              `).join('');
+              destSugg.style.display = 'flex';
+              destSugg.querySelectorAll('.search-item').forEach(item => {
+                item.addEventListener('click', async () => {
+                  const chosen = results[Number(item.getAttribute('data-didx'))];
+                  destSugg.style.display = 'none';
+                  await setManualDropoff(chosen.lat, chosen.lng, chosen.title);
+                  if (map && state.route?.coords) {
+                    map.fitBounds(L.latLngBounds(state.route.coords), { padding: [50, 50] });
+                  }
+                });
+              });
+            }, 300);
           });
 
           panel.querySelectorAll('[data-tier]').forEach(el => {
             el.addEventListener('click', () => {
               state.tier = el.getAttribute('data-tier');
-              state.fare = calcFare(state.route?.km || 2.5, state.tier);
+              state.fare = calcRecommendedFare(state.route?.km || 2.5, state.tier);
               renderConsole(true);
             });
           });
 
+          // Enforce minimum recommended price (cannot bargain below minFare)
           document.getElementById('btnFareDown')?.addEventListener('click', () => {
-            state.fare = Math.max(30, Number(state.fare) - 10);
+            const floor = getCurrentMinFare();
+            if (state.fare <= floor) {
+              toast(`Minimum fare for this distance is रु.${floor}`);
+              return;
+            }
+            state.fare = Math.max(floor, Number(state.fare) - 10);
             renderConsole(true);
           });
+
           document.getElementById('btnFareUp')?.addEventListener('click', () => {
             state.fare = Number(state.fare) + 10;
             renderConsole(true);
           });
+
           document.getElementById('inFare')?.addEventListener('change', (e) => {
-            state.fare = Math.max(30, parseInt(e.target.value, 10) || 50);
+            const floor = getCurrentMinFare();
+            const entered = parseInt(e.target.value, 10) || floor;
+            if (entered < floor) {
+              toast(`Minimum fare for this distance is रु.${floor}`);
+            }
+            state.fare = Math.max(floor, entered);
             renderConsole(true);
           });
+
           document.getElementById('btnPaySwitch')?.addEventListener('click', () => {
             const list = ['Cash', 'eSewa', 'RBB QR'];
             state.payMode = list[(list.indexOf(state.payMode) + 1) % list.length];
             renderConsole(true);
           });
+
           document.getElementById('btnBookNow')?.addEventListener('click', requestRide);
           return;
         }
@@ -2070,16 +2400,19 @@
               </div>
             `;
           } else if (ride.status === 'in_progress') {
-            ctrl = `<div class="btn-cap primary full" id="btnActDone" role="button" tabindex="0">Complete Trip • NPR ${ride.fareNPR}</div>`;
+            ctrl = `<div class="btn-cap primary full" id="btnActDone" role="button" tabindex="0">Complete Trip • रु.${ride.fareNPR}</div>`;
           }
 
           panel.innerHTML = `
             <div class="row-between">
               <div class="tag emerald">${ride.status.replace('_', ' ').toUpperCase()}</div>
-              <div style="font-family:var(--font-mono);font-size:14px;font-weight:800;color:var(--accent);">NPR ${ride.fareNPR}</div>
+              <div style="font-family:var(--font-mono);font-size:15px;font-weight:800;color:var(--accent);">रु.${ride.fareNPR}</div>
             </div>
             <div class="data-card">
-              <div style="font-size:13.5px;font-weight:800;">${ride.passenger?.fullName} • ${ride.passenger?.phone}</div>
+              <div class="row-between">
+                <div style="font-size:13.5px;font-weight:800;">${ride.passenger?.fullName}</div>
+                ${ride.passenger?.phone ? `<a class="btn-cap emerald sm" href="tel:${ride.passenger.phone}">Call Passenger</a>` : ''}
+              </div>
               <div style="font-size:11.5px;color:var(--text-secondary);">
                 Pickup: <strong style="color:var(--text-primary);">${ride.pickup.label}</strong><br/>
                 Drop: <strong style="color:var(--accent);">${ride.dropoff.label}</strong> (${ride.distanceKm} km)
@@ -2124,17 +2457,34 @@
       // =========================================================================
       function bindUIEvents() {
         document.getElementById('toolLocate').addEventListener('click', () => {
-          if (map) map.flyTo([state.myGps.lat, state.myGps.lng], 16);
-          toast('Centered on GPS');
+          state.myGps.source = 'hardware';
+          if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                const { latitude, longitude, accuracy } = pos.coords;
+                applyMyGps(latitude, longitude, 0, 0, accuracy ? Math.round(accuracy) : null, 'hardware');
+                if (map) map.flyTo([latitude, longitude], 16);
+                toast('Synced to hardware GPS');
+              },
+              () => {
+                if (map) map.flyTo([state.myGps.lat, state.myGps.lng], 16);
+                toast('GPS unavailable — drag YOU pin to set location');
+              },
+              { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+            );
+          }
         });
 
-        document.getElementById('toolSim').addEventListener('click', toggleSimulator);
-
         document.getElementById('toolPinMode').addEventListener('click', () => {
-          const modes = ['dropoff', 'pickup', 'gps'];
-          const names = { dropoff: 'Map Tap: Destination', pickup: 'Map Tap: Pickup', gps: 'Map Tap: Move GPS' };
+          const modes = ['dropoff', 'pickup', 'mygps'];
+          const labels = {
+            dropoff: 'Pin: Destination',
+            pickup: 'Pin: Pickup',
+            mygps: 'Pin: My GPS'
+          };
           state.pinMode = modes[(modes.indexOf(state.pinMode) + 1) % modes.length];
-          toast(names[state.pinMode]);
+          document.getElementById('pinModeLabel').textContent = labels[state.pinMode];
+          toast(`Tap map to set ${labels[state.pinMode].replace('Pin: ', '')}`);
         });
 
         document.getElementById('btnAccount').addEventListener('click', () => {
@@ -2216,7 +2566,7 @@
         initMap();
         bindUIEvents();
         bindRealtimeStreams();
-        startGpsWatcher();
+        startLiveGpsEngine();
         renderConsole(true);
 
         if (!state.user) {
